@@ -11,6 +11,6 @@ export const EDIT_PENCIL = edit_pencil;
 import play from "./zondicons/play.svg";
 export const PLAY = play;
 
-const Svg = ({ src }) => src({ height: "1em", fill: "#f8f9fa" });
+const Svg = ({ src, height = "1em" }) => src({ height, fill: "#f8f9fa" });
 
 export default Svg;

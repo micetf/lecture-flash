@@ -2,109 +2,33 @@ body {
     margin-top: 70px;
 }
 
-.logo-micetf {
-    transform: rotate(-15deg);
-}
-
 @keyframes masqued {
     from {
-        background:linear-gradient(to right, #fff 0%, rgba(255,255,255,0) 100%);
+        width:0;
     }
     to {
-        background:linear-gradient(to right, #fff 100%, rgba(255,255,255,0) 0%);
-    }
-    
+        width:calc(100% + 3px);
+        border: none;
+    }  
 }
+
 .texte {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 2.5em;
     text-align: justify;
 }
 
-.m50, 
-.m60,
-.m70,
-.m80,
-.m90,
-.m100,
-.m110,
-.m120,
-.m130,
-.m140,
-.m150 {
+.mot > span {
     position: relative;
-    box-sizing:border-box;
 }
 
-.m50::after, 
-.m60::after, 
-.m70::after, 
-.m80::after, 
-.m90::after, 
-.m100::after, 
-.m110::after, 
-.m120::after, 
-.m130::after, 
-.m140::after, 
-.m150::after {
-    content: '';
+.masque {
     position:absolute;
     top: 0px; left: 0px;bottom:0px;right:0px;
+    border-right:.05em solid black;
     height:100%;
-    width:calc(100% + 1px);
-}
-.m50::after {
-    animation: calc(6000ms/5) masqued ease-in-out;
+    animation: masqued linear;
     animation-fill-mode: forwards;
     animation-iteration-count: 1;
-}
-.m60::after {
-    animation: calc(6000ms/6) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m70::after {
-    animation: calc(6000ms/7) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m80::after {
-    animation: calc(6000ms/8) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m90::after {
-    animation: calc(6000ms/9) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m100::after {
-    animation: calc(6000ms/10) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m110::after {
-    animation: calc(6000ms/11) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m120::after {
-    animation: calc(6000ms/12) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m130::after {
-    animation: calc(6000ms/13) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m140::after {
-    animation: calc(6000ms/14) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
-}
-.m150::after {
-    animation: calc(6000ms/15) masqued ease-in-out;
-    animation-fill-mode: forwards;
-    animation-iteration-count: 1;
+    background-color: #fff;
 }

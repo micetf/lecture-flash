@@ -2,17 +2,13 @@ import React, { useState } from "react";
 
 import Input from "./Input";
 import Flash from "./Flash";
+import initialState from "./initialState";
 
 function Tool() {
-    const [state, setState] = useState({
-        mode: "input",
-        mclm: 50,
-        texte:
-            "Il était une fois un ogre, un vrai géant, qui vivait tout seul. Comme la plupart des ogres, il avait des dents pointues, une barbe piquante, un nez énorme et un grand couteau. Il était toujours de mauvaise humeur et avait toujours faim. Ce qu’il aimait le plus au monde, c’était de manger des enfants à son petit déjeuner. Chaque jour, l’ogre venait en ville et attrapait quelques enfants.",
-    });
+    const [state, setState] = useState(initialState);
 
-    const switchFlash = mclm => {
-        setState({ ...state, mode: "flash", mclm });
+    const switchFlash = mlm => {
+        setState({ ...state, mode: "flash", mlm });
     };
     const switchInput = () => {
         setState({ ...state, mode: "input" });

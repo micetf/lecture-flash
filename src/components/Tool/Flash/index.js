@@ -1,24 +1,29 @@
 import React, { useState } from "react";
 
 import Mot from "./Mot";
-
 import Svg, { EDIT_PENCIL, PLAY } from "../../Svg";
+
+const ESPACE_INSECABLE = "\u00a0";
+const TIRET_INSECABLE = "\u2011";
+
 const specialsBeforeIn = /(^-|«|') +/g;
 const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-const Flash = ({ texte, mclm, onSwitchInput }) => {
+const Flash = ({ texte, mlm, onSwitchInput }) => {
     const [idMot, setIdMot] = useState(undefined);
-    const mots = texte
+    const textePurify = texte
         .trim()
         .replace(/’/g, "'")
         .replace(/ +/g, " ")
         .replace(/\n+/g, " ")
         .replace(specialsAfterIn, "$1")
-        .replace(specialsBeforeIn, "$1")
-        .split(" ");
+        .replace(specialsBeforeIn, "$1");
+    const mots = textePurify.split(" ");
     const nbreMots = mots.length;
+    const nbreCaracteres = textePurify.length;
+    const speed = Math.floor(((nbreMots / mlm) * 60000) / nbreCaracteres) - 10;
 
     const switchInput = e => {
         e.preventDefault();
@@ -29,7 +34,7 @@ const Flash = ({ texte, mclm, onSwitchInput }) => {
         setIdMot(0);
     };
     const suivant = () => {
-        idMot === mots.length - 1 ? onSwitchInput() : setIdMot(idMot + 1);
+        idMot === nbreMots - 1 ? onSwitchInput() : setIdMot(idMot + 1);
     };
     return (
         <div className="container">
@@ -43,23 +48,25 @@ const Flash = ({ texte, mclm, onSwitchInput }) => {
                 </button>
                 {idMot === undefined && (
                     <button className="btn btn-success" onClick={start}>
-                        <Svg src={PLAY} /> Commmencer la lecture à {mclm} MLM
+                        <Svg src={PLAY} /> Commmencer la lecture à environ {mlm}{" "}
+                        MLM
                     </button>
                 )}
             </div>
             <p className="texte border border-secondary p-3">
                 {mots.map((mot, index) => {
                     const motClean = mot
-                        .replace(specialsAfterOut, "\u00a0$1")
-                        .replace(specialsBeforeOut, "$1 ");
+                        .replace(specialsAfterOut, `${ESPACE_INSECABLE}$1`)
+                        .replace(specialsBeforeOut, `$1${ESPACE_INSECABLE}`)
+                        .replace(/-/g, TIRET_INSECABLE);
                     return (
                         <Mot
                             key={index}
                             mot={motClean}
-                            masque={
+                            speed={
                                 idMot !== undefined && idMot >= index
-                                    ? `m${mclm}`
-                                    : null
+                                    ? speed
+                                    : 0
                             }
                             suivant={suivant}
                         />
