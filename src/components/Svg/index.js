@@ -10,6 +10,10 @@ import edit_pencil from "./zondicons/edit-pencil.svg";
 export const EDIT_PENCIL = edit_pencil;
 import play from "./zondicons/play.svg";
 export const PLAY = play;
+import upload from "./zondicons/upload.svg";
+export const UPLOAD = upload;
+import download from "./zondicons/download.svg";
+export const DOWNLOAD = download;
 
 const Svg = ({ src, height = "1em" }) => src({ height, fill: "#f8f9fa" });
 
