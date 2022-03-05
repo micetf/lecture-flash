@@ -3,6 +3,14 @@ import React from "react";
 function Consignes() {
     return (
         <div className="alert alert-primary text-justify">
+            <div className="row mx-auto">
+                <span className="alert alert-warning mr-2">
+                    <span className="font-weight-bold">(05/03/2022) </span> Vous
+                    pouvez utiliser les boutons importer/exporter pour
+                    utiliser/conserver vos propres textes dans des fichiers sur
+                    votre ordinateur.
+                </span>
+            </div>
             <ol className="h4">
                 <li>Copiez/collez votre texte dans le cadre ci-dessous.</li>
                 <li>
