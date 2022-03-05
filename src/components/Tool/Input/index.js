@@ -6,6 +6,7 @@ import Svg, { DOWNLOAD, UPLOAD } from "../../Svg/index.js";
 
 function Input({ texte, onTexteChange, onSwitchFlash }) {
     const refInputFile = useRef(null);
+    const refTextarea = useRef(null);
 
     function handleChange(e) {
         e.preventDefault();
@@ -30,6 +31,19 @@ function Input({ texte, onTexteChange, onSwitchFlash }) {
             }
         });
     }
+    function handleClickExport(e) {
+        e.preventDefault();
+        const element = document.createElement("a");
+        element.setAttribute(
+            "href",
+            "data:text/plain;charset=utf-8, " +
+                encodeURIComponent(refTextarea.current.value.trim())
+        );
+        element.setAttribute("download", "lecture-flach.txt");
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
     return (
         <div className="form-group text-center">
             <Consignes />
@@ -51,12 +65,14 @@ function Input({ texte, onTexteChange, onSwitchFlash }) {
                 <button
                     className="btn btn-primary"
                     title="Enregistrer le texte ci-dessous sur votre ordinateur."
+                    onClick={handleClickExport}
                 >
                     <span className="mr-1">Exporter</span>
                     <Svg src={DOWNLOAD} />
                 </button>
             </div>
             <textarea
+                ref={refTextarea}
                 className="form-control border border-primary"
                 rows="20"
                 onChange={handleChange}
