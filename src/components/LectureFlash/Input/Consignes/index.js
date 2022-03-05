@@ -3,16 +3,33 @@ import React from "react";
 function Consignes() {
     return (
         <div className="alert alert-primary text-justify">
-            <div className="row mx-auto">
-                <span className="alert alert-warning mr-2">
-                    <span className="font-weight-bold">(05/03/2022) </span> Vous
-                    pouvez utiliser les boutons importer/exporter pour
-                    utiliser/conserver vos propres textes dans des fichiers sur
-                    votre ordinateur.
-                </span>
-            </div>
-            <ol className="h4">
-                <li>Copiez/collez votre texte dans le cadre ci-dessous.</li>
+            <ol className="h5">
+                <li>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        title="Cliquez sur le bouton Importer."
+                    >
+                        Importez
+                    </button>{" "}
+                    un fichier au format texte (.txt) ou copiez/collez votre
+                    texte dans le cadre ci-dessous
+                </li>
+                <li>
+                    Si vous avez copiez/collez votre texte, vous pouvez l'
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        data-toggle="tooltip"
+                        data-placement="bottom"
+                        title="Cliquez sur le bouton Enregistrer."
+                    >
+                        enregistrer
+                    </button>{" "}
+                    sur votre ordinateur dans un fichier au format texte (.txt).
+                </li>
                 <li>
                     Choisissez le type de lecture : lecture à voix haute ou
                     lecture silencieuse.

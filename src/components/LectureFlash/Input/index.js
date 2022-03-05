@@ -20,7 +20,7 @@ function Input({ texte, changeTexte, switchMode }) {
             <ImportExport texte={texte} changeTexte={changeTexte} />
             <textarea
                 className="form-control border border-primary"
-                rows="15"
+                rows="17"
                 onChange={handleChange}
                 value={texte}
                 placeholder="Écrivez ou collez le texte ici."
