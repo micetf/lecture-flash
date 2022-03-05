@@ -7,7 +7,7 @@ import Contact from "./Navbar/Contact";
 import Paypal from "./Navbar/Paypal";
 import Tools from "./Navbar/Tools";
 
-import Tool from "./Tool";
+import LectureFlash from "./LectureFlash";
 
 const App = () => {
     const path = "https://micetf.fr";
@@ -24,7 +24,7 @@ const App = () => {
                     <Contact tool={tool} />,
                 ]}
             />
-            <Tool />
+            <LectureFlash />
         </>
     );
 };

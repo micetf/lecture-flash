@@ -11,7 +11,7 @@ const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-const Flash = ({ texte, mlm, onSwitchInput }) => {
+const Flash = ({ texte, vitesse, switchMode }) => {
     const [idMot, setIdMot] = useState(undefined);
     const textePurify = texte
         .trim()
@@ -23,33 +23,37 @@ const Flash = ({ texte, mlm, onSwitchInput }) => {
     const mots = textePurify.split(" ");
     const nbreMots = mots.length;
     const nbreCaracteres = textePurify.length;
-    const speed = Math.floor(((nbreMots / mlm) * 60000) / nbreCaracteres) - 10;
+    const speed =
+        Math.floor(((nbreMots / vitesse) * 60000) / nbreCaracteres) - 10;
 
-    const switchInput = e => {
+    const handleClickSwitch = (e) => {
         e.preventDefault();
-        onSwitchInput();
+        switchMode();
     };
-    const start = e => {
+    const handleClickStart = (e) => {
         e.preventDefault();
         setIdMot(0);
     };
     const suivant = () => {
-        idMot === nbreMots - 1 ? onSwitchInput() : setIdMot(idMot + 1);
+        idMot === nbreMots - 1 ? switchMode() : setIdMot(idMot + 1);
     };
     return (
         <div className="container">
             <div className="btn-group my-2">
                 <button
                     className="btn btn-primary mr-2"
-                    onClick={switchInput}
+                    onClick={handleClickSwitch}
                     title="Modifier le texte ou la vitesse de lecture."
                 >
                     <Svg src={EDIT_PENCIL} />
                 </button>
                 {idMot === undefined && (
-                    <button className="btn btn-success" onClick={start}>
-                        <Svg src={PLAY} /> Commmencer la lecture à environ {mlm}{" "}
-                        MLM
+                    <button
+                        className="btn btn-success"
+                        onClick={handleClickStart}
+                    >
+                        <Svg src={PLAY} /> Commmencer la lecture à environ{" "}
+                        {vitesse} vitesse
                     </button>
                 )}
             </div>
