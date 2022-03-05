@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useRef } from "react";
 
 import Consignes from "./Consignes";
 import Choix from "./Choix";
 import Svg, { DOWNLOAD, UPLOAD } from "../../Svg/index.js";
 
 function Input({ texte, onTexteChange, onSwitchFlash }) {
+    const refInputFile = useRef(null);
+
     function handleChange(e) {
         e.preventDefault();
         onTexteChange(e.target.value);
@@ -13,6 +15,21 @@ function Input({ texte, onTexteChange, onSwitchFlash }) {
         e.preventDefault();
         onSwitchFlash(n);
     };
+    function handleClickImport(e) {
+        e.preventDefault();
+        refInputFile.current.click();
+        refInputFile.current.addEventListener("change", (e) => {
+            e.preventDefault();
+            const files = e.target.files;
+            if (files && files[0].type.match("text/plain")) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    onTexteChange(event.target.result);
+                };
+                reader.readAsText(files[0]);
+            }
+        });
+    }
     return (
         <div className="form-group text-center">
             <Consignes />
@@ -21,6 +38,7 @@ function Input({ texte, onTexteChange, onSwitchFlash }) {
                 <button
                     className="btn btn-primary"
                     title="Importer un texte enregistré sur votre ordinateur."
+                    onClick={handleClickImport}
                 >
                     <span className="mr-1">Importer</span>
                     <Svg src={UPLOAD} />
@@ -28,7 +46,7 @@ function Input({ texte, onTexteChange, onSwitchFlash }) {
                 <input
                     className="form-control invisible"
                     type="file"
-                    id="uploadText"
+                    ref={refInputFile}
                 />
                 <button
                     className="btn btn-primary"
