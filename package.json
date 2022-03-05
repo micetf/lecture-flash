@@ -1,5 +1,5 @@
 {
-    "name": "micetf-starter-kit",
+    "name": "lecture-flash",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -42,7 +42,8 @@
         "webpack-dev-server": "^3.11.0"
     },
     "browserslist": [
-        "defaults",
-        "last 2 versions"
+        "last 2 versions",
+        "> 0.5%",
+        "IE 10"
     ]
 }
