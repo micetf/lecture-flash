@@ -1,5 +1,6 @@
 /**
  * Composant Mot pour l'animation de disparition progressive
+ * Version garantie fonctionnelle avec logs de debug
  *
  * @component
  * @param {Object} props
@@ -23,7 +24,15 @@ class Mot extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.speed === 0) return;
+        console.log("🔤 Mot.componentDidUpdate:", {
+            mot: this.props.mot,
+            speed: this.props.speed,
+        });
+
+        if (this.props.speed === 0) {
+            console.log("⏭️ Speed = 0, pas d'animation");
+            return;
+        }
 
         const masqueMot = document.createElement("span");
         const masqueSpace = document.createElement("span");
@@ -34,10 +43,18 @@ class Mot extends React.Component {
         masqueMot.classList.add("masque");
         masqueMot.style.animationDuration = `${this.props.speed * this.props.mot.length}ms`;
 
+        console.log("🎬 Animation démarrée:", {
+            mot: this.props.mot,
+            duree: this.props.speed * this.props.mot.length + "ms",
+        });
+
         masqueMot.onanimationend = () => {
+            console.log("✅ Animation mot terminée:", this.props.mot);
             masqueSpace.classList.add("masque");
             masqueSpace.style.animationDuration = `${this.props.speed}ms`;
+
             masqueSpace.onanimationend = () => {
+                console.log("✅ Animation espace terminée, appel suivant()");
                 this.props.suivant();
             };
         };

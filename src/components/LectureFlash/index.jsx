@@ -1,6 +1,6 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION MISE À JOUR - Avec TextInputManager intégré
+ * VERSION VÉRIFIÉE - Utilise FlashAmelioreTest
  *
  * @component
  * @returns {JSX.Element}
@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from "react";
 
 import Input from "./Input";
-import Flash from "./Flash";
+import FlashAmelioreTest from "./Flash/FlashAmelioreTest"; // ← IMPORTANT : FlashAmelioreTest, pas Flash
 import initialState from "./initialState";
 import { mode } from "./parametres.js";
 
@@ -45,6 +45,7 @@ function LectureFlash() {
      * @param {number} vitesse - Vitesse de lecture (mots/minute)
      */
     const switchModeLecture = (vitesse) => {
+        console.log("📖 Passage en mode LECTURE avec vitesse :", vitesse); // Debug
         setState({ ...state, mode: mode.LECTURE, vitesse });
     };
 
@@ -52,6 +53,7 @@ function LectureFlash() {
      * Revient en mode saisie
      */
     const switchModeSaisie = () => {
+        console.log("✏️ Retour en mode SAISIE"); // Debug
         setState({ ...state, mode: mode.SAISIE });
     };
 
@@ -80,8 +82,10 @@ function LectureFlash() {
     // RENDU
     // ========================================
 
+    console.log("🔍 État actuel :", state); // Debug - voir l'état complet
+
     return (
-        <div className="container">
+        <div className="container mx-auto px-4 py-6">
             {state.mode === mode.SAISIE ? (
                 /* ========================================
                     MODE SAISIE : Input avec TextInputManager
@@ -89,7 +93,7 @@ function LectureFlash() {
                 <Input
                     texte={state.texte}
                     changeTexte={changeTexte}
-                    switchMode={switchModeLecture}
+                    switchMode={switchModeLecture} // ← Passe la fonction
                     onUrlSubmit={loadMarkdownFromUrl}
                     loading={loading}
                     error={error}
@@ -98,9 +102,13 @@ function LectureFlash() {
                 />
             ) : (
                 /* ========================================
-                    MODE LECTURE : Flash inchangé
+                    MODE LECTURE : FlashAmelioreTest
                 ======================================== */
-                <Flash {...state} switchMode={switchModeSaisie} />
+                <FlashAmelioreTest
+                    texte={state.texte}
+                    vitesse={state.vitesse}
+                    switchMode={switchModeSaisie}
+                />
             )}
         </div>
     );
