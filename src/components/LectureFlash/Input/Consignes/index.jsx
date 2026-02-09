@@ -1,15 +1,19 @@
+/**
+ * Composant affichant les consignes d'utilisation
+ *
+ * @component
+ */
+
 import React from "react";
 
 function Consignes() {
     return (
-        <div className="alert alert-primary text-start">
-            <ol className="h5">
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded text-left">
+            <ol className="text-lg space-y-3 list-decimal list-inside">
                 <li>
                     <button
                         type="button"
-                        className="btn btn-secondary"
-                        data-toggle="tooltip"
-                        data-placement="bottom"
+                        className="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white rounded hover:bg-gray-700 transition font-medium text-sm"
                         title="Cliquez sur le bouton Importer."
                     >
                         Importez
@@ -18,16 +22,14 @@ function Consignes() {
                     texte dans le cadre ci-dessous
                 </li>
                 <li>
-                    Si vous avez copiez/collez votre texte, vous pouvez l'
+                    Si vous avez copié/collé votre texte, vous pouvez l'
                     <button
                         type="button"
-                        className="btn btn-secondary"
-                        data-toggle="tooltip"
-                        data-placement="bottom"
+                        className="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white rounded hover:bg-gray-700 transition font-medium text-sm mx-1"
                         title="Cliquez sur le bouton Enregistrer."
                     >
                         enregistrer
-                    </button>{" "}
+                    </button>
                     sur votre ordinateur dans un fichier au format texte (.txt).
                 </li>
                 <li>
@@ -39,23 +41,29 @@ function Consignes() {
                     en MLM (en mots lus par minute) au survol des boutons.
                 </li>
             </ol>
-            <ul className="h4 list-group">
-                <li className="list-group-item">
+
+            <div className="mt-4 bg-white border border-blue-200 rounded p-4">
+                <p className="text-lg font-medium text-blue-900">
                     Vous passerez alors en mode lecture flash : une fois la
                     lecture commencée, le texte s'effacera progressivement à la
                     vitesse choisie.
-                </li>
-            </ul>
-            <p className="font-italic">
+                </p>
+            </div>
+
+            <p className="mt-4 text-sm italic text-gray-700">
                 D'après un article de{" "}
                 <a
                     href="https://twitter.com/ptitejulie89"
                     title="Julie Meunier"
+                    className="text-blue-600 hover:underline"
                 >
                     @petitejulie89
                 </a>{" "}
                 -{" "}
-                <a href="http://www.ecoledejulie.fr/fluence-le-texte-qui-s-efface-a207401800">
+                <a
+                    href="http://www.ecoledejulie.fr/fluence-le-texte-qui-s-efface-a207401800"
+                    className="text-blue-600 hover:underline"
+                >
                     Fluence : le texte qui s'efface
                 </a>
                 . (Version LibreOffice Impress ou MS PowerPoint de l'outil).

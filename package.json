@@ -1,51 +1,31 @@
 {
     "name": "lecture-flash",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "Application éducative de lecture flash pour le primaire",
+    "type": "module",
     "scripts": {
-        "start": "webpack-dev-server --mode=development",
-        "build": "webpack --mode=production"
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
     },
-    "keywords": [],
+    "keywords": [
+        "education",
+        "lecture",
+        "primaire"
+    ],
     "author": "Frédéric MISERY <webmaster@micetf.fr> (https://micetf.fr/)",
     "license": "MIT",
     "dependencies": {
-        "bootstrap": "^5.3.3",
-        "jquery": "^3.7.1",
-        "popper.js": "^1.16.1",
         "prop-types": "^15.8.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.24.4",
-        "@babel/preset-env": "^7.24.4",
-        "@babel/preset-react": "^7.24.1",
-        "@svgr/webpack": "^8.1.0",
-        "autoprefixer": "^10.4.19",
-        "babel-loader": "^9.1.3",
-        "clean-webpack-plugin": "^4.0.0",
-        "css-loader": "^7.1.1",
-        "file-loader": "^6.2.0",
-        "html-webpack-plugin": "^5.6.0",
-        "img-loader": "^4.0.0",
-        "mini-css-extract-plugin": "^2.8.1",
-        "node-sass": "^9.0.0",
-        "optimize-css-assets-webpack-plugin": "^6.0.1",
-        "postcss-loader": "^8.1.1",
-        "postcss-preset-env": "^9.5.4",
-        "sass-loader": "^14.1.1",
-        "style-loader": "^4.0.0",
-        "url-loader": "^4.1.1",
-        "webpack": "^5.91.0",
-        "webpack-bundle-analyzer": "^4.10.1",
-        "webpack-cli": "^5.1.4",
-        "webpack-dev-server": "^5.0.4"
-    },
-    "browserslist": [
-        "last 2 versions",
-        "> 0.5%",
-        "IE 10"
-    ]
+        "@vitejs/plugin-react": "^4.3.4",
+        "autoprefixer": "^10.4.20",
+        "postcss": "^8.4.49",
+        "tailwindcss": "^3.4.17",
+        "vite": "^6.0.7",
+        "vite-plugin-svgr": "^4.3.0"
+    }
 }

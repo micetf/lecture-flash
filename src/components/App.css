@@ -35,3 +35,16 @@ body {
     animation-iteration-count: 1;
     background-color: #fff;
 }
+
+/* Styles pour le sélecteur de vitesse */
+.reading-speed-selector .btn {
+    border-radius: 8px;
+}
+
+.reading-speed-selector .btn:hover {
+    transform: scale(1.02);
+}
+
+.reading-speed-selector .gap-2 > * {
+    margin: 0.25rem;
+}

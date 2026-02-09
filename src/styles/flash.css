@@ -1,0 +1,28 @@
+/**
+ * Animations pour le composant Flash
+ */
+@keyframes masquer {
+    from {
+        background-color: transparent;
+    }
+    to {
+        background-color: white;
+    }
+}
+
+.masque {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation-name: masquer;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+}
+
+.mot {
+    position: relative;
+    display: inline;
+    white-space: pre-wrap;
+}

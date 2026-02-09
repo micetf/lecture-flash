@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
-
 /**
  * Hook personnalisé pour charger et gérer des fichiers Markdown depuis une URL cloud
  * Compatible avec Dropbox, Nextcloud, Nuage, Google Drive, etc.
+ *
+ * @module useMarkdownFromUrl
  * @returns {Object} État et fonctions de gestion du fichier Markdown
  */
+
+import { useState, useEffect } from "react";
+
 export function useMarkdownFromUrl() {
     const [markdown, setMarkdown] = useState("");
     const [loading, setLoading] = useState(false);

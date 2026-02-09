@@ -1,11 +1,15 @@
+/**
+ * Composant pour générer et partager un lien vers l'application avec URL cloud
+ *
+ * @component
+ * @param {Object} props - Props du composant
+ * @param {string} props.cloudUrl - URL du fichier cloud
+ * @returns {JSX.Element|null} Composant de partage ou null
+ */
+
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-/**
- * Composant pour générer et partager un lien vers l'application avec URL cloud
- * @param {Object} props - Props du composant
- * @param {string} props.cloudUrl - URL du fichier cloud
- */
 export function ShareCloudLink({ cloudUrl }) {
     const [copied, setCopied] = useState(false);
 
@@ -31,7 +35,6 @@ export function ShareCloudLink({ cloudUrl }) {
             setTimeout(() => setCopied(false), 3000);
         } catch (error) {
             console.error("Erreur lors de la copie:", error);
-            // Fallback pour les navigateurs plus anciens
             fallbackCopy(shareUrl);
         }
     };
@@ -47,6 +50,7 @@ export function ShareCloudLink({ cloudUrl }) {
         textArea.style.opacity = "0";
         document.body.appendChild(textArea);
         textArea.select();
+
         try {
             document.execCommand("copy");
             setCopied(true);
@@ -54,37 +58,47 @@ export function ShareCloudLink({ cloudUrl }) {
         } catch (err) {
             console.error("Erreur lors de la copie de secours:", err);
         }
+
         document.body.removeChild(textArea);
     };
 
     if (!cloudUrl) return null;
 
     return (
-        <div className="alert alert-success mb-4">
-            <h5 className="alert-heading">✅ Texte chargé avec succès !</h5>
-            <p>
+        <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
+            <h5 className="text-lg font-semibold text-green-900 mb-2">
+                ✅ Texte chargé avec succès !
+            </h5>
+            <p className="text-green-800 mb-3">
                 Partagez ce lien pour que vos élèves voient directement ce texte
                 :
             </p>
-            <div className="input-group">
+
+            {/* Input avec bouton de copie */}
+            <div className="flex gap-2 mb-3">
                 <input
                     type="text"
-                    className="form-control font-monospace small"
+                    className="flex-1 px-3 py-2 font-mono text-sm bg-white border border-green-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
                     value={shareUrl}
                     readOnly
                     onClick={(e) => e.target.select()}
                 />
                 <button
-                    className={`btn ${
-                        copied ? "btn-success" : "btn-outline-success"
+                    className={`px-4 py-2 rounded font-medium transition ${
+                        copied
+                            ? "bg-green-600 text-white"
+                            : "bg-white text-green-600 border border-green-600 hover:bg-green-50"
                     }`}
                     onClick={copyToClipboard}
                 >
                     {copied ? "✓ Copié !" : "Copier"}
                 </button>
             </div>
-            <hr />
-            <p className="mb-0 small">
+
+            <hr className="border-green-300 my-3" />
+
+            {/* Astuce */}
+            <p className="text-sm text-green-800 mb-0">
                 💡 <strong>Astuce :</strong> Si vous modifiez le fichier sur
                 votre cloud, le lien restera valide !
             </p>
