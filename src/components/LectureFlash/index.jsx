@@ -1,3 +1,11 @@
+/**
+ * Composant principal de l'application Lecture Flash
+ * VERSION MISE À JOUR - Avec TextInputManager intégré
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
+
 import React, { useState, useEffect } from "react";
 
 import Input from "./Input";
@@ -5,27 +13,22 @@ import Flash from "./Flash";
 import initialState from "./initialState";
 import { mode } from "./parametres.js";
 
-// ========================================
-// IMPORTS CORRIGÉS - Sans extension .jsx
-// ========================================
-import { CloudUrlInput } from "../CloudUrlInput";
-import { ShareCloudLink } from "../ShareCloudLink";
 import { useMarkdownFromUrl } from "../../hooks/useMarkdownFromUrl";
 
 function LectureFlash() {
     // ========================================
-    // STATE EXISTANT
+    // STATE DE L'APPLICATION
     // ========================================
     const [state, setState] = useState(initialState);
 
     // ========================================
-    // NOUVEAU : Hook pour le chargement cloud
+    // HOOK POUR LE CHARGEMENT CLOUD
     // ========================================
     const { markdown, loading, error, sourceUrl, loadMarkdownFromUrl, reset } =
         useMarkdownFromUrl();
 
     // ========================================
-    // NOUVEAU : Effet pour mettre à jour le texte quand markdown est chargé
+    // EFFET : Mise à jour du texte quand markdown est chargé
     // ========================================
     useEffect(() => {
         if (markdown) {
@@ -34,73 +37,68 @@ function LectureFlash() {
     }, [markdown]);
 
     // ========================================
-    // FONCTIONS EXISTANTES
+    // GESTION DES MODES
     // ========================================
+
+    /**
+     * Passe en mode lecture avec la vitesse choisie
+     * @param {number} vitesse - Vitesse de lecture (mots/minute)
+     */
     const switchModeLecture = (vitesse) => {
         setState({ ...state, mode: mode.LECTURE, vitesse });
     };
 
+    /**
+     * Revient en mode saisie
+     */
     const switchModeSaisie = () => {
         setState({ ...state, mode: mode.SAISIE });
     };
 
+    // ========================================
+    // GESTION DU TEXTE
+    // ========================================
+
+    /**
+     * Met à jour le texte
+     * @param {string} texte - Nouveau texte
+     */
     const changeTexte = (texte) => {
         setState({ ...state, texte });
     };
 
-    // ========================================
-    // NOUVELLE FONCTION : Réinitialisation
-    // ========================================
+    /**
+     * Réinitialise l'application (supprime texte cloud)
+     */
     const handleReset = () => {
         setState(initialState);
         reset();
         window.history.pushState({}, "", window.location.pathname);
     };
 
+    // ========================================
+    // RENDU
+    // ========================================
+
     return (
         <div className="container">
-            {/* ========================================
-                MODE SAISIE : Afficher Input avec les nouveaux composants
-            ======================================== */}
             {state.mode === mode.SAISIE ? (
-                <>
-                    {/* Composant de chargement cloud */}
-                    <CloudUrlInput
-                        onUrlSubmit={loadMarkdownFromUrl}
-                        loading={loading}
-                        error={error}
-                    />
-
-                    {/* Lien de partage si fichier chargé */}
-                    {sourceUrl && markdown && (
-                        <ShareCloudLink cloudUrl={sourceUrl} />
-                    )}
-
-                    {/* Badge indicateur si texte chargé depuis le cloud */}
-                    {sourceUrl && (
-                        <div className="alert alert-info d-flex justify-content-between align-items-center mb-3">
-                            <span>
-                                <strong>☁️ Texte chargé depuis le cloud</strong>
-                            </span>
-                            <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={handleReset}
-                            >
-                                Réinitialiser
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Composant Input existant */}
-                    <Input
-                        texte={state.texte}
-                        changeTexte={changeTexte}
-                        switchMode={switchModeLecture}
-                    />
-                </>
+                /* ========================================
+                    MODE SAISIE : Input avec TextInputManager
+                ======================================== */
+                <Input
+                    texte={state.texte}
+                    changeTexte={changeTexte}
+                    switchMode={switchModeLecture}
+                    onUrlSubmit={loadMarkdownFromUrl}
+                    loading={loading}
+                    error={error}
+                    sourceUrl={sourceUrl}
+                    onReset={handleReset}
+                />
             ) : (
                 /* ========================================
-                    MODE LECTURE : Afficher Flash (inchangé)
+                    MODE LECTURE : Flash inchangé
                 ======================================== */
                 <Flash {...state} switchMode={switchModeSaisie} />
             )}

@@ -1,18 +1,19 @@
 import React from "react";
+import PropTypes from "prop-types";
 import Consignes from "./Consignes";
-import Choix from "./Choix"; // Ancien système
-import ImportExport from "./ImportExport";
-import ReadingSpeedSelector from "../../ReadingSpeedSelector"; // Nouveau système
+import ReadingSpeedSelector from "../../ReadingSpeedSelector";
+import TextInputManager from "./TextInputManager";
 
-function Input({ texte, changeTexte, switchMode }) {
-    // Flag pour basculer entre ancien et nouveau sélecteur
-    const USE_NEW_SPEED_SELECTOR = true;
-
-    function handleChange(e) {
-        e.preventDefault();
-        changeTexte(e.target.value);
-    }
-
+function Input({
+    texte,
+    changeTexte,
+    switchMode,
+    onUrlSubmit, // ✅ Nouveau prop
+    loading, // ✅ Nouveau prop
+    error, // ✅ Nouveau prop
+    sourceUrl, // ✅ Nouveau prop
+    onReset, // ✅ Nouveau prop
+}) {
     const switchFlash = (vitesse) => {
         switchMode(vitesse);
     };
@@ -21,27 +22,34 @@ function Input({ texte, changeTexte, switchMode }) {
         <div className="form-group text-center">
             <Consignes />
 
-            {/* Rendu conditionnel : nouveau ou ancien sélecteur */}
-            {USE_NEW_SPEED_SELECTOR ? (
-                <ReadingSpeedSelector
-                    onSpeedChange={switchFlash}
-                    defaultSpeed={160}
-                />
-            ) : (
-                <Choix choisirVitesse={switchFlash} />
-            )}
+            <ReadingSpeedSelector
+                onSpeedChange={switchFlash}
+                defaultSpeed={160}
+            />
 
-            <ImportExport texte={texte} changeTexte={changeTexte} />
-
-            <textarea
-                className="form-control border border-primary w-full rounded-lg p-4 mt-4 text-lg"
-                rows="17"
-                onChange={handleChange}
-                value={texte}
-                placeholder="Écrivez ou collez le texte ici."
-            ></textarea>
+            {/* ✅ Nouveau composant unifié */}
+            <TextInputManager
+                texte={texte}
+                onTexteChange={changeTexte}
+                onUrlSubmit={onUrlSubmit}
+                loading={loading}
+                error={error}
+                sourceUrl={sourceUrl}
+                onReset={onReset}
+            />
         </div>
     );
 }
+
+Input.propTypes = {
+    texte: PropTypes.string.isRequired,
+    changeTexte: PropTypes.func.isRequired,
+    switchMode: PropTypes.func.isRequired,
+    onUrlSubmit: PropTypes.func.isRequired,
+    loading: PropTypes.bool,
+    error: PropTypes.string,
+    sourceUrl: PropTypes.string,
+    onReset: PropTypes.func,
+};
 
 export default Input;
