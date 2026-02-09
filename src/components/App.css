@@ -4,12 +4,12 @@ body {
 
 @keyframes masqued {
     from {
-        width:0;
+        width: 0;
     }
     to {
-        width:calc(100% + 3px);
+        width: calc(100% + 3px);
         border: none;
-    }  
+    }
 }
 
 .texte {
@@ -23,10 +23,13 @@ body {
 }
 
 .masque {
-    position:absolute;
-    top: 0px; left: 0px;bottom:0px;right:0px;
-    border-right:.05em solid black;
-    height:100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    border-right: 0.05em solid black;
+    height: 100%;
     animation: masqued linear;
     animation-fill-mode: forwards;
     animation-iteration-count: 1;

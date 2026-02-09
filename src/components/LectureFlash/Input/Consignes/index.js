@@ -2,7 +2,7 @@ import React from "react";
 
 function Consignes() {
     return (
-        <div className="alert alert-primary text-justify">
+        <div className="alert alert-primary text-start">
             <ol className="h5">
                 <li>
                     <button

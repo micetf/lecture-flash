@@ -1,8 +1,6 @@
 const path = require("path");
-const autoprefixer = require("autoprefixer");
 const MiniCSSExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const TesrserPlugin = require("terser-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
@@ -19,7 +17,7 @@ module.exports = (env, argv) => {
     };
 
     const devServer = {
-        contentBase: path.join(__dirname, "build"),
+        static: path.resolve(__dirname, "build"),
         compress: true,
         port: 9000,
         open: true,
@@ -27,7 +25,14 @@ module.exports = (env, argv) => {
 
     const optimization = {
         minimizer: [
-            new TesrserPlugin({ sourceMap: true }),
+            (compiler) => {
+                const TerserPlugin = require("terser-webpack-plugin");
+                new TerserPlugin({
+                    terserOptions: {
+                        compress: {},
+                    },
+                }).apply(compiler);
+            },
             new OptimizeCSSAssetsPlugin({
                 cssProcessorOptions: {
                     map: {
@@ -83,10 +88,11 @@ module.exports = (env, argv) => {
                     {
                         loader: "postcss-loader",
                         options: {
-                            plugins: [autoprefixer()],
+                            postcssOptions: {
+                                plugins: ["postcss-preset-env"],
+                            },
                         },
                     },
-                    "sass-loader",
                 ],
             },
             {

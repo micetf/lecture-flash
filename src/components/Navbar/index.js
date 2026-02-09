@@ -16,30 +16,36 @@ export default ({
 }) => {
     return (
         <nav className="navbar fixed-top navbar-expand-md navbar-dark bg-dark">
-            <a className="navbar-brand" href={path}>
-                MiCetF
-            </a>
-            <button
-                className="navbar-toggler"
-                type="button"
-                data-toggle="collapse"
-                data-target="#navbarToggle"
-                aria-controls="navbarToggle"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-            >
-                <span className="navbar-toggler-icon"></span>
-            </button>
-            <div className="collapse navbar-collapse" id="navbarToggle">
-                <span className="navbar-text text-light mr-1">
-                    <Svg src={CHEVERON_RIGHT} />
-                </span>
-                <a className="navbar-brand" href="#">
-                    {tool}
+            <div className="container-fluid">
+                <a className="navbar-brand" href={path}>
+                    MiCetF
                 </a>
-                <ul className="navbar-nav ml-2">{left.map(liRender)}</ul>
-                <ul className="navbar-nav mx-auto">{center.map(liRender)}</ul>
-                <ul className="navbar-nav ml-auto">{right.map(liRender)}</ul>
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#navbarToggle"
+                    aria-controls="navbarToggle"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span className="navbar-toggler-icon"></span>
+                </button>
+                <div className="collapse navbar-collapse" id="navbarToggle">
+                    <span className="navbar-text text-light mr-1">
+                        <Svg src={CHEVERON_RIGHT} />
+                    </span>
+                    <a className="navbar-brand" href="#">
+                        {tool}
+                    </a>
+                    <ul className="navbar-nav ml-2">{left.map(liRender)}</ul>
+                    <ul className="navbar-nav mx-auto">
+                        {center.map(liRender)}
+                    </ul>
+                    <ul className="navbar-nav ml-auto">
+                        {right.map(liRender)}
+                    </ul>
+                </div>
             </div>
         </nav>
     );

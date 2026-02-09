@@ -8,7 +8,7 @@ const vitesseButton = ({ vitesse, niveau }, choisirVitesse) => {
     }
     return (
         <button
-            className="btn btn-secondary text-light my-1 mx-1"
+            className="btn btn-secondary text-light w-100 my-1 mx-1"
             key={vitesse}
             onClick={handleClick}
             title={`Vitesse de lecture : environ ${vitesse} mots lus par minute.`}
@@ -18,8 +18,8 @@ const vitesseButton = ({ vitesse, niveau }, choisirVitesse) => {
     );
 };
 const TypeLecture = ({ choix, choisirVitesse }) => (
-    <div className="btn-group btn-block my-auto">
-        <span className="badge badge-pill badge-light my-auto">
+    <div className="btn-group d-flex">
+        <span className="badge bg-light text-dark my-auto">
             Lecture {choix.type} :
         </span>
         {choix.vitesses.map((vitesse) =>
