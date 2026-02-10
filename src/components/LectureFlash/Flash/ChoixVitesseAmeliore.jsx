@@ -1,10 +1,13 @@
 /**
  * Composant amélioré de choix de vitesse de lecture
  *
+ * VERSION AVEC TOOLTIPS : Ajout de tooltips contextuels sur chaque vitesse
+ *
  * Améliorations UX :
  * - Bouton "Tester" pour chaque vitesse
  * - Preview visuelle de la vitesse
  * - Recommandations pédagogiques par niveau
+ * - Tooltips informatifs sur chaque vitesse
  * - Design plus intuitif avec codes couleur
  *
  * @component
@@ -15,9 +18,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
+import Tooltip from "../../Tooltip"; // ← Chemin relatif depuis Flash/ vers components/Tooltip/
 
 /**
- * Configuration des vitesses avec recommandations pédagogiques
+ * Configuration des vitesses avec recommandations pédagogiques et tooltips
  * Sources : Eduscol, recherches en fluence (Sprenger-Charolles)
  */
 const VITESSES = [
@@ -28,6 +32,8 @@ const VITESSES = [
         colorClass: "bg-blue-500 hover:bg-blue-600 border-blue-600",
         niveau: "CP - début CE1",
         description: "Déchiffrage en cours d'acquisition",
+        tooltip:
+            "30 mots/min - Idéal pour les élèves en début d'apprentissage de la lecture",
     },
     {
         valeur: 50,
@@ -36,6 +42,7 @@ const VITESSES = [
         colorClass: "bg-green-500 hover:bg-green-600 border-green-600",
         niveau: "CE1",
         description: "Lecture mot à mot",
+        tooltip: "50 mots/min - Recommandé pour la lecture à voix haute en CE1",
     },
     {
         valeur: 70,
@@ -44,6 +51,8 @@ const VITESSES = [
         colorClass: "bg-yellow-500 hover:bg-yellow-600 border-yellow-600",
         niveau: "CE2",
         description: "Lecture par groupes de mots",
+        tooltip:
+            "70 mots/min - Adapté aux élèves de CE2 qui lisent par groupes de mots",
     },
     {
         valeur: 90,
@@ -52,6 +61,7 @@ const VITESSES = [
         colorClass: "bg-orange-500 hover:bg-orange-600 border-orange-600",
         niveau: "CM1-CM2",
         description: "Lecture fluide",
+        tooltip: "90 mots/min - Pour une lecture fluide en CM1-CM2",
     },
     {
         valeur: 110,
@@ -60,6 +70,7 @@ const VITESSES = [
         colorClass: "bg-red-500 hover:bg-red-600 border-red-600",
         niveau: "CM2 et +",
         description: "Lecture experte",
+        tooltip: "110 mots/min - Niveau de lecture expert, CM2 et collège",
     },
 ];
 
@@ -101,7 +112,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
         timeoutRef.current = setTimeout(() => {
             setIsTestActive(false);
             setVitesseTest(null);
-        }, 3000);
+        }, 60000);
     };
 
     /**
@@ -131,7 +142,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
     const PreviewVitesse = ({ vitesse }) => {
         const [motActuel, setMotActuel] = useState(0);
         const mots = (texte || TEXTE_DEMO).split(" ");
-        const intervalMs = 60000 / vitesse / 5; // Approximation
+        const intervalMs = 60000 / vitesse; // Approximation
 
         useEffect(() => {
             if (!isTestActive) return;
@@ -198,53 +209,54 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
                         }`}
                     >
                         <div className="flex items-center justify-between gap-4">
-                            {/* Informations de la vitesse */}
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3">
-                                    <span
-                                        className={`px-3 py-1 rounded-full text-white font-bold text-sm ${v.colorClass.split(" ")[0]}`}
-                                    >
-                                        {v.valeur} MLM
-                                    </span>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">
-                                            {v.label}
-                                        </h4>
-                                        <p className="text-xs text-gray-600">
-                                            {v.niveau} • {v.description}
-                                        </p>
+                            {/* Informations de la vitesse avec tooltip */}
+                            <Tooltip content={v.tooltip} position="right">
+                                <div className="flex-1 cursor-help">
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-white font-bold text-sm ${v.colorClass.split(" ")[0]}`}
+                                        >
+                                            {v.valeur} MLM
+                                        </span>
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900">
+                                                {v.label}
+                                            </h4>
+                                            <p className="text-xs text-gray-600">
+                                                {v.niveau} • {v.description}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Tooltip>
 
                             {/* Boutons d'action */}
                             <div className="flex gap-2">
                                 {vitesseTest === v.valeur && isTestActive ? (
                                     <button
                                         onClick={handleStopTest}
-                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition text-sm"
-                                        title="Arrêter le test"
+                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium text-sm"
                                     >
-                                        ⏹ Arrêter
+                                        ⏹️ Arrêter
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => handleTest(v.valeur)}
-                                        className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition text-sm"
-                                        title="Tester cette vitesse pendant 3 secondes"
+                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+                                        disabled={isTestActive}
                                     >
-                                        👁️ Tester
+                                        ▶️ Tester
                                     </button>
                                 )}
 
                                 <button
                                     onClick={() => handleSelect(v.valeur)}
-                                    className={`px-6 py-2 rounded-lg font-semibold transition text-sm ${
+                                    className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
                                         vitesseSelectionnee === v.valeur
-                                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                            ? "bg-blue-600 text-white"
                                             : `${v.colorClass} text-white`
                                     }`}
-                                    title={`Choisir ${v.valeur} mots par minute`}
+                                    disabled={isTestActive}
                                 >
                                     {vitesseSelectionnee === v.valeur
                                         ? "✓ Sélectionné"
@@ -253,7 +265,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
                             </div>
                         </div>
 
-                        {/* Preview pendant le test */}
+                        {/* Preview de la vitesse si test en cours */}
                         {vitesseTest === v.valeur && (
                             <PreviewVitesse vitesse={v.valeur} />
                         )}
@@ -261,38 +273,15 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
                 ))}
             </div>
 
-            {/* Aide pédagogique */}
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-900 text-sm mb-2">
-                    ℹ️ Recommandations pédagogiques
-                </h4>
-                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                    <li>
-                        <strong>Commencez lent</strong> : Mieux vaut une vitesse
-                        trop lente qu'une vitesse frustrante
-                    </li>
-                    <li>
-                        <strong>Testez avant de choisir</strong> : La preview
-                        vous aide à trouver le bon rythme
-                    </li>
-                    <li>
-                        <strong>Augmentez progressivement</strong> : La fluence
-                        se travaille sur la durée
-                    </li>
-                    <li>
-                        <strong>Adaptez au texte</strong> : Un texte complexe
-                        nécessite une vitesse plus lente
-                    </li>
-                </ul>
-            </div>
-
-            {/* Légende MLM */}
-            <div className="mt-3 text-center">
-                <p className="text-xs text-gray-500">
-                    MLM = Mots Lus par Minute • Référence : Fluence au primaire
-                    (Eduscol)
-                </p>
-            </div>
+            {/* Message si aucune vitesse sélectionnée */}
+            {!vitesseSelectionnee && (
+                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                        👆 Survolez une vitesse pour plus d'informations,
+                        testez-la, puis cliquez sur "Choisir"
+                    </p>
+                </div>
+            )}
         </div>
     );
 }
@@ -300,10 +289,6 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte }) {
 ChoixVitesseAmeliore.propTypes = {
     choisirVitesse: PropTypes.func.isRequired,
     texte: PropTypes.string,
-};
-
-ChoixVitesseAmeliore.defaultProps = {
-    texte: TEXTE_DEMO,
 };
 
 export default ChoixVitesseAmeliore;

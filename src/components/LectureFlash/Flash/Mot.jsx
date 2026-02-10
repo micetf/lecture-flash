@@ -1,6 +1,6 @@
 /**
  * Composant Mot pour l'animation de disparition progressive
- * Version garantie fonctionnelle avec logs de debug
+ * Version corrigée avec componentDidMount
  *
  * @component
  * @param {Object} props
@@ -19,19 +19,32 @@ class Mot extends React.Component {
         this.spanSpaceRef = React.createRef();
     }
 
-    shouldComponentUpdate({ speed }) {
-        return this.props.speed !== speed;
+    componentDidMount() {
+        this.demarrerAnimation();
     }
 
-    componentDidUpdate() {
-        console.log("🔤 Mot.componentDidUpdate:", {
-            mot: this.props.mot,
-            speed: this.props.speed,
-        });
+    componentDidUpdate(prevProps) {
+        // Redémarrer seulement si speed change de 0 → valeur
+        if (prevProps.speed === 0 && this.props.speed > 0) {
+            this.demarrerAnimation();
+        }
+    }
 
+    demarrerAnimation() {
         if (this.props.speed === 0) {
-            console.log("⏭️ Speed = 0, pas d'animation");
             return;
+        }
+
+        // Nettoyer d'éventuels anciens masques
+        if (this.spanMotRef.current) {
+            this.spanMotRef.current
+                .querySelectorAll(".masque")
+                .forEach((n) => n.remove());
+        }
+        if (this.spanSpaceRef.current) {
+            this.spanSpaceRef.current
+                .querySelectorAll(".masque")
+                .forEach((n) => n.remove());
         }
 
         const masqueMot = document.createElement("span");
@@ -43,18 +56,11 @@ class Mot extends React.Component {
         masqueMot.classList.add("masque");
         masqueMot.style.animationDuration = `${this.props.speed * this.props.mot.length}ms`;
 
-        console.log("🎬 Animation démarrée:", {
-            mot: this.props.mot,
-            duree: this.props.speed * this.props.mot.length + "ms",
-        });
-
         masqueMot.onanimationend = () => {
-            console.log("✅ Animation mot terminée:", this.props.mot);
             masqueSpace.classList.add("masque");
             masqueSpace.style.animationDuration = `${this.props.speed}ms`;
 
             masqueSpace.onanimationend = () => {
-                console.log("✅ Animation espace terminée, appel suivant()");
                 this.props.suivant();
             };
         };

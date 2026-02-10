@@ -2,6 +2,8 @@
  * Composant unifié pour la gestion de l'entrée de texte
  * Centralise : saisie manuelle, import fichier local, chargement cloud
  *
+ * VERSION AVEC TOOLTIPS : Ajout de tooltips contextuels sur les onglets
+ *
  * @component
  * @param {Object} props
  * @param {string} props.texte - Texte actuel
@@ -16,6 +18,7 @@
 
 import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
+import Tooltip from "../../Tooltip"; // ← Chemin relatif depuis Input/ vers components/Tooltip/
 
 /**
  * Types d'onglets disponibles
@@ -28,7 +31,7 @@ const TAB_TYPES = {
 };
 
 /**
- * Configuration des onglets
+ * Configuration des onglets avec tooltips
  */
 const TABS_CONFIG = [
     {
@@ -36,18 +39,23 @@ const TABS_CONFIG = [
         label: "Saisir",
         icon: "✏️",
         title: "Saisir ou coller du texte",
+        tooltip:
+            "Tapez ou collez votre texte directement dans la zone de texte",
     },
     {
         id: TAB_TYPES.FILE,
         label: "Fichier",
         icon: "📄",
         title: "Importer un fichier .txt",
+        tooltip: "Chargez un fichier texte (.txt) depuis votre ordinateur",
     },
     {
         id: TAB_TYPES.CLOUD,
         label: "Cloud",
         icon: "☁️",
         title: "Charger depuis le cloud",
+        tooltip:
+            "Importez un texte partagé via une URL cloud (Dropbox, Nextcloud...)",
     },
 ];
 
@@ -94,20 +102,35 @@ function TextInputManager({
                 reader.onerror = () => {
                     alert("Erreur lors de la lecture du fichier.");
                 };
-                reader.readAsText(files[0]);
+                reader.readAsText(files[0], "UTF-8");
             } else {
-                alert("Veuillez sélectionner un fichier .txt");
+                alert(
+                    "Format de fichier non valide. Veuillez sélectionner un fichier .txt"
+                );
             }
         }
-        // Reset l'input pour permettre de recharger le même fichier
+        // Reset input pour permettre de recharger le même fichier
         e.target.value = "";
     };
 
     /**
-     * Déclenche le clic sur l'input file caché
+     * Gère l'export du texte en fichier .txt
      */
-    const triggerFileInput = () => {
-        fileInputRef.current?.click();
+    const handleExport = () => {
+        if (!texte.trim()) {
+            alert("Aucun texte à enregistrer.");
+            return;
+        }
+
+        const blob = new Blob([texte], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `lecture-flash-${Date.now()}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     /**
@@ -118,80 +141,40 @@ function TextInputManager({
         e.preventDefault();
         if (cloudUrl.trim()) {
             onUrlSubmit(cloudUrl.trim());
+            setCloudUrl("");
         }
     };
-
-    /**
-     * Gère l'export du texte en fichier .txt
-     */
-    const handleExport = () => {
-        if (!texte.trim()) {
-            alert("Aucun texte à exporter.");
-            return;
-        }
-
-        const element = document.createElement("a");
-        element.setAttribute(
-            "href",
-            "data:text/plain;charset=utf-8," + encodeURIComponent(texte.trim())
-        );
-        element.setAttribute("download", "lecture-flash.txt");
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-    };
-
-    /**
-     * Exemples d'URLs cloud pour l'aide
-     */
-    const cloudExamples = [
-        {
-            service: "Dropbox",
-            exemple: "https://www.dropbox.com/s/abc123/texte.md?dl=0",
-            icon: "📦",
-        },
-        {
-            service: "Apps.education.fr",
-            exemple: "https://nuage03.apps.education.fr/s/AbCd1234",
-            icon: "🇫🇷",
-        },
-        {
-            service: "Nextcloud",
-            exemple: "https://nextcloud.exemple.fr/s/xyz789",
-            icon: "☁️",
-        },
-        {
-            service: "Google Drive",
-            exemple: "https://drive.google.com/file/d/1a2b3c4d5/view",
-            icon: "📁",
-        },
-    ];
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-            {/* Barre d'onglets */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            {/* Barre d'onglets avec tooltips */}
             <div className="border-b border-gray-200">
-                <nav className="flex -mb-px" role="tablist">
+                <nav className="flex" role="tablist">
                     {TABS_CONFIG.map((tab) => (
-                        <button
+                        <Tooltip
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`
-                                flex-1 px-4 py-3 text-center font-medium text-sm
-                                border-b-2 transition-colors
-                                ${
-                                    activeTab === tab.id
-                                        ? "border-blue-600 text-blue-600 bg-blue-50"
-                                        : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
-                                }
-                            `}
-                            title={tab.title}
-                            role="tab"
-                            aria-selected={activeTab === tab.id}
+                            content={tab.tooltip}
+                            position="top"
                         >
-                            <span className="mr-2">{tab.icon}</span>
-                            {tab.label}
-                        </button>
+                            <button
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`
+                                    flex-1 px-6 py-4 text-sm font-medium transition
+                                    border-b-2 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500
+                                    ${
+                                        activeTab === tab.id
+                                            ? "border-blue-600 text-blue-600 bg-blue-50"
+                                            : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                                    }
+                                `}
+                                role="tab"
+                                aria-selected={activeTab === tab.id}
+                                aria-label={tab.tooltip}
+                            >
+                                <span className="mr-2">{tab.icon}</span>
+                                {tab.label}
+                            </button>
+                        </Tooltip>
                     ))}
                 </nav>
             </div>
@@ -217,39 +200,50 @@ function TextInputManager({
                             <button
                                 onClick={handleExport}
                                 disabled={!texte.trim()}
-                                className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Enregistrer le texte en fichier .txt"
+                                className={`
+                                    px-3 py-1 text-sm font-medium border rounded transition
+                                    ${
+                                        texte.trim()
+                                            ? "text-gray-700 border-gray-300 hover:bg-gray-50"
+                                            : "text-gray-400 border-gray-200 cursor-not-allowed"
+                                    }
+                                `}
+                                title="Enregistrer le texte au format .txt"
                             >
-                                <span className="mr-1.5">💾</span>
-                                Exporter
+                                💾 Enregistrer
                             </button>
                         </div>
 
                         <textarea
                             id="text-input"
-                            className="w-full rounded-lg border-2 border-blue-300 p-4 text-lg focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                            rows="17"
                             value={texte}
                             onChange={handleTexteChange}
-                            placeholder="Écrivez ou collez le texte ici..."
+                            placeholder="Collez ou tapez votre texte ici..."
+                            className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
+                            spellCheck="false"
                         />
 
+                        {/* Badge indicateur de texte chargé depuis cloud */}
                         {sourceUrl && (
-                            <div className="mt-3 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <div className="flex items-center text-sm text-blue-800">
-                                    <span className="mr-2">☁️</span>
-                                    <span className="font-medium">
-                                        Texte chargé depuis le cloud
-                                    </span>
+                            <div className="mt-3 bg-blue-50 border border-blue-200 rounded p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1">
+                                        <p className="text-sm text-blue-800 font-medium mb-1">
+                                            ☁️ Texte chargé depuis le cloud
+                                        </p>
+                                        <p className="text-xs text-blue-600 break-all">
+                                            {sourceUrl}
+                                        </p>
+                                    </div>
+                                    {onReset && (
+                                        <button
+                                            onClick={onReset}
+                                            className="px-3 py-1 text-sm font-medium text-red-600 border border-red-600 rounded hover:bg-red-50 transition"
+                                        >
+                                            Réinitialiser
+                                        </button>
+                                    )}
                                 </div>
-                                {onReset && (
-                                    <button
-                                        onClick={onReset}
-                                        className="px-3 py-1 text-sm font-medium text-red-600 border border-red-600 rounded hover:bg-red-50 transition"
-                                    >
-                                        Réinitialiser
-                                    </button>
-                                )}
                             </div>
                         )}
                     </div>
@@ -281,33 +275,22 @@ function TextInputManager({
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept=".txt"
+                                accept=".txt,text/plain"
                                 onChange={handleFileImport}
                                 className="hidden"
+                                aria-label="Sélectionner un fichier texte"
                             />
 
                             <button
-                                onClick={triggerFileInput}
-                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium inline-flex items-center gap-2"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
                             >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                    />
-                                </svg>
+                                <span>📁</span>
                                 Choisir un fichier
                             </button>
 
                             <p className="mt-4 text-xs text-gray-500">
-                                Le contenu sera automatiquement chargé dans
+                                Le texte sera automatiquement chargé dans
                                 l'onglet "Saisir"
                             </p>
                         </div>
@@ -319,116 +302,116 @@ function TextInputManager({
                 ======================================== */}
                 {activeTab === TAB_TYPES.CLOUD && (
                     <div role="tabpanel">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                Charger un texte depuis le cloud
+                        <div className="max-w-xl mx-auto">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Charger depuis le cloud
                             </h3>
+                            <p className="text-gray-600 mb-6">
+                                Collez l'URL d'un fichier texte partagé depuis
+                                Dropbox, Nextcloud, Google Drive, etc.
+                            </p>
+
+                            {/* Bouton d'aide pour les exemples d'URL */}
                             <button
                                 onClick={() => setShowCloudHelp(!showCloudHelp)}
-                                className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition"
-                                type="button"
+                                className="mb-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
                             >
-                                {showCloudHelp ? "Masquer" : "Aide"}
+                                {showCloudHelp ? "▼" : "▶"} Voir des exemples
+                                d'URL
                             </button>
-                        </div>
 
-                        {/* Aide avec exemples */}
-                        {showCloudHelp && (
-                            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h4 className="text-sm font-semibold text-blue-900 mb-3">
-                                    Services compatibles
-                                </h4>
-                                <ul className="space-y-2">
-                                    {cloudExamples.map((ex, idx) => (
-                                        <li
-                                            key={idx}
-                                            className="text-sm text-gray-700"
-                                        >
-                                            <span className="mr-2">
-                                                {ex.icon}
-                                            </span>
-                                            <strong>{ex.service}</strong>
-                                            <br />
-                                            <code className="ml-6 text-xs bg-white px-2 py-1 rounded break-all">
-                                                {ex.exemple}
-                                            </code>
+                            {showCloudHelp && (
+                                <div className="mb-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 space-y-2">
+                                    <p className="font-semibold">
+                                        Exemples d'URL valides :
+                                    </p>
+                                    <ul className="list-disc list-inside space-y-1 text-xs">
+                                        <li>
+                                            Dropbox :
+                                            https://www.dropbox.com/s/...
                                         </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+                                        <li>
+                                            Nextcloud :
+                                            https://cloud.example.com/s/...
+                                        </li>
+                                        <li>
+                                            Google Drive :
+                                            https://drive.google.com/file/d/...
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
 
-                        {/* Formulaire de saisie URL */}
-                        <form onSubmit={handleCloudSubmit}>
-                            <div className="mb-4">
-                                <label
-                                    htmlFor="cloud-url"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
-                                >
-                                    URL du fichier partagé
-                                </label>
+                            {/* Formulaire de saisie d'URL */}
+                            <form onSubmit={handleCloudSubmit}>
                                 <input
-                                    id="cloud-url"
                                     type="url"
                                     value={cloudUrl}
                                     onChange={(e) =>
                                         setCloudUrl(e.target.value)
                                     }
                                     placeholder="https://..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
                                     disabled={loading}
                                     required
                                 />
-                            </div>
 
-                            {/* Affichage des erreurs */}
-                            {error && (
-                                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-                                    <strong>❌ Erreur :</strong> {error}
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                disabled={loading || !cloudUrl.trim()}
-                                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg
-                                            className="animate-spin h-5 w-5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            />
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            />
-                                        </svg>
-                                        Chargement...
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>☁️</span>
-                                        Charger le texte
-                                    </>
+                                {error && (
+                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800">
+                                        ⚠️ {error}
+                                    </div>
                                 )}
-                            </button>
-                        </form>
 
-                        <p className="mt-4 text-xs text-gray-500 text-center">
-                            Le texte sera automatiquement chargé dans l'onglet
-                            "Saisir"
-                        </p>
+                                <button
+                                    type="submit"
+                                    disabled={loading || !cloudUrl.trim()}
+                                    className={`
+                                        w-full py-3 px-6 rounded-lg font-medium transition
+                                        flex items-center justify-center gap-2
+                                        ${
+                                            loading || !cloudUrl.trim()
+                                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                        }
+                                    `}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <svg
+                                                className="animate-spin h-5 w-5"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                />
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                />
+                                            </svg>
+                                            Chargement...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>☁️</span>
+                                            Charger le texte
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <p className="mt-4 text-xs text-gray-500 text-center">
+                                Le texte sera automatiquement chargé dans
+                                l'onglet "Saisir"
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>

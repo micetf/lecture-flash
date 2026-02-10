@@ -2,11 +2,11 @@
 
 ## Application Lecture Flash
 
-**Version:** 2.1.0  
-**Date:** 09 février 2026  
-**Auteur:** Frédéric MISERY (webmaster@micetf.fr)  
-**Contexte:** Application éducative pour l'enseignement primaire  
-**Organisme:** Éducation Nationale - Circonscription
+**Version** : 2.2.0  
+**Date** : 10 février 2026  
+**Auteur** : Frédéric MISERY (webmaster@micetf.fr)  
+**Contexte** : Application éducative pour l'enseignement primaire  
+**Organisme** : Éducation Nationale - Circonscription
 
 ---
 
@@ -108,15 +108,16 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 2. **Configuration de lecture** : Choix du type et de la vitesse de lecture
 3. **Lecture flash** : Affichage progressif avec disparition mot par mot
 4. **Gestion de fichiers** : Import/Export de textes
+5. **Système d'aide** : Tooltips contextuels, modale d'aide, message de bienvenue
 
 ### 2.2 Avantages Pédagogiques
 
 #### 2.2.1 Conformité aux objectifs officiels
 
-- **Automatisation du décodage** : Répétition espacée à vitesses progressives (50-300 MLM)
+- **Automatisation du décodage** : Répétition espacée à vitesses progressives (30-110 MLM)
 - **Fluence en lecture à voix haute** : Mode adapté aux attendus du cycle 2
 - **Fluence en lecture silencieuse** : Préparation aux exigences du cycle 3
-- **Différenciation pédagogique** : 9 niveaux de vitesse par mode
+- **Différenciation pédagogique** : 5 niveaux de vitesse adaptés aux progressions scolaires
 
 #### 2.2.2 Apports spécifiques
 
@@ -125,6 +126,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 - Suivi visuel du rythme de lecture
 - Motivation par le défi du "texte qui disparaît"
 - Support numérique au service d'un objectif pédagogique clairement défini
+- Guidage progressif et contextuel (aide juste-à-temps)
 
 ---
 
@@ -160,13 +162,62 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 - Bouton "Modifier" visible pour revenir en mode SAISIE
 - Fin automatique et retour au mode SAISIE
 
+#### 3.1.3 Système d'Aide Contextuelle
+
+**Identifiant** : REQ-FUNC-003  
+**Priorité** : Haute  
+**Description** : Système d'aide moderne en 3 niveaux pour guider l'utilisateur sans surcharge cognitive.
+
+**Composants** :
+
+1. **FirstTimeMessage** (message de première visite)
+    - Affichage automatique si clé localStorage `lecture-flash-first-visit` absente
+    - Contenu : 3 étapes simplifiées (saisir texte, choisir vitesse, lancer lecture)
+    - Fermeture définitive avec sauvegarde localStorage
+    - Animation fadeIn (150ms)
+    - Bannière dégradé bleu avec fond blanc
+
+2. **Tooltips contextuels**
+    - Technologie : React Portal pour éviter problèmes d'overflow
+    - Position : top (onglets), right (vitesses), bottom (bouton aide)
+    - Délai d'apparition : 200ms
+    - Contenu : descriptions courtes (< 100 caractères)
+    - Support : survol, focus, touch
+    - Fond noir (`bg-gray-900`), texte blanc, `z-index: 9999`
+
+3. **HelpModal** (guide complet)
+    - Déclencheur : bouton (?) en haut à droite avec tooltip
+    - Contenu : guide détaillé en 3 étapes avec exemples concrets
+    - Vitesses expliquées : 30-110 MLM avec correspondances niveaux scolaires
+    - Fermeture : Escape, overlay, bouton ×, bouton "J'ai compris"
+    - Accessibilité : ARIA dialog, focus trap, scroll lock body
+    - Attribution : @petitejulie89 pour la méthode pédagogique
+
+**Critères d'acceptation** :
+
+- Tooltips s'affichent au survol après 200ms
+- Tooltips utilisent React Portal (pas de problème d'overflow)
+- FirstTimeMessage ne s'affiche qu'une seule fois
+- HelpModal accessible au clavier (Tab, Escape)
+- Aucun texte obsolète ou incorrect
+- Conformité WCAG 2.1 AA (contraste 4.5:1 minimum, ARIA labels)
+- Animation fadeIn fluide (150ms ease-in-out)
+
+**Justification pédagogique (André Tricot)** :
+
+- **Charge cognitive minimale par défaut** : interface épurée, pas de "mur de texte"
+- **Guidage juste-à-temps** : tooltips au moment de l'action, pas avant
+- **Découverte progressive** : pas de surcharge informationnelle initiale
+- **Autonomie progressive** : aide toujours disponible mais optionnelle
+- **Réduction charge extrinsèque** : l'utilisateur se concentre sur la tâche, pas sur l'outil
+
 ---
 
 ### 3.2 Chargement de Texte
 
 #### 3.2.1 Saisie Manuelle
 
-**Identifiant** : REQ-FUNC-003  
+**Identifiant** : REQ-FUNC-004  
 **Priorité** : Critique  
 **Description** : L'utilisateur peut saisir ou copier-coller du texte directement.
 
@@ -179,7 +230,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 #### 3.2.2 Import Local
 
-**Identifiant** : REQ-FUNC-004  
+**Identifiant** : REQ-FUNC-005  
 **Priorité** : Haute  
 **Description** : L'utilisateur peut importer un fichier .txt depuis son ordinateur.
 
@@ -192,7 +243,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 #### 3.2.3 Export Local
 
-**Identifiant** : REQ-FUNC-005  
+**Identifiant** : REQ-FUNC-006  
 **Priorité** : Haute  
 **Description** : L'utilisateur peut sauvegarder le texte en fichier .txt.
 
@@ -205,7 +256,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 #### 3.2.4 Chargement Cloud
 
-**Identifiant** : REQ-FUNC-006  
+**Identifiant** : REQ-FUNC-007  
 **Priorité** : Moyenne  
 **Description** : L'utilisateur peut charger un texte depuis une URL cloud.
 
@@ -228,7 +279,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 #### 3.2.5 URL de Partage
 
-**Identifiant** : REQ-FUNC-007  
+**Identifiant** : REQ-FUNC-008  
 **Priorité** : Moyenne  
 **Description** : Génération d'un lien partageable avec le texte pré-chargé.
 
@@ -243,52 +294,27 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 ### 3.3 Configuration de Lecture
 
-#### 3.3.1 Types de Lecture
-
-**Identifiant** : REQ-FUNC-008  
-**Priorité** : Critique  
-**Description** : Deux types de lecture sont proposés, conformes aux programmes.
-
-**Types disponibles** :
-
-1. **Lecture à voix haute** : Vitesses de 50 à 150 MLM (mots lus par minute) - Cycle 2
-2. **Lecture silencieuse** : Vitesses de 140 à 300 MLM - Cycle 3
-
-**Critères d'acceptation** :
-
-- Sélection par boutons visuels
-- Icônes représentant la vitesse (trottinette → fusée)
-- Affichage du MLM au survol
-- 9 vitesses par type
-
-#### 3.3.2 Vitesses de Lecture
+#### 3.3.1 Vitesses de Lecture
 
 **Identifiant** : REQ-FUNC-009  
 **Priorité** : Critique  
-**Description** : Choix de la vitesse de lecture en mots par minute.
+**Description** : Choix de la vitesse de lecture en mots par minute, conforme aux programmes.
 
-**Vitesses Lecture à Voix Haute** (conforme aux repères CP-CE2) :
+**Vitesses proposées** (conforme aux repères CP-CM2) :
 
-- 50 MLM (Très lent) - Trottinette
-- 65 MLM (Lent) - Roller
-- 80 MLM (Moyen-) - Vélo
-- 95 MLM (Moyen) - Scooter
-- 110 MLM (Moyen+) - Voiture
-- 120 MLM (Rapide-) - Moto
-- 130 MLM (Rapide) - Formule 1
-- 140 MLM (Très rapide) - Avion
-- 150 MLM (Ultra rapide) - Fusée
-
-**Vitesses Lecture Silencieuse** (conforme aux repères CM1-6e) :
-
-- 140 à 300 MLM (même échelle avec valeurs doublées)
+- 30 MLM (Très lent) - CP - début CE1 - Déchiffrage en cours d'acquisition
+- 50 MLM (Lent) - CE1 - Lecture mot à mot
+- 70 MLM (Moyen) - CE2 - Lecture par groupes de mots
+- 90 MLM (Rapide) - CM1-CM2 - Lecture fluide
+- 110 MLM (Très rapide) - CM2 et + - Lecture experte
 
 **Critères d'acceptation** :
 
 - Calcul automatique du timing par caractère
-- Formule : `speed = ((nbreMots / vitesse) * 60000) / nbreCaracteres - 10`
+- Formule : `speed = ((nbreMots / vitesse) * 60000) / nbreCaracteres`
 - Précision à la milliseconde
 - Pas de lag perceptible
+- Tooltips sur chaque vitesse avec correspondances niveaux scolaires
 
 ---
 
@@ -345,7 +371,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 
 **Critères d'acceptation** :
 
-- Remplacement automatique par `&nbsp;`
+- Remplacement automatique par `\u00a0`
 - Affichage conforme aux normes typographiques françaises
 
 ---
@@ -462,6 +488,7 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 - Taille de police ajustable
 - Navigation clavier complète
 - Labels ARIA sur tous les boutons
+- Tooltips avec React Portal (pas de problème d'overflow)
 
 #### 4.3.2 Navigation Clavier
 
@@ -533,24 +560,33 @@ L'application permet l'entraînement à la fluence de lecture par disparition pr
 **Description** : Architecture modulaire claire.
 
 **Structure** :
-
-```
 src/
 ├── index.jsx
 ├── components/
-│   ├── App.jsx
-│   ├── Navbar/
-│   ├── LectureFlash/
-│   │   ├── index.jsx
-│   │   ├── Input/
-│   │   └── Flash/
-│   ├── CloudUrlInput.jsx
-│   └── ShareCloudLink.jsx
+│ ├── App.jsx
+│ ├── Tooltip/
+│ │ └── index.jsx # Nouveau (v2.2.0)
+│ ├── HelpModal/
+│ │ └── index.jsx # Nouveau (v2.2.0)
+│ ├── FirstTimeMessage/
+│ │ └── index.jsx # Nouveau (v2.2.0)
+│ ├── Navbar/
+│ ├── LectureFlash/
+│ │ ├── index.jsx
+│ │ ├── Input/
+│ │ │ ├── index.jsx # Modifié (v2.2.0)
+│ │ │ └── TextInputManager.jsx # Modifié (v2.2.0)
+│ │ └── Flash/
+│ │ ├── ChoixVitesseAmeliore.jsx # Modifié (v2.2.0)
+│ │ ├── FlashAmelioreTest.jsx # Modifié (v2.2.0)
+│ │ └── Mot.jsx # Modifié (v2.2.0)
+│ ├── CloudUrlInput.jsx
+│ └── ShareCloudLink.jsx
 ├── hooks/
-│   └── useMarkdownFromUrl.js
+│ └── useMarkdownFromUrl.js
 └── styles/
-    └── index.css
-```
+├── index.css # Modifié (v2.2.0) : animation fadeIn
+└── flash.css
 
 ---
 
@@ -579,7 +615,7 @@ src/
 - PostCSS + Autoprefixer
 - Pas de CSS-in-JS
 - Classes utilitaires uniquement
-- Animations CSS natives
+- Animations CSS natives (fadeIn pour tooltips)
 
 **Package Manager** : pnpm
 
@@ -665,8 +701,7 @@ src/
 - [ ] Chargement depuis Nextcloud
 - [ ] Chargement depuis Google Drive
 - [ ] Partage d'URL
-- [ ] Sélection vitesse lecture à voix haute
-- [ ] Sélection vitesse lecture silencieuse
+- [ ] Sélection vitesse lecture
 - [ ] Animation disparition progressive
 - [ ] Espaces entre mots préservés
 - [ ] Retour à la ligne automatique
@@ -675,6 +710,9 @@ src/
 - [ ] Réinitialisation après cloud
 - [ ] Responsive mobile
 - [ ] Menu hamburger
+- [ ] Tooltips contextuels
+- [ ] Modale d'aide
+- [ ] Message première visite
 
 ### 7.2 Tests de Performance
 
@@ -693,12 +731,19 @@ src/
 - [ ] Chrome Android
 - [ ] TBI Promethean/Smart/Mimio
 
-### 7.4 Tests Pédagogiques (Nouveauté v2.1.0)
+### 7.4 Tests Pédagogiques
 
 - [ ] Tests utilisateurs avec enseignants cycles 2 et 3
-- [ ] Évaluation de la courbe d'apprentissage (< 5 min pour maîtrise)
+- [ ] Évaluation de la courbe d'apprentissage (< 2 min pour maîtrise avec nouveau système d'aide)
 - [ ] Retours sur pertinence des vitesses MLM
 - [ ] Observation usage en classe (collectif TBI + individuel)
+
+### 7.5 Tests d'Accessibilité
+
+- [ ] Navigation clavier complète (Tab, Escape, Enter)
+- [ ] Tooltips accessibles (ARIA, Portal)
+- [ ] Modale accessible (focus trap, ARIA dialog)
+- [ ] Contraste WCAG 2.1 AA
 
 ---
 
@@ -713,16 +758,15 @@ src/
 
 ### 8.2 Documentation
 
-- SRS.md v2.1.0 (ce document)
-- CODE_REACT_COMPLET.md
-- README_MIGRATION.md
-- NAVBAR_EXACT_BOOTSTRAP.md
-- JUSTIFICATION_PEDAGOGIQUE.md (nouveau)
+- SRS.md v2.2.0 (ce document)
+- CHANGELOG.md v2.2.0
+- README.md enrichi
+- docs/JUSTIFICATION_PEDAGOGIQUE_AIDE.md (nouveau v2.2.0)
 
 ### 8.3 Assets
 
 - Fichiers SVG (icônes)
-- Animations CSS
+- Animations CSS (flash.css + fadeIn)
 - Texte exemple par défaut
 
 ---
@@ -738,8 +782,10 @@ src/
 ✅ Performance améliorée (build, HMR)
 ✅ Code documenté et maintenable
 ✅ Tests manuels validés
-✅ Conformité programmes Eduscol (v2.1.0)
-✅ Fondements scientifiques explicités (v2.1.0)
+✅ Conformité programmes Eduscol
+✅ Fondements scientifiques explicités
+✅ Système d'aide contextuelle moderne (v2.2.0)
+✅ Animation Flash fonctionnelle (v2.2.0)
 
 ### 9.2 Métriques de Performance
 
@@ -807,10 +853,37 @@ src/
 **TTI** : Time to Interactive - Temps avant interactivité
 **Charge cognitive** : Quantité de ressources mentales mobilisées pour une tâche (Tricot)
 **Automatisation** : Acquisition d'une procédure sans effort conscient (Dehaene)
+**Portal** : Technique React pour rendre un composant hors de la hiérarchie DOM (v2.2.0)
 
 ---
 
-## Changelog v2.1.0
+## Changelog
+
+### v2.2.0 (10 février 2026)
+
+**Ajouts majeurs** :
+
+- Section 3.1.3 : Système d'Aide Contextuelle (REQ-FUNC-003)
+- Composants : Tooltip, HelpModal, FirstTimeMessage
+- Technologie : React Portal pour tooltips
+- Animation : fadeIn pour éléments apparaissants
+
+**Modifications** :
+
+- Renumération des REQ-FUNC (004-012 → 004-012)
+- Section 4.5.2 : Structure mise à jour (nouveaux composants, fichiers modifiés/supprimés)
+- Section 2.1 : Ajout "Système d'aide" dans fonctionnalités principales
+- Section 7.1 : Ajout tests tooltips/modale/message
+- Section 7.5 : Nouveaux tests d'accessibilité (Portal, ARIA)
+- Section 8.2 : JUSTIFICATION_PEDAGOGIQUE_AIDE.md dans livrables
+- Glossaire : Ajout "Portal"
+
+**Suppressions** :
+
+- Composant Consignes (obsolète)
+- Fichier App.css (obsolète)
+
+### v2.1.0 (09 février 2026)
 
 **Ajouts majeurs** :
 
@@ -830,6 +903,6 @@ src/
 
 ---
 
-**Version du document** : 2.1.0  
-**Date de dernière modification** : 09 février 2026  
-**Statut** : ✅ Application fonctionnelle - Fondements pédagogiques explicités
+**Version du document** : 2.2.0  
+**Date de dernière modification** : 10 février 2026  
+**Statut** : ✅ Application fonctionnelle - Système d'aide moderne intégré

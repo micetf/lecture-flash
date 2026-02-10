@@ -3,26 +3,34 @@
  */
 @keyframes masquer {
     from {
-        background-color: transparent;
+        width: 0;
     }
     to {
-        background-color: white;
+        width: calc(100% + 3px);
+        border: none;
     }
+}
+
+.texte {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 2.5em;
+    text-align: justify;
+}
+
+.mot > span {
+    position: relative;
 }
 
 .masque {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    border-right: 0.05em solid black;
     height: 100%;
-    animation-name: masquer;
+    animation: masquer linear;
     animation-fill-mode: forwards;
-    animation-timing-function: linear;
-}
-
-.mot {
-    position: relative;
-    display: inline;
-    white-space: pre-wrap;
+    animation-iteration-count: 1;
+    background-color: #fff;
 }

@@ -22,8 +22,6 @@ const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
 function FlashAmelioreTest({ texte, vitesse, switchMode }) {
-    console.log("🎬 FlashAmelioreTest monté avec :", { texte, vitesse });
-
     const [idMot, setIdMot] = useState(undefined);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -39,10 +37,9 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
     const mots = textePurify.split(" ");
     const nbreMots = mots.length;
     const nbreCaracteres = textePurify.length;
-    const speed =
-        Math.floor(((nbreMots / vitesse) * 60000) / nbreCaracteres) - 10;
 
-    console.log("📊 Stats :", { nbreMots, nbreCaracteres, speed });
+    // Durée de base par caractère (ms)
+    const speed = Math.floor(((nbreMots / vitesse) * 60000) / nbreCaracteres);
 
     const handleClickSwitch = (e) => {
         e.preventDefault();
@@ -51,22 +48,22 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
 
     const handleClickStart = (e) => {
         e.preventDefault();
-        console.log("▶️ Démarrage de la lecture");
+        setIsPaused(false);
         setIdMot(0);
     };
 
     const handlePauseResume = () => {
-        console.log(isPaused ? "▶️ Reprise" : "⏸ Pause");
         setIsPaused(!isPaused);
     };
 
     const suivant = () => {
-        console.log("➡️ Passage au mot suivant, idMot actuel :", idMot);
+        if (isPaused) {
+            return;
+        }
         if (idMot === nbreMots - 1) {
-            console.log("🏁 Fin de la lecture");
             setTimeout(() => switchMode(), 500);
         } else {
-            setIdMot(idMot + 1);
+            setIdMot((prev) => (prev !== undefined ? prev + 1 : 0));
         }
     };
 
@@ -75,18 +72,8 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
 
     // AVANT DÉMARRAGE
     if (idMot === undefined) {
-        console.log("📺 Affichage écran AVANT démarrage");
         return (
             <div className="max-w-4xl mx-auto">
-                <div className="bg-yellow-100 border-2 border-yellow-500 p-4 mb-4 rounded">
-                    <p className="font-bold">
-                        ✅ FlashAmelioreTest chargé correctement !
-                    </p>
-                    <p>
-                        Vitesse : {vitesse} MLM • Mots : {nbreMots}
-                    </p>
-                </div>
-
                 <div className="flex gap-2 my-4">
                     <button
                         className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
@@ -111,13 +98,6 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
     }
 
     // PENDANT LA LECTURE
-    console.log(
-        "📺 Affichage écran PENDANT lecture, mot",
-        idMot + 1,
-        "/",
-        nbreMots
-    );
-
     return (
         <div className="max-w-4xl mx-auto">
             {/* Barre de contrôle */}
@@ -169,27 +149,23 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
 
             {/* Texte avec animation */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
-                <p className="text-2xl leading-relaxed">
+                <p className="texte text-2xl leading-relaxed">
                     {mots.map((mot, index) => {
                         const motClean = mot
                             .replace(specialsAfterOut, `${ESPACE_INSECABLE}$1`)
                             .replace(specialsBeforeOut, `$1${ESPACE_INSECABLE}`)
                             .replace(/-/g, TIRET_INSECABLE);
 
-                        // ✅ FIX CRITIQUE : Passer speed > 0 UNIQUEMENT pour le mot actuel
-                        // Les mots précédents et suivants ont speed=0
-                        const motSpeed = index === idMot ? speed : 0;
-
-                        console.log(
-                            `🔢 Mot #${index} "${mot}" : speed=${motSpeed} (idMot=${idMot})`
-                        );
+                        // Durée de l'animation pour ce mot
+                        const motSpeed =
+                            index <= idMot && !isPaused ? speed : 0;
 
                         return (
                             <Mot
                                 key={index}
                                 mot={motClean}
                                 speed={motSpeed}
-                                suivant={suivant}
+                                suivant={index === idMot ? suivant : () => {}}
                             />
                         );
                     })}
