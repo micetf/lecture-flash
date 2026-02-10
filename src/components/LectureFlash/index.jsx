@@ -1,6 +1,6 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION VÉRIFIÉE - Utilise FlashAmelioreTest
+ * VERSION 3.0.0 : Solution hybride avec optimisation locked=true
  *
  * @component
  * @returns {JSX.Element}
@@ -18,21 +18,72 @@ function LectureFlash() {
     // STATE DE L'APPLICATION
     // ========================================
     const [state, setState] = useState(initialState);
+    const [isAutoStarting, setIsAutoStarting] = useState(false);
 
     // ========================================
-    // HOOK POUR LE CHARGEMENT CLOUD
+    // HOOK POUR LE CHARGEMENT CODIMD
     // ========================================
-    const { markdown, loading, error, sourceUrl, loadMarkdownFromUrl, reset } =
-        useMarkdownFromUrl();
+    const {
+        markdown,
+        loading,
+        error,
+        sourceUrl,
+        speedConfig, // { speed: number, locked: boolean } ou null
+        loadMarkdownFromUrl,
+        reset,
+    } = useMarkdownFromUrl();
 
     // ========================================
     // EFFET : Mise à jour du texte quand markdown est chargé
     // ========================================
     useEffect(() => {
         if (markdown) {
-            setState((prevState) => ({ ...prevState, texte: markdown }));
+            setState((prevState) => ({
+                ...prevState,
+                texte: markdown,
+            }));
         }
     }, [markdown]);
+
+    // ========================================
+    // OPTIMISATION : Auto-démarrage UNIQUEMENT si locked=true
+    // Détection immédiate pour éviter le flash UI
+    // ========================================
+    useEffect(() => {
+        // CONDITION CRITIQUE : On auto-démarre SEULEMENT si locked === true
+        if (markdown && speedConfig && speedConfig.locked === true) {
+            console.log(
+                "🔒 Auto-démarrage en mode LOCKED avec vitesse:",
+                speedConfig.speed
+            );
+
+            setIsAutoStarting(true);
+
+            // Petit délai pour permettre l'affichage du message "démarrage auto..."
+            setTimeout(() => {
+                setState((prevState) => ({
+                    ...prevState,
+                    texte: markdown,
+                    mode: mode.LECTURE,
+                    vitesse: speedConfig.speed,
+                }));
+                setIsAutoStarting(false);
+            }, 1500); // 1.5 seconde pour laisser le temps de lire le message
+        }
+        // Si locked === false (ou absent), on reste en mode SAISIE
+        // L'utilisateur pourra alors choisir/modifier la vitesse
+    }, [markdown, speedConfig]);
+
+    // ========================================
+    // DÉTECTION PRÉCOCE : Si speedConfig.locked=true est détecté
+    // avant même le chargement du markdown, on prépare l'UI
+    // ========================================
+    useEffect(() => {
+        if (speedConfig?.locked === true && !markdown && loading) {
+            console.log("🔒 Mode locked détecté, préparation auto-démarrage");
+            setIsAutoStarting(true);
+        }
+    }, [speedConfig, markdown, loading]);
 
     // ========================================
     // GESTION DES MODES
@@ -64,44 +115,44 @@ function LectureFlash() {
     };
 
     /**
-     * Réinitialise l'application (supprime texte cloud)
+     * Réinitialise l'application (supprime texte cloud et config vitesse)
      */
     const handleReset = () => {
         setState(initialState);
         reset();
+        setIsAutoStarting(false);
+        // Nettoie l'URL des paramètres
         window.history.pushState({}, "", window.location.pathname);
     };
 
     // ========================================
     // RENDU
     // ========================================
+
+    // Si mode LECTURE, afficher le composant Flash
+    if (state.mode === mode.LECTURE) {
+        return (
+            <FlashAmelioreTest
+                texte={state.texte}
+                vitesse={state.vitesse}
+                revenir={switchModeSaisie}
+            />
+        );
+    }
+
+    // Sinon, afficher l'interface de saisie/choix
     return (
-        <div className="container mx-auto px-4 py-6">
-            {state.mode === mode.SAISIE ? (
-                /* ========================================
-                    MODE SAISIE : Input avec TextInputManager
-                ======================================== */
-                <Input
-                    texte={state.texte}
-                    changeTexte={changeTexte}
-                    switchMode={switchModeLecture}
-                    onUrlSubmit={loadMarkdownFromUrl}
-                    loading={loading}
-                    error={error}
-                    sourceUrl={sourceUrl}
-                    onReset={handleReset}
-                />
-            ) : (
-                /* ========================================
-                    MODE LECTURE : FlashAmelioreTest
-                ======================================== */
-                <FlashAmelioreTest
-                    texte={state.texte}
-                    vitesse={state.vitesse}
-                    switchMode={switchModeSaisie}
-                />
-            )}
-        </div>
+        <Input
+            texte={state.texte}
+            changeTexte={changeTexte}
+            switchMode={switchModeLecture}
+            onUrlSubmit={loadMarkdownFromUrl}
+            loading={loading || isAutoStarting}
+            error={error}
+            sourceUrl={sourceUrl}
+            onReset={handleReset}
+            speedConfig={speedConfig}
+        />
     );
 }
 

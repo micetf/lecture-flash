@@ -1,24 +1,25 @@
 /**
  * Composant unifié pour la gestion de l'entrée de texte
- * Centralise : saisie manuelle, import fichier local, chargement cloud
+ * Centralise : saisie manuelle, import fichier local, chargement CodiMD
  *
- * VERSION AVEC TOOLTIPS : Ajout de tooltips contextuels sur les onglets
+ * VERSION 3.0.0 : Restriction CodiMD only
  *
  * @component
  * @param {Object} props
  * @param {string} props.texte - Texte actuel
  * @param {Function} props.onTexteChange - Callback de modification du texte
- * @param {Function} props.onUrlSubmit - Callback pour le chargement cloud
- * @param {boolean} [props.loading=false] - État de chargement cloud
- * @param {string} [props.error=null] - Message d'erreur cloud
- * @param {string} [props.sourceUrl=null] - URL source si chargé depuis cloud
+ * @param {Function} props.onUrlSubmit - Callback pour le chargement CodiMD
+ * @param {boolean} [props.loading=false] - État de chargement CodiMD
+ * @param {string} [props.error=null] - Message d'erreur CodiMD
+ * @param {string} [props.sourceUrl=null] - URL source si chargé depuis CodiMD
  * @param {Function} [props.onReset=null] - Callback de réinitialisation
+ * @param {Object} [props.speedConfig=null] - Config vitesse depuis URL { speed: number, locked: boolean }
  * @returns {JSX.Element}
  */
 
 import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
-import Tooltip from "../../Tooltip"; // ← Chemin relatif depuis Input/ vers components/Tooltip/
+import Tooltip from "../../Tooltip";
 
 /**
  * Types d'onglets disponibles
@@ -27,7 +28,7 @@ import Tooltip from "../../Tooltip"; // ← Chemin relatif depuis Input/ vers co
 const TAB_TYPES = {
     MANUAL: "manual",
     FILE: "file",
-    CLOUD: "cloud",
+    CODIMD: "codimd",
 };
 
 /**
@@ -50,13 +51,24 @@ const TABS_CONFIG = [
         tooltip: "Chargez un fichier texte (.txt) depuis votre ordinateur",
     },
     {
-        id: TAB_TYPES.CLOUD,
-        label: "Cloud",
-        icon: "☁️",
-        title: "Charger depuis le cloud",
+        id: TAB_TYPES.CODIMD,
+        label: "CodiMD",
+        icon: "📝",
+        title: "Charger depuis CodiMD",
         tooltip:
-            "Importez un texte partagé via une URL cloud (Dropbox, Nextcloud...)",
+            "Importez un document partagé depuis codimd.apps.education.fr (service RGPD Éducation nationale)",
     },
+];
+
+/**
+ * Vitesses disponibles pour le partage
+ */
+const VITESSES_PARTAGE = [
+    { value: 30, label: "30 MLM - Très lent (CP-début CE1)" },
+    { value: 50, label: "50 MLM - Lent (CE1)" },
+    { value: 70, label: "70 MLM - Moyen (CE2)" },
+    { value: 90, label: "90 MLM - Rapide (CM1-CM2)" },
+    { value: 110, label: "110 MLM - Très rapide (CM2+)" },
 ];
 
 function TextInputManager({
@@ -67,49 +79,54 @@ function TextInputManager({
     error = null,
     sourceUrl = null,
     onReset = null,
+    speedConfig = null,
 }) {
     // Onglet actif (par défaut : saisie manuelle)
     const [activeTab, setActiveTab] = useState(TAB_TYPES.MANUAL);
 
-    // État pour le chargement cloud
-    const [cloudUrl, setCloudUrl] = useState("");
-    const [showCloudHelp, setShowCloudHelp] = useState(false);
+    // État pour l'URL CodiMD à charger
+    const [codimdUrl, setCodimdUrl] = useState("");
+
+    // État pour afficher/masquer l'aide CodiMD
+    const [showCodimdHelp, setShowCodimdHelp] = useState(false);
 
     // Référence pour l'input file
     const fileInputRef = useRef(null);
 
-    /**
-     * Gère le changement de texte dans le textarea
-     * @param {Event} e - Événement de changement
-     */
-    const handleTexteChange = (e) => {
-        onTexteChange(e.target.value);
-    };
+    // États pour le partage
+    const [shareSpeed, setShareSpeed] = useState(70); // Vitesse par défaut
+    const [shareLocked, setShareLocked] = useState(false); // Suggérée par défaut
+    const [showShareSuccess, setShowShareSuccess] = useState(false);
 
     /**
-     * Gère l'import d'un fichier .txt
-     * @param {Event} e - Événement de changement de fichier
+     * Gère l'import d'un fichier local
+     * @param {Event} e - Événement de changement d'input file
      */
     const handleFileImport = (e) => {
         const files = e.target.files;
-        if (files && files[0]) {
-            if (files[0].type.match("text/plain")) {
+        if (files && files.length > 0) {
+            const file = files[0];
+
+            if (file.type === "text/plain" || file.name.endsWith(".txt")) {
                 const reader = new FileReader();
+
                 reader.onload = (event) => {
                     onTexteChange(event.target.result);
-                    setActiveTab(TAB_TYPES.MANUAL); // Retour à l'onglet saisie
+                    setActiveTab(TAB_TYPES.MANUAL);
                 };
+
                 reader.onerror = () => {
                     alert("Erreur lors de la lecture du fichier.");
                 };
-                reader.readAsText(files[0], "UTF-8");
+
+                reader.readAsText(file, "UTF-8");
             } else {
                 alert(
                     "Format de fichier non valide. Veuillez sélectionner un fichier .txt"
                 );
             }
         }
-        // Reset input pour permettre de recharger le même fichier
+
         e.target.value = "";
     };
 
@@ -134,287 +151,310 @@ function TextInputManager({
     };
 
     /**
-     * Gère la soumission de l'URL cloud
+     * Gère la soumission de l'URL CodiMD
      * @param {Event} e - Événement de soumission
      */
-    const handleCloudSubmit = (e) => {
+    const handleCodimdSubmit = (e) => {
         e.preventDefault();
-        if (cloudUrl.trim()) {
-            onUrlSubmit(cloudUrl.trim());
-            setCloudUrl("");
+        if (codimdUrl.trim()) {
+            onUrlSubmit(codimdUrl.trim());
+            setCodimdUrl("");
+        }
+    };
+
+    /**
+     * Génère et copie l'URL de partage avec vitesse
+     */
+    const handleGenerateShareLink = async () => {
+        if (!sourceUrl) {
+            alert("Aucun document CodiMD chargé à partager.");
+            return;
+        }
+
+        // Construction de l'URL de partage
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+        params.set("url", sourceUrl);
+        params.set("speed", shareSpeed);
+        if (shareLocked) {
+            params.set("locked", "true");
+        }
+
+        const shareUrl = `${baseUrl}?${params.toString()}`;
+
+        // Copie dans le presse-papier
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setShowShareSuccess(true);
+            setTimeout(() => setShowShareSuccess(false), 3000);
+        } catch (err) {
+            // Fallback si clipboard API non disponible
+            const textarea = document.createElement("textarea");
+            textarea.value = shareUrl;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            setShowShareSuccess(true);
+            setTimeout(() => setShowShareSuccess(false), 3000);
         }
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            {/* Barre d'onglets avec tooltips */}
-            <div className="border-b border-gray-200">
-                <nav className="flex" role="tablist">
-                    {TABS_CONFIG.map((tab) => (
-                        <Tooltip
-                            key={tab.id}
-                            content={tab.tooltip}
-                            position="top"
+        <div className="w-full max-w-4xl mx-auto">
+            {/* Onglets */}
+            <div className="flex border-b border-gray-300 mb-4">
+                {TABS_CONFIG.map((tab) => (
+                    <Tooltip key={tab.id} content={tab.tooltip} position="top">
+                        <button
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
+                                activeTab === tab.id
+                                    ? "bg-blue-600 text-white border-b-2 border-blue-600"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                            aria-label={tab.title}
                         >
-                            <button
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`
-                                    flex-1 px-6 py-4 text-sm font-medium transition
-                                    border-b-2 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500
-                                    ${
-                                        activeTab === tab.id
-                                            ? "border-blue-600 text-blue-600 bg-blue-50"
-                                            : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
-                                    }
-                                `}
-                                role="tab"
-                                aria-selected={activeTab === tab.id}
-                                aria-label={tab.tooltip}
-                            >
-                                <span className="mr-2">{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        </Tooltip>
-                    ))}
-                </nav>
+                            <span className="mr-2">{tab.icon}</span>
+                            {tab.label}
+                        </button>
+                    </Tooltip>
+                ))}
             </div>
 
-            {/* Contenu des onglets */}
-            <div className="p-6">
-                {/* ========================================
-                    ONGLET SAISIE MANUELLE
-                ======================================== */}
-                {activeTab === TAB_TYPES.MANUAL && (
-                    <div role="tabpanel">
-                        <div className="flex justify-between items-center mb-3">
-                            <label
-                                htmlFor="text-input"
-                                className="text-sm font-medium text-gray-700"
-                            >
-                                Votre texte
-                                <span className="ml-2 text-xs text-gray-500">
-                                    ({texte.length} caractères)
-                                </span>
-                            </label>
+            {/* Contenu de l'onglet SAISIE MANUELLE */}
+            {activeTab === TAB_TYPES.MANUAL && (
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                        Saisir ou coller du texte
+                    </h3>
+                    <textarea
+                        value={texte}
+                        onChange={(e) => onTexteChange(e.target.value)}
+                        placeholder="Écrivez ou collez le texte ici..."
+                        rows={17}
+                        className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
+                    />
+                    <div className="text-sm text-gray-600 mt-2">
+                        {texte.length} caractères
+                    </div>
 
-                            <button
-                                onClick={handleExport}
-                                disabled={!texte.trim()}
-                                className={`
-                                    px-3 py-1 text-sm font-medium border rounded transition
-                                    ${
-                                        texte.trim()
-                                            ? "text-gray-700 border-gray-300 hover:bg-gray-50"
-                                            : "text-gray-400 border-gray-200 cursor-not-allowed"
-                                    }
-                                `}
-                                title="Enregistrer le texte au format .txt"
-                            >
-                                💾 Enregistrer
-                            </button>
+                    <div className="flex gap-2 mt-4">
+                        <button
+                            onClick={handleExport}
+                            disabled={!texte.trim()}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                        >
+                            💾 Enregistrer (.txt)
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Contenu de l'onglet FICHIER */}
+            {activeTab === TAB_TYPES.FILE && (
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                        Importer un fichier .txt
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                        Sélectionnez un fichier .txt depuis votre ordinateur.
+                        <br />
+                        Le texte sera automatiquement chargé dans l'onglet
+                        "Saisir".
+                    </p>
+
+                    <input
+                        type="file"
+                        accept=".txt"
+                        onChange={handleFileImport}
+                        ref={fileInputRef}
+                        className="hidden"
+                    />
+
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                    >
+                        📂 Parcourir...
+                    </button>
+                </div>
+            )}
+
+            {/* Contenu de l'onglet CODIMD */}
+            {activeTab === TAB_TYPES.CODIMD && (
+                <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                        Charger un document CodiMD
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                        Collez l'URL d'un document partagé depuis{" "}
+                        <strong>codimd.apps.education.fr</strong>.
+                        {/* Bouton d'aide pour les exemples d'URL */}
+                        <button
+                            onClick={() => setShowCodimdHelp(!showCodimdHelp)}
+                            className="ml-2 text-blue-600 hover:text-blue-800 underline text-sm"
+                        >
+                            {showCodimdHelp ? "Masquer" : "Voir"} des exemples
+                        </button>
+                    </p>
+
+                    {showCodimdHelp && (
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                            <p className="font-semibold mb-2">
+                                Exemples d'URL valides :
+                            </p>
+                            <ul className="list-disc list-inside space-y-1 text-gray-700">
+                                <li>
+                                    <code className="bg-white px-1 py-0.5 rounded">
+                                        https://codimd.apps.education.fr/s/w1D5hjCIC
+                                    </code>
+                                </li>
+                                <li>
+                                    <code className="bg-white px-1 py-0.5 rounded">
+                                        https://codimd.apps.education.fr/s/EVZXBuz6e
+                                    </code>
+                                </li>
+                            </ul>
+                            <p className="mt-3 text-gray-600">
+                                CodiMD est le service de rédaction collaborative
+                                Markdown officiel de l'Éducation nationale
+                                (RGPD, hébergement France).
+                            </p>
                         </div>
+                    )}
 
-                        <textarea
-                            id="text-input"
-                            value={texte}
-                            onChange={handleTexteChange}
-                            placeholder="Collez ou tapez votre texte ici..."
-                            className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
-                            spellCheck="false"
+                    <form onSubmit={handleCodimdSubmit} className="space-y-4">
+                        <input
+                            type="url"
+                            value={codimdUrl}
+                            onChange={(e) => setCodimdUrl(e.target.value)}
+                            placeholder="https://codimd.apps.education.fr/s/..."
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                            disabled={loading}
                         />
 
-                        {/* Badge indicateur de texte chargé depuis cloud */}
-                        {sourceUrl && (
-                            <div className="mt-3 bg-blue-50 border border-blue-200 rounded p-3">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="flex-1">
-                                        <p className="text-sm text-blue-800 font-medium mb-1">
-                                            ☁️ Texte chargé depuis le cloud
-                                        </p>
-                                        <p className="text-xs text-blue-600 break-all">
-                                            {sourceUrl}
-                                        </p>
-                                    </div>
-                                    {onReset && (
-                                        <button
-                                            onClick={onReset}
-                                            className="px-3 py-1 text-sm font-medium text-red-600 border border-red-600 rounded hover:bg-red-50 transition"
-                                        >
-                                            Réinitialiser
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                        <button
+                            type="submit"
+                            disabled={loading || !codimdUrl.trim()}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
+                        >
+                            {loading
+                                ? "⏳ Chargement..."
+                                : "📥 Charger le document"}
+                        </button>
+                    </form>
 
-                {/* ========================================
-                    ONGLET IMPORT FICHIER
-                ======================================== */}
-                {activeTab === TAB_TYPES.FILE && (
-                    <div role="tabpanel">
-                        <div className="text-center py-12">
-                            <div className="mb-6">
-                                <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-4xl">
-                                    📄
-                                </div>
-                            </div>
-
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Importer un fichier texte
-                            </h3>
-                            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                Sélectionnez un fichier au format{" "}
-                                <code className="bg-gray-100 px-2 py-1 rounded text-sm">
-                                    .txt
-                                </code>{" "}
-                                depuis votre ordinateur.
-                            </p>
-
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".txt,text/plain"
-                                onChange={handleFileImport}
-                                className="hidden"
-                                aria-label="Sélectionner un fichier texte"
-                            />
-
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-                            >
-                                <span>📁</span>
-                                Choisir un fichier
-                            </button>
-
-                            <p className="mt-4 text-xs text-gray-500">
-                                Le texte sera automatiquement chargé dans
-                                l'onglet "Saisir"
-                            </p>
+                    {/* Messages d'état */}
+                    {error && (
+                        <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg text-red-700">
+                            <strong>Erreur :</strong> {error}
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* ========================================
-                    ONGLET CHARGEMENT CLOUD
-                ======================================== */}
-                {activeTab === TAB_TYPES.CLOUD && (
-                    <div role="tabpanel">
-                        <div className="max-w-xl mx-auto">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                Charger depuis le cloud
-                            </h3>
-                            <p className="text-gray-600 mb-6">
-                                Collez l'URL d'un fichier texte partagé depuis
-                                Dropbox, Nextcloud, Google Drive, etc.
-                            </p>
-
-                            {/* Bouton d'aide pour les exemples d'URL */}
-                            <button
-                                onClick={() => setShowCloudHelp(!showCloudHelp)}
-                                className="mb-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                                {showCloudHelp ? "▼" : "▶"} Voir des exemples
-                                d'URL
-                            </button>
-
-                            {showCloudHelp && (
-                                <div className="mb-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 space-y-2">
-                                    <p className="font-semibold">
-                                        Exemples d'URL valides :
+                    {sourceUrl && !error && (
+                        <div className="mt-4 p-4 bg-green-50 border border-green-300 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-semibold text-green-800">
+                                        ✅ Document chargé depuis CodiMD
                                     </p>
-                                    <ul className="list-disc list-inside space-y-1 text-xs">
-                                        <li>
-                                            Dropbox :
-                                            https://www.dropbox.com/s/...
-                                        </li>
-                                        <li>
-                                            Nextcloud :
-                                            https://cloud.example.com/s/...
-                                        </li>
-                                        <li>
-                                            Google Drive :
-                                            https://drive.google.com/file/d/...
-                                        </li>
-                                    </ul>
+                                    <p className="text-sm text-gray-600 mt-1 break-all">
+                                        {sourceUrl}
+                                    </p>
                                 </div>
-                            )}
-
-                            {/* Formulaire de saisie d'URL */}
-                            <form onSubmit={handleCloudSubmit}>
-                                <input
-                                    type="url"
-                                    value={cloudUrl}
-                                    onChange={(e) =>
-                                        setCloudUrl(e.target.value)
-                                    }
-                                    placeholder="https://..."
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
-                                    disabled={loading}
-                                    required
-                                />
-
-                                {error && (
-                                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800">
-                                        ⚠️ {error}
-                                    </div>
+                                {onReset && (
+                                    <button
+                                        onClick={onReset}
+                                        className="ml-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+                                    >
+                                        ❌ Réinitialiser
+                                    </button>
                                 )}
+                            </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading || !cloudUrl.trim()}
-                                    className={`
-                                        w-full py-3 px-6 rounded-lg font-medium transition
-                                        flex items-center justify-center gap-2
-                                        ${
-                                            loading || !cloudUrl.trim()
-                                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                                : "bg-blue-600 text-white hover:bg-blue-700"
-                                        }
-                                    `}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <svg
-                                                className="animate-spin h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <circle
-                                                    className="opacity-25"
-                                                    cx="12"
-                                                    cy="12"
-                                                    r="10"
-                                                    stroke="currentColor"
-                                                    strokeWidth="4"
-                                                />
-                                                <path
-                                                    className="opacity-75"
-                                                    fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                />
-                                            </svg>
-                                            Chargement...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>☁️</span>
-                                            Charger le texte
-                                        </>
+                            {/* Section de partage */}
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                                <h4 className="font-semibold text-green-800 mb-3">
+                                    🔗 Partager ce document avec une vitesse de
+                                    lecture
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                    Générez un lien pour que vos élèves ouvrent
+                                    directement ce document avec la vitesse de
+                                    votre choix.
+                                </p>
+
+                                <div className="space-y-3">
+                                    {/* Sélection de vitesse */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Vitesse de lecture :
+                                        </label>
+                                        <select
+                                            value={shareSpeed}
+                                            onChange={(e) =>
+                                                setShareSpeed(
+                                                    parseInt(e.target.value, 10)
+                                                )
+                                            }
+                                            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                                        >
+                                            {VITESSES_PARTAGE.map((v) => (
+                                                <option
+                                                    key={v.value}
+                                                    value={v.value}
+                                                >
+                                                    {v.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Choix locked/unlocked */}
+                                    <div>
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={shareLocked}
+                                                onChange={(e) =>
+                                                    setShareLocked(
+                                                        e.target.checked
+                                                    )
+                                                }
+                                                className="w-4 h-4"
+                                            />
+                                            <span className="text-sm text-gray-700">
+                                                Verrouiller la vitesse (l'élève
+                                                ne pourra pas la modifier)
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    {/* Bouton de génération */}
+                                    <button
+                                        onClick={handleGenerateShareLink}
+                                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                                    >
+                                        📋 Copier le lien de partage
+                                    </button>
+
+                                    {/* Message de succès */}
+                                    {showShareSuccess && (
+                                        <div className="p-3 bg-blue-50 border border-blue-300 rounded-lg text-blue-800 text-sm">
+                                            ✅ Lien copié ! Vous pouvez
+                                            maintenant le coller dans votre
+                                            Digipad, ENT, etc.
+                                        </div>
                                     )}
-                                </button>
-                            </form>
-
-                            <p className="mt-4 text-xs text-gray-500 text-center">
-                                Le texte sera automatiquement chargé dans
-                                l'onglet "Saisir"
-                            </p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
@@ -427,6 +467,10 @@ TextInputManager.propTypes = {
     error: PropTypes.string,
     sourceUrl: PropTypes.string,
     onReset: PropTypes.func,
+    speedConfig: PropTypes.shape({
+        speed: PropTypes.number.isRequired,
+        locked: PropTypes.bool.isRequired,
+    }),
 };
 
 export default TextInputManager;
