@@ -135,7 +135,7 @@ function LectureFlash() {
             <FlashAmelioreTest
                 texte={state.texte}
                 vitesse={state.vitesse}
-                revenir={switchModeSaisie}
+                switchMode={switchModeSaisie}
             />
         );
     }
