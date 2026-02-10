@@ -39,3 +39,4 @@ Version correspondant au SRS v2.0.0.
 ## [1.x.x] - Historique antérieur
 
 Versions initiales ou prototypes non spécifiés dans le SRS v2.0.0.
+## [2.1.1] - 2026-02-10\n\n### Refactoring\n- Nettoyage architecture (9 éléments supprimés)\n
