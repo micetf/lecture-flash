@@ -103,7 +103,7 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
             {/* Barre de contrôle */}
             <div className="bg-white border-b border-gray-200 shadow-sm mb-4 p-4">
                 <div className="flex gap-3 items-center justify-between">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
                         <button
                             className={`px-6 py-2 rounded-lg transition font-semibold ${
                                 isPaused
@@ -121,6 +121,13 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
                         >
                             ⏹ Arrêter
                         </button>
+
+                        {/* Indicateur de pause intégré */}
+                        {isPaused && (
+                            <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                                ⏸ En pause
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -138,14 +145,6 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
                     />
                 </div>
             </div>
-
-            {isPaused && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-center">
-                    <p className="text-yellow-800 font-medium">
-                        ⏸ Lecture en pause
-                    </p>
-                </div>
-            )}
 
             {/* Texte avec animation */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
