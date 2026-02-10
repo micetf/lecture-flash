@@ -1,32 +1,16 @@
 /**
  * Composant amélioré de choix de vitesse de lecture
  *
- * VERSION 3.0.0 : Solution hybride avec mode personnalisé
- *
- * Améliorations UX :
- * - Niveau 1 : 5 boutons guidés (vitesses Eduscol)
- * - Niveau 2 : Curseur personnalisé (30-110 MLM) pour mode expert
- * - Pré-sélection visuelle si vitesse suggérée (speedConfig)
- * - Bouton "Tester" pour chaque vitesse
- * - Preview visuelle de la vitesse
- * - Recommandations pédagogiques par niveau
- * - Tooltips informatifs sur chaque vitesse
+ * VERSION 3.1.0 : Améliorations UX visuelles
  *
  * @component
- * @param {Object} props
- * @param {Function} props.choisirVitesse - Callback pour choisir la vitesse
- * @param {string} [props.texte] - Texte pour la preview (optionnel)
- * @param {Object} [props.speedConfig] - Config vitesse depuis URL { speed: number, locked: boolean }
  */
 
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
+import Mot from "./Mot";
 
-/**
- * Configuration des vitesses avec recommandations pédagogiques et tooltips
- * Sources : Eduscol, recherches en fluence (Sprenger-Charolles)
- */
 const VITESSES = [
     {
         valeur: 30,
@@ -77,16 +61,8 @@ const VITESSES = [
     },
 ];
 
-/**
- * Texte de démonstration pour la preview
- */
 const TEXTE_DEMO = "La lecture fluente permet de mieux comprendre les textes.";
 
-/**
- * Détermine la zone Eduscol correspondant à une vitesse personnalisée
- * @param {number} speed - Vitesse en MLM
- * @returns {string} Zone pédagogique
- */
 const getZoneEduscol = (speed) => {
     if (speed <= 40) return "CP - début CE1 (déchiffrage)";
     if (speed <= 60) return "CE1 (lecture mot à mot)";
@@ -100,14 +76,9 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
     const [vitesseSelectionnee, setVitesseSelectionnee] = useState(null);
     const [isTestActive, setIsTestActive] = useState(false);
     const timeoutRef = useRef(null);
-
-    // États pour le mode réglage personnalisé
     const [showCustomMode, setShowCustomMode] = useState(false);
     const [customSpeed, setCustomSpeed] = useState(70);
 
-    /**
-     * Nettoie le timer au démontage
-     */
     useEffect(() => {
         return () => {
             if (timeoutRef.current) {
@@ -116,27 +87,17 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
         };
     }, []);
 
-    /**
-     * Lance un test de vitesse
-     * @param {number} vitesse - Vitesse à tester
-     */
     const handleTest = (vitesse) => {
-        // Arrêter le test en cours avant d'en lancer un nouveau
         handleStopTest();
-
         setVitesseTest(vitesse);
         setIsTestActive(true);
 
-        // Arrêt automatique après 10 secondes
         timeoutRef.current = setTimeout(() => {
             setIsTestActive(false);
             setVitesseTest(null);
         }, 10000);
     };
 
-    /**
-     * Arrête le test en cours
-     */
     const handleStopTest = () => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -145,154 +106,266 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
         setVitesseTest(null);
     };
 
-    /**
-     * Valide le choix de vitesse
-     * @param {number} vitesse - Vitesse choisie
-     */
     const handleSelect = (vitesse) => {
         handleStopTest();
         setVitesseSelectionnee(vitesse);
         choisirVitesse(vitesse);
     };
 
-    /**
-     * Composant Preview de vitesse
-     */
-    const PreviewVitesse = ({ vitesse }) => {
-        const [motActuel, setMotActuel] = useState(0);
-        const mots = (texte || TEXTE_DEMO).split(" ");
-        const intervalMs = 60000 / vitesse; // Approximation
+    // Composant Preview de vitesse avec animation
+    const PreviewVitesse = ({ vitesse, textePreview }) => {
+        const [idMotPreview, setIdMotPreview] = useState(0);
+        const previewTimerRef = useRef(null);
+
+        // EXACTEMENT les mêmes constantes que FlashAmelioreTest
+        const ESPACE_INSECABLE = "\u00a0";
+        const TIRET_INSECABLE = "\u2011";
+        const specialsBeforeIn = /(^-|«|') +/g;
+        const specialsAfterIn = / +(;|:|!|\?|»|')/g;
+        const specialsBeforeOut = /(^-|«)/g;
+        const specialsAfterOut = /(;|:|!|\?|»)/g;
+
+        const textePurify = (textePreview || TEXTE_DEMO)
+            .trim()
+            .replace(/'/g, "'")
+            .replace(/ +/g, " ")
+            .replace(/\n+/g, " ")
+            .replace(specialsAfterIn, "$1")
+            .replace(specialsBeforeIn, "$1");
+
+        const mots = textePurify.split(" ");
+        const nbreMots = mots.length;
+        const nbreCaracteres = textePurify.length;
+
+        // EXACTEMENT le même calcul
+        const speed = Math.floor(
+            ((nbreMots / vitesse) * 60000) / nbreCaracteres
+        );
 
         useEffect(() => {
-            if (!isTestActive) return;
+            return () => {
+                if (previewTimerRef.current) {
+                    clearTimeout(previewTimerRef.current);
+                }
+            };
+        }, []);
 
-            const interval = setInterval(() => {
-                setMotActuel((prev) => {
-                    if (prev >= mots.length - 1) {
-                        return 0; // Boucle
-                    }
-                    return prev + 1;
-                });
-            }, intervalMs);
-
-            return () => clearInterval(interval);
-        }, [isTestActive, intervalMs, mots.length]);
-
-        if (!isTestActive) return null;
+        const suivantPreview = () => {
+            if (idMotPreview < nbreMots - 1) {
+                setIdMotPreview((prev) => prev + 1);
+            } else {
+                previewTimerRef.current = setTimeout(() => {
+                    setIdMotPreview(0);
+                }, 1500);
+            }
+        };
 
         return (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg border-2 border-blue-400">
-                <p className="text-lg leading-relaxed">
-                    {mots.map((mot, index) => (
-                        <span
-                            key={index}
-                            className={`${
-                                index === motActuel
-                                    ? "bg-yellow-300 font-bold"
-                                    : index < motActuel
-                                      ? "text-gray-400"
-                                      : "text-gray-800"
-                            }`}
-                        >
-                            {mot}{" "}
-                        </span>
-                    ))}
-                </p>
+            <div className="mt-4 p-6 bg-blue-50 border-2 border-blue-400 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-blue-800">
+                        🧪 Aperçu à {vitesse} MLM
+                    </p>
+                    <button
+                        onClick={handleStopTest}
+                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
+                    >
+                        ⏸ Arrêter
+                    </button>
+                </div>
+
+                {/* EXACTEMENT la même structure que FlashAmelioreTest */}
+                <div className="bg-white rounded-lg p-4 border border-gray-300">
+                    <p className="texte text-xl leading-relaxed">
+                        {mots.map((mot, index) => {
+                            const motClean = mot
+                                .replace(
+                                    specialsAfterOut,
+                                    `${ESPACE_INSECABLE}$1`
+                                )
+                                .replace(
+                                    specialsBeforeOut,
+                                    `$1${ESPACE_INSECABLE}`
+                                )
+                                .replace(/-/g, TIRET_INSECABLE);
+
+                            // Mots terminés : EXACTEMENT comme FlashAmelioreTest
+                            if (index < idMotPreview) {
+                                return (
+                                    <span key={index} className="mot">
+                                        <span style={{ visibility: "hidden" }}>
+                                            {motClean}
+                                        </span>
+                                        <span> </span>
+                                    </span>
+                                );
+                            }
+
+                            // Mot actuel et futurs : EXACTEMENT comme FlashAmelioreTest
+                            const motSpeed = index === idMotPreview ? speed : 0;
+
+                            return (
+                                <Mot
+                                    key={index}
+                                    mot={motClean}
+                                    speed={motSpeed}
+                                    suivant={
+                                        index === idMotPreview
+                                            ? suivantPreview
+                                            : () => {}
+                                    }
+                                />
+                            );
+                        })}
+                    </p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between">
+                    <p className="text-xs text-gray-600">
+                        Mot {idMotPreview + 1} / {nbreMots}
+                    </p>
+                    <p className="text-xs text-blue-700 font-medium">
+                        {vitesse} mots/minute
+                    </p>
+                </div>
             </div>
         );
     };
 
     return (
-        <div className="w-full">
-            {/* Preview de vitesse (globale) */}
-            {isTestActive && <PreviewVitesse vitesse={vitesseTest} />}
+        <div>
+            {/* Message vitesse suggérée si speedConfig présent */}
+            {speedConfig && !speedConfig.locked && (
+                <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                    <p className="text-yellow-900 font-semibold">
+                        ⭐ Vitesse recommandée : {speedConfig.speed} MLM
+                    </p>
+                    <p className="text-sm text-yellow-800 mt-1">
+                        💡 Votre enseignant suggère cette vitesse, mais vous
+                        pouvez en choisir une autre si nécessaire.
+                    </p>
+                </div>
+            )}
 
-            {/* Message d'aide */}
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-gray-700">
-                    💡 Testez chaque vitesse avant de faire votre choix
-                </p>
-            </div>
+            {/* Zone de preview si test actif */}
+            {isTestActive && vitesseTest && (
+                <PreviewVitesse vitesse={vitesseTest} textePreview={texte} />
+            )}
 
-            {/* Grille des 5 vitesses officielles */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {/* Grille des 5 vitesses */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                 {VITESSES.map((v) => {
                     const isSuggested = speedConfig?.speed === v.valeur;
+                    const isSelected = vitesseSelectionnee === v.valeur;
+                    const isTesting = vitesseTest === v.valeur && isTestActive;
 
                     return (
-                        <div
+                        <Tooltip
                             key={v.valeur}
-                            className={`border-2 rounded-lg p-4 transition-all ${
-                                isSuggested
-                                    ? "border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-300"
-                                    : "border-gray-300 bg-white"
-                            }`}
+                            content={v.tooltip}
+                            position="top"
                         >
-                            {/* Badge "vitesse suggérée" */}
-                            {isSuggested && (
-                                <div className="text-center mb-2">
-                                    <span className="inline-block px-3 py-1 bg-yellow-400 text-yellow-900 font-semibold text-xs rounded-full">
-                                        ⭐ Vitesse suggérée
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* En-tête avec tooltip */}
-                            <Tooltip content={v.tooltip} position="top">
-                                <div className="text-center mb-3 cursor-help">
-                                    <div
-                                        className={`inline-block px-4 py-2 ${v.colorClass} text-white rounded-full font-bold text-lg mb-2`}
-                                    >
-                                        {v.valeur} MLM
+                            <div
+                                className={`
+                                    rounded-xl p-4 transition-all duration-300 cursor-pointer
+                                    ${isTesting && "border-4 border-blue-500 shadow-2xl ring-4 ring-blue-300 animate-pulse"}
+                                    ${isSelected && !isTesting && "border-4 border-green-600 shadow-2xl ring-4 ring-green-300"}
+                                    ${isSuggested && !isSelected && !isTesting && "border-4 border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-300"}
+                                    ${!isSelected && !isSuggested && !isTesting && "border-2 border-gray-300 bg-white hover:shadow-lg hover:border-gray-400"}
+                                `}
+                            >
+                                {/* Badge statut */}
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex-1">
+                                        {isSuggested && !isSelected && (
+                                            <span className="inline-block px-2 py-0.5 bg-yellow-400 text-yellow-900 font-bold text-xs rounded-full mb-2">
+                                                ⭐ Suggérée
+                                            </span>
+                                        )}
+                                        {isSelected && (
+                                            <span className="inline-block px-2 py-0.5 bg-green-600 text-white font-bold text-xs rounded-full mb-2">
+                                                ✓ Sélectionnée
+                                            </span>
+                                        )}
+                                        {isTesting && (
+                                            <span className="inline-block px-2 py-0.5 bg-blue-600 text-white font-bold text-xs rounded-full mb-2 animate-pulse">
+                                                🧪 Test en cours
+                                            </span>
+                                        )}
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-700">
-                                        {v.label}
-                                    </p>
                                 </div>
-                            </Tooltip>
 
-                            {/* Informations pédagogiques */}
-                            <div className="text-center mb-3 text-sm text-gray-600">
-                                <p className="font-medium">{v.niveau}</p>
-                                <p className="text-xs italic">
-                                    {v.description}
-                                </p>
-                            </div>
+                                {/* Vitesse et label */}
+                                <div className="text-center mb-3">
+                                    <div
+                                        className={`text-4xl font-bold ${v.color === "blue" ? "text-blue-600" : v.color === "green" ? "text-green-600" : v.color === "yellow" ? "text-yellow-600" : v.color === "orange" ? "text-orange-600" : "text-red-600"}`}
+                                    >
+                                        {v.valeur}
+                                    </div>
+                                    <div className="text-xs text-gray-500 font-medium">
+                                        MLM
+                                    </div>
+                                    <div className="text-sm font-semibold text-gray-700 mt-1">
+                                        {v.label}
+                                    </div>
+                                </div>
 
-                            {/* Boutons d'action */}
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleTest(v.valeur)}
-                                    disabled={
-                                        isTestActive && vitesseTest !== v.valeur
-                                    }
-                                    className="flex-1 px-3 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
-                                >
-                                    {isTestActive && vitesseTest === v.valeur
-                                        ? "⏸ Arrêter"
-                                        : "🧪 Tester"}
-                                </button>
-                                <button
-                                    onClick={() => handleSelect(v.valeur)}
-                                    className={`flex-1 px-3 py-2 text-white text-sm rounded transition font-semibold ${v.colorClass}`}
-                                >
-                                    ✓ Choisir
-                                </button>
+                                {/* Niveau et description */}
+                                <div className="text-center mb-4">
+                                    <div className="text-xs font-semibold text-gray-600 mb-1">
+                                        {v.niveau}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {v.description}
+                                    </div>
+                                </div>
+
+                                {/* Boutons d'action */}
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() =>
+                                            isTesting
+                                                ? handleStopTest()
+                                                : handleTest(v.valeur)
+                                        }
+                                        disabled={
+                                            isTestActive &&
+                                            vitesseTest !== v.valeur
+                                        }
+                                        className="w-full px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
+                                    >
+                                        {isTesting ? "⏸ Arrêter" : "🧪 Tester"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleSelect(v.valeur)}
+                                        className={`w-full px-3 py-2 text-white text-sm rounded-lg transition font-bold ${v.colorClass} ${isSelected && "ring-4 ring-offset-2"}`}
+                                    >
+                                        {isSelected
+                                            ? "✓ Sélectionnée"
+                                            : "✓ Choisir"}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </Tooltip>
                     );
                 })}
             </div>
 
             {/* Message d'aide */}
-            <div className="text-center text-sm text-gray-600 mb-6">
-                <p>
-                    👆 Survolez une vitesse pour plus d'informations, testez-la,
+            <div className="text-center text-sm text-gray-600 mb-6 p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium">
+                    👆 Testez les vitesses pour trouver celle qui vous convient,
                     puis cliquez sur "Choisir"
                 </p>
+                {vitesseSelectionnee && (
+                    <p className="mt-2 text-green-700 font-semibold">
+                        ✓ Vitesse sélectionnée : {vitesseSelectionnee} MLM -
+                        Cliquez sur "Suivant" pour continuer
+                    </p>
+                )}
             </div>
 
-            {/* Lien vers mode personnalisé (masqué si élève avec speedConfig) */}
+            {/* Lien vers mode personnalisé */}
             {!speedConfig && !showCustomMode && (
                 <div className="text-center mt-6 border-t pt-6">
                     <button
@@ -304,23 +377,27 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                 </div>
             )}
 
-            {/* Mode réglage personnalisé (curseur) */}
+            {/* Mode personnalisé (inchangé) */}
             {showCustomMode && (
                 <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-blue-400 rounded-lg shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold text-gray-800 text-lg">
-                            ⚙️ Réglage personnalisé : {customSpeed} MLM
-                        </h4>
+                        <h3 className="text-lg font-bold text-gray-800">
+                            ⚙️ Réglage personnalisé
+                        </h3>
                         <button
                             onClick={() => setShowCustomMode(false)}
-                            className="text-sm text-gray-600 hover:text-gray-800 font-bold px-3 py-1 rounded hover:bg-gray-200 transition"
+                            className="text-sm text-gray-600 hover:text-gray-800"
                         >
                             ✕ Fermer
                         </button>
                     </div>
 
-                    {/* Curseur */}
-                    <div className="mb-4">
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-semibold text-gray-700">
+                                Vitesse : {customSpeed} MLM
+                            </label>
+                        </div>
                         <input
                             type="range"
                             min="30"
@@ -328,19 +405,11 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                             step="5"
                             value={customSpeed}
                             onChange={(e) =>
-                                setCustomSpeed(parseInt(e.target.value, 10))
+                                setCustomSpeed(Number(e.target.value))
                             }
-                            className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-                            style={{
-                                background: `linear-gradient(to right, 
-                  rgb(147, 197, 253) 0%, 
-                  rgb(250, 204, 21) 50%, 
-                  rgb(252, 165, 165) 100%)`,
-                            }}
+                            className="w-full h-3 bg-gradient-to-r from-blue-500 via-yellow-500 to-red-500 rounded-lg appearance-none cursor-pointer"
                         />
-
-                        {/* Graduations des 5 paliers officiels */}
-                        <div className="flex justify-between text-xs text-gray-600 mt-2 px-1">
+                        <div className="flex justify-between text-xs text-gray-600 mt-1">
                             <span className="font-semibold">30</span>
                             <span className="font-semibold">50</span>
                             <span className="font-semibold">70</span>
@@ -349,19 +418,16 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                         </div>
                     </div>
 
-                    {/* Affichage de la zone Eduscol */}
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm mb-4">
                         <p className="font-medium text-blue-800 mb-2">
                             📍 Zone pédagogique : {getZoneEduscol(customSpeed)}
                         </p>
                         <p className="text-gray-700 text-xs">
                             💡 Les vitesses officielles (30-50-70-90-110)
-                            correspondent aux repères Eduscol pour les cycles 2
-                            et 3
+                            correspondent aux repères Eduscol
                         </p>
                     </div>
 
-                    {/* Boutons test et validation */}
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleTest(customSpeed)}
