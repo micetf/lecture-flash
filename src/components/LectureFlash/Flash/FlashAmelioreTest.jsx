@@ -1,6 +1,6 @@
 /**
- * Composant Flash amélioré - VERSION CORRIGÉE
- * Fix : Animation démarre correctement dès le premier mot
+ * Composant Flash amélioré avec pause/reprise élégante
+ * SOLUTION : Classe CSS statique pour mots terminés
  *
  * @component
  * @param {Object} props
@@ -156,9 +156,21 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
                             .replace(specialsBeforeOut, `$1${ESPACE_INSECABLE}`)
                             .replace(/-/g, TIRET_INSECABLE);
 
-                        // Durée de l'animation pour ce mot
+                        // Mots terminés : afficher directement avec classe CSS masquée
+                        if (index < idMot) {
+                            return (
+                                <span key={index} className="mot">
+                                    <span style={{ visibility: "hidden" }}>
+                                        {motClean}
+                                    </span>
+                                    <span> </span>
+                                </span>
+                            );
+                        }
+
+                        // Mot actuel et mots futurs : animation normale
                         const motSpeed =
-                            index <= idMot && !isPaused ? speed : 0;
+                            index === idMot && !isPaused ? speed : 0;
 
                         return (
                             <Mot
