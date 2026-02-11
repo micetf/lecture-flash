@@ -1,6 +1,6 @@
 /**
  * Main Lecture Flash application component
- * VERSION 3.1.0 : 4-step workflow + Help system restored
+ * VERSION 3.2.0 : Conditional step 3 based on sourceUrl
  *
  * @component
  * @returns {JSX.Element}
@@ -27,7 +27,7 @@ function LectureFlash() {
     const [currentStep, setCurrentStep] = useState(1);
     const [appState, setAppState] = useState(initialState);
     const [isAutoStarting, setIsAutoStarting] = useState(false);
-    const [showHelp, setShowHelp] = useState(false); // Help modal state
+    const [showHelp, setShowHelp] = useState(false);
 
     // ========================================
     // CODIMD LOADING HOOK
@@ -43,6 +43,16 @@ function LectureFlash() {
     } = useMarkdownFromUrl();
 
     // ========================================
+    // COMPUTED: Dynamic total steps
+    // ========================================
+    const totalSteps = sourceUrl ? 4 : 3; // 4 steps if CodiMD, 3 otherwise
+
+    // Dynamic step labels
+    const stepLabels = sourceUrl
+        ? ["Texte", "Vitesse", "Partager", "Lecture"]
+        : ["Texte", "Vitesse", "Lecture"];
+
+    // ========================================
     // EFFECT: Load text from markdown
     // ========================================
     useEffect(() => {
@@ -55,310 +65,257 @@ function LectureFlash() {
     }, [markdown]);
 
     // ========================================
-    // EFFECT: Handle auto-skips
+    // EFFECT: Handle auto-skips based on speedConfig
     // ========================================
     useEffect(() => {
         if (!markdown) return;
 
         if (speedConfig?.locked) {
-            setCurrentStep(4);
+            // Skip directly to step 4 (reading) with locked speed
+            setCurrentStep(sourceUrl ? 4 : 3); // Adjust based on total steps
             setIsAutoStarting(true);
             setTimeout(() => {
                 switchToReadingMode(speedConfig.speed);
                 setIsAutoStarting(false);
             }, 2000);
-        } else if (speedConfig && !speedConfig.locked) {
+        } else if (speedConfig?.speed) {
+            // Skip to step 2 (speed selection) with suggested speed
             setCurrentStep(2);
+            setAppState((prev) => ({
+                ...prev,
+                speedWpm: speedConfig.speed,
+            }));
         }
-    }, [markdown, speedConfig]);
+    }, [markdown, speedConfig, sourceUrl]);
 
     // ========================================
     // HANDLERS
     // ========================================
-    const handleTextChange = (text) => {
-        setAppState({ ...appState, text });
+
+    const handleTextChange = (newText) => {
+        setAppState((prev) => ({ ...prev, text: newText }));
     };
 
-    const switchToReadingMode = (speedWpm) => {
-        setAppState({ ...appState, mode: mode.LECTURE, speedWpm });
+    const handleSpeedChange = (speed) => {
+        setAppState((prev) => ({ ...prev, speedWpm: speed }));
+    };
+
+    const switchToReadingMode = (speed) => {
+        setAppState((prev) => ({
+            ...prev,
+            mode: mode.LECTURE,
+            speedWpm: speed || prev.speedWpm,
+        }));
     };
 
     const switchToInputMode = () => {
-        setAppState({ ...appState, mode: mode.SAISIE });
+        setAppState((prev) => ({
+            ...prev,
+            mode: mode.SAISIE,
+        }));
         setCurrentStep(1);
     };
 
     const handleReset = () => {
-        setAppState(initialState);
         reset();
-        setIsAutoStarting(false);
+        setAppState(initialState);
         setCurrentStep(1);
-        window.history.pushState({}, "", window.location.pathname);
     };
 
-    const handleSpeedSelected = (speedWpm) => {
-        setAppState((prev) => ({ ...prev, speedWpm }));
-    };
-
-    // ========================================
-    // STEP NAVIGATION
-    // ========================================
-    const goToNextStep = () => {
-        if (currentStep === 2) {
-            setCurrentStep(sourceUrl ? 3 : 4);
-        } else {
-            setCurrentStep(currentStep + 1);
+    const handleNextStep = () => {
+        if (currentStep === 2 && !sourceUrl) {
+            // Skip step 3 if no CodiMD source
+            setCurrentStep(3); // Actually maps to step 4 in display
+            switchToReadingMode();
+        } else if (currentStep < totalSteps) {
+            setCurrentStep((prev) => prev + 1);
         }
     };
 
-    const goToPreviousStep = () => {
-        if (currentStep === 3) {
-            setCurrentStep(2);
-        } else if (currentStep === 4) {
-            setCurrentStep(sourceUrl ? 3 : 2);
-        } else {
-            setCurrentStep(currentStep - 1);
+    const handlePreviousStep = () => {
+        if (currentStep > 1) {
+            setCurrentStep((prev) => prev - 1);
         }
     };
 
-    const startReading = (speedWpm) => {
-        switchToReadingMode(speedWpm);
-    };
+    // ========================================
+    // RENDERING CONDITIONS
+    // ========================================
+
+    const canGoToStep2 = appState.text.trim() !== "";
+    const canGoToStep3Or4 = appState.speedWpm !== null;
 
     // ========================================
-    // READING MODE RENDER
+    // RENDER: Reading mode
     // ========================================
+
     if (appState.mode === mode.LECTURE) {
         return (
-            <TextAnimation
-                text={appState.text}
-                speedWpm={appState.speedWpm}
-                onSwitchMode={switchToInputMode}
-            />
+            <div className="container mx-auto p-4 relative">
+                <TextAnimation
+                    text={appState.text}
+                    speedWpm={appState.speedWpm}
+                    onSwitchMode={switchToInputMode}
+                />
+            </div>
         );
     }
 
     // ========================================
-    // INPUT MODE RENDER (4-STEP WORKFLOW)
+    // RENDER: Input mode with workflow
     // ========================================
-    const isSharedLink = speedConfig !== null;
-    const canGoBack = currentStep > 1 && !isSharedLink;
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+        <div className="container mx-auto p-4 relative">
+            {/* Help button */}
+            <div className="absolute top-0 right-0 z-10">
+                <Tooltip content="Afficher l'aide complète" position="bottom">
+                    <button
+                        onClick={() => setShowHelp(true)}
+                        className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
+                        aria-label="Aide"
+                    >
+                        ?
+                    </button>
+                </Tooltip>
+            </div>
+
             {/* First-time message */}
             <FirstTimeMessage />
 
             {/* Help modal */}
             <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
-            <div className="max-w-5xl mx-auto">
-                {/* Header with help button */}
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800">
-                        📖 Lecture Flash
-                    </h1>
+            {/* Step indicator - DYNAMIC based on sourceUrl */}
+            <StepIndicator
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                stepLabels={stepLabels}
+            />
 
-                    {/* Help button */}
-                    <Tooltip content="Aide et mode d'emploi" position="bottom">
-                        <button
-                            onClick={() => setShowHelp(true)}
-                            className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition flex items-center justify-center font-bold text-lg shadow-lg"
-                            aria-label="Afficher l'aide complète"
-                        >
-                            ?
-                        </button>
-                    </Tooltip>
-                </div>
-
-                {/* Step indicator */}
-                <StepIndicator
-                    currentStep={currentStep}
-                    totalSteps={4}
-                    stepLabels={["Texte", "Vitesse", "Partage", "Lecture"]}
+            {/* STEP 1: Load text */}
+            <StepContainer
+                step={1}
+                currentStep={currentStep}
+                title="Charger le texte"
+            >
+                <TextInputManager
+                    text={appState.text}
+                    onTextChange={handleTextChange}
+                    onUrlSubmit={loadMarkdownFromUrl}
+                    loading={loading}
+                    error={error}
+                    sourceUrl={sourceUrl}
+                    onReset={handleReset}
+                    speedConfig={speedConfig}
                 />
 
-                {/* STEP 1: TEXT */}
-                <StepContainer
-                    step={1}
-                    currentStep={currentStep}
-                    title="📝 Charger ou saisir le texte"
-                >
-                    <TextInputManager
-                        text={appState.text}
-                        onTextChange={handleTextChange}
-                        onUrlSubmit={loadMarkdownFromUrl}
-                        loading={loading}
-                        error={error}
-                        sourceUrl={sourceUrl}
-                        onReset={handleReset}
-                        speedConfig={speedConfig}
-                    />
-
-                    <div className="flex justify-end mt-6">
-                        <button
-                            onClick={goToNextStep}
-                            disabled={!appState.text.trim()}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-                        >
-                            Suivant : Choisir la vitesse →
-                        </button>
-                    </div>
-                </StepContainer>
-
-                {/* STEP 2: SPEED */}
-                <StepContainer
-                    step={2}
-                    currentStep={currentStep}
-                    title="⚡ Choisir la vitesse de lecture"
-                >
-                    {/* Message if shared link with suggested speed */}
-                    {speedConfig && !speedConfig.locked && (
-                        <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                            <p className="text-sm text-yellow-800 flex items-center gap-2">
-                                <span className="text-xl">⭐</span>
-                                <strong>
-                                    Vitesse recommandée : {speedConfig.speed}{" "}
-                                    MLM
-                                </strong>
-                                <span className="text-gray-600">
-                                    (mais vous pouvez la modifier)
-                                </span>
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Message if text loaded from shared link */}
-                    {isSharedLink && (
-                        <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
-                            <p className="text-sm text-blue-800 flex items-center gap-2">
-                                <span>ℹ️</span>
-                                Texte chargé depuis un lien partagé (non
-                                modifiable)
-                            </p>
-                        </div>
-                    )}
-
-                    <SpeedSelector
-                        onSpeedChange={handleSpeedSelected}
-                        text={appState.text}
-                        speedConfig={speedConfig}
-                    />
-
-                    <div className="flex justify-between mt-6">
-                        {canGoBack && (
-                            <button
-                                onClick={goToPreviousStep}
-                                className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
-                            >
-                                ← Retour
-                            </button>
-                        )}
-
-                        <button
-                            onClick={goToNextStep}
-                            disabled={!appState.speedWpm}
-                            className={`px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition ${
-                                !canGoBack ? "ml-auto" : ""
-                            }`}
-                        >
-                            {sourceUrl
-                                ? "Suivant : Partager →"
-                                : "Suivant : Lire →"}
-                        </button>
-                    </div>
-                </StepContainer>
-
-                {/* STEP 3: SHARE (optional) */}
-                {sourceUrl && (
-                    <StepContainer
-                        step={3}
-                        currentStep={currentStep}
-                        title="🔗 Partager ce texte avec une vitesse"
+                <div className="flex justify-end mt-4">
+                    <button
+                        onClick={handleNextStep}
+                        disabled={!canGoToStep2}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
                     >
-                        <ShareConfiguration
-                            sourceUrl={sourceUrl}
-                            currentSpeed={appState.speedWpm}
-                        />
+                        Suivant : Vitesse →
+                    </button>
+                </div>
+            </StepContainer>
 
-                        <div className="flex justify-between mt-6">
-                            <button
-                                onClick={goToPreviousStep}
-                                className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
-                            >
-                                ← Retour
-                            </button>
+            {/* STEP 2: Choose speed */}
+            <StepContainer
+                step={2}
+                currentStep={currentStep}
+                title="Choisir la vitesse de lecture"
+            >
+                <SpeedSelector
+                    onSpeedChange={handleSpeedChange}
+                    text={appState.text}
+                    speedConfig={speedConfig}
+                />
 
-                            <button
-                                onClick={goToNextStep}
-                                className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                            >
-                                Passer au mode lecture →
-                            </button>
-                        </div>
-                    </StepContainer>
-                )}
+                <div className="flex justify-between mt-4">
+                    <button
+                        onClick={handlePreviousStep}
+                        className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                    >
+                        ← Retour
+                    </button>
+                    <button
+                        onClick={handleNextStep}
+                        disabled={!canGoToStep3Or4}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
+                    >
+                        {sourceUrl
+                            ? "Suivant : Partager →"
+                            : "Suivant : Lire →"}
+                    </button>
+                </div>
+            </StepContainer>
 
-                {/* STEP 4: READING */}
+            {/* STEP 3: Share configuration (CONDITIONAL - only if CodiMD) */}
+            {sourceUrl && (
                 <StepContainer
-                    step={4}
+                    step={3}
                     currentStep={currentStep}
-                    title="🎬 Prêt à commencer la lecture"
+                    title="Partager avec vos élèves"
                 >
-                    {/* Message if auto-start reading (locked) */}
-                    {isAutoStarting && (
-                        <div className="p-6 bg-green-50 border-l-4 border-green-500 rounded animate-fade-in">
-                            <p className="text-lg text-green-800 font-semibold flex items-center gap-2">
-                                <span>🔒</span>
-                                Configuration automatique : Lecture à{" "}
-                                {speedConfig.speed} MLM
+                    <ShareConfiguration
+                        sourceUrl={sourceUrl}
+                        speedWpm={appState.speedWpm}
+                    />
+
+                    <div className="flex justify-between mt-4">
+                        <button
+                            onClick={handlePreviousStep}
+                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                        >
+                            ← Retour
+                        </button>
+                        <button
+                            onClick={handleNextStep}
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+                        >
+                            Passer au mode lecture →
+                        </button>
+                    </div>
+                </StepContainer>
+            )}
+
+            {/* STEP 4 (or 3 if no CodiMD): Reading - trigger switch */}
+            {currentStep === totalSteps && (
+                <StepContainer
+                    step={totalSteps}
+                    currentStep={currentStep}
+                    title="Mode lecture"
+                >
+                    {isAutoStarting ? (
+                        <div className="text-center p-8">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600">
+                                Démarrage automatique de la lecture...
                             </p>
-                            <p className="text-sm text-green-700 mt-2">
-                                Démarrage dans 2 secondes...
-                            </p>
+                        </div>
+                    ) : (
+                        <div className="text-center p-8">
+                            <button
+                                onClick={() => switchToReadingMode()}
+                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-lg"
+                            >
+                                🚀 Lancer la lecture
+                            </button>
                         </div>
                     )}
 
-                    {/* Normal reading message */}
-                    {!isAutoStarting && (
-                        <>
-                            <div className="p-6 bg-white border-2 border-blue-200 rounded-lg">
-                                <p className="text-lg text-gray-800 mb-4">
-                                    <strong>Vitesse sélectionnée :</strong>{" "}
-                                    {appState.speedWpm} MLM
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                    Cliquez sur "Commencer la lecture" pour
-                                    démarrer l'animation de disparition
-                                    progressive du texte.
-                                </p>
-                            </div>
-
-                            <div className="flex justify-between mt-6">
-                                {!isSharedLink && (
-                                    <button
-                                        onClick={goToPreviousStep}
-                                        className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
-                                    >
-                                        ← Retour
-                                    </button>
-                                )}
-
-                                <button
-                                    onClick={() =>
-                                        startReading(appState.speedWpm)
-                                    }
-                                    className={`px-8 py-4 bg-green-600 text-white text-lg rounded-lg font-bold hover:bg-green-700 transition shadow-lg ${
-                                        isSharedLink ? "mx-auto" : "ml-auto"
-                                    }`}
-                                >
-                                    🚀 Commencer la lecture
-                                </button>
-                            </div>
-                        </>
-                    )}
+                    <div className="flex justify-start mt-4">
+                        <button
+                            onClick={handlePreviousStep}
+                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                        >
+                            ← Retour
+                        </button>
+                    </div>
                 </StepContainer>
-            </div>
+            )}
         </div>
     );
 }
