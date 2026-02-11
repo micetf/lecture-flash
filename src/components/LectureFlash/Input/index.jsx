@@ -17,7 +17,7 @@
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import ChoixVitesseAmeliore from "../Flash/ChoixVitesseAmeliore";
+import ChoixVitesse from "../Flash/ChoixVitesse";
 import TextInputManager from "./TextInputManager";
 import HelpModal from "../../HelpModal";
 import FirstTimeMessage from "../../FirstTimeMessage";
@@ -168,7 +168,7 @@ function Input({
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
                             ⚡ Choisissez la vitesse de lecture
                         </h2>
-                        <ChoixVitesseAmeliore
+                        <ChoixVitesse
                             choisirVitesse={handleSpeedSelected}
                             texte={texte}
                             speedConfig={speedConfig}

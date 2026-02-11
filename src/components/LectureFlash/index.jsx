@@ -7,9 +7,9 @@
  */
 
 import React, { useState, useEffect } from "react";
-import FlashAmelioreTest from "./Flash/FlashAmelioreTest";
+import LectureAnimation from "./Flash/LectureAnimation";
 import TextInputManager from "./Input/TextInputManager";
-import ChoixVitesseAmeliore from "./Flash/ChoixVitesseAmeliore";
+import ChoixVitesse from "./Flash/ChoixVitesse";
 import StepIndicator from "./StepIndicator";
 import StepContainer from "./StepContainer";
 import ShareConfiguration from "./ShareConfiguration";
@@ -130,7 +130,7 @@ function LectureFlash() {
     // ========================================
     if (state.mode === mode.LECTURE) {
         return (
-            <FlashAmelioreTest
+            <LectureAnimation
                 texte={state.texte}
                 vitesse={state.vitesse}
                 switchMode={switchModeSaisie}
@@ -238,7 +238,7 @@ function LectureFlash() {
                         </div>
                     )}
 
-                    <ChoixVitesseAmeliore
+                    <ChoixVitesse
                         onSpeedSelected={handleSpeedSelected}
                         speedConfig={speedConfig}
                     />

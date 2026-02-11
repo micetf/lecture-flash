@@ -21,7 +21,7 @@ const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-function FlashAmelioreTest({ texte, vitesse, switchMode }) {
+function LectureAnimation({ texte, vitesse, switchMode }) {
     const [idMot, setIdMot] = useState(undefined);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -186,10 +186,10 @@ function FlashAmelioreTest({ texte, vitesse, switchMode }) {
     );
 }
 
-FlashAmelioreTest.propTypes = {
+LectureAnimation.propTypes = {
     texte: PropTypes.string.isRequired,
     vitesse: PropTypes.number.isRequired,
     switchMode: PropTypes.func.isRequired,
 };
 
-export default FlashAmelioreTest;
+export default LectureAnimation;

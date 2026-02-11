@@ -71,7 +71,7 @@ const getZoneEduscol = (speed) => {
     return "CM2+ (lecture experte)";
 };
 
-function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
+function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
     const [vitesseTest, setVitesseTest] = useState(null);
     const [vitesseSelectionnee, setVitesseSelectionnee] = useState(null);
     const [isTestActive, setIsTestActive] = useState(false);
@@ -117,7 +117,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
         const [idMotPreview, setIdMotPreview] = useState(0);
         const previewTimerRef = useRef(null);
 
-        // EXACTEMENT les mêmes constantes que FlashAmelioreTest
+        // EXACTEMENT les mêmes constantes que LectureAnimation
         const ESPACE_INSECABLE = "\u00a0";
         const TIRET_INSECABLE = "\u2011";
         const specialsBeforeIn = /(^-|«|') +/g;
@@ -174,7 +174,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                     </button>
                 </div>
 
-                {/* EXACTEMENT la même structure que FlashAmelioreTest */}
+                {/* EXACTEMENT la même structure que LectureAnimation */}
                 <div className="bg-white rounded-lg p-4 border border-gray-300">
                     <p className="texte text-xl leading-relaxed">
                         {mots.map((mot, index) => {
@@ -189,7 +189,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                                 )
                                 .replace(/-/g, TIRET_INSECABLE);
 
-                            // Mots terminés : EXACTEMENT comme FlashAmelioreTest
+                            // Mots terminés : EXACTEMENT comme LectureAnimation
                             if (index < idMotPreview) {
                                 return (
                                     <span key={index} className="mot">
@@ -201,7 +201,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
                                 );
                             }
 
-                            // Mot actuel et futurs : EXACTEMENT comme FlashAmelioreTest
+                            // Mot actuel et futurs : EXACTEMENT comme LectureAnimation
                             const motSpeed = index === idMotPreview ? speed : 0;
 
                             return (
@@ -453,7 +453,7 @@ function ChoixVitesseAmeliore({ choisirVitesse, texte, speedConfig }) {
     );
 }
 
-ChoixVitesseAmeliore.propTypes = {
+ChoixVitesse.propTypes = {
     choisirVitesse: PropTypes.func.isRequired,
     texte: PropTypes.string,
     speedConfig: PropTypes.shape({
@@ -462,4 +462,4 @@ ChoixVitesseAmeliore.propTypes = {
     }),
 };
 
-export default ChoixVitesseAmeliore;
+export default ChoixVitesse;
