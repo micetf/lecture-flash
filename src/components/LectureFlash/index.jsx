@@ -231,6 +231,7 @@ function LectureFlash() {
                     onSpeedChange={handleSpeedChange}
                     text={appState.text}
                     speedConfig={speedConfig}
+                    selectedSpeed={appState.speedWpm}
                 />
 
                 <div className="flex justify-between mt-4">

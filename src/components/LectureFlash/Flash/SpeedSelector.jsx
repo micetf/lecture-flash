@@ -71,14 +71,20 @@ const getEduscolZone = (speed) => {
     return "CM2+ (lecture experte)";
 };
 
-function SpeedSelector({ onSpeedChange, text, speedConfig }) {
+function SpeedSelector({
+    onSpeedChange,
+    text,
+    speedConfig,
+    selectedSpeed: initialSelectedSpeed,
+}) {
     const [testSpeed, setTestSpeed] = useState(null);
-    const [selectedSpeed, setSelectedSpeed] = useState(null);
+    const [selectedSpeed, setSelectedSpeed] = useState(
+        speedConfig?.speed || initialSelectedSpeed || 70
+    );
     const [isTestActive, setIsTestActive] = useState(false);
     const timeoutRef = useRef(null);
     const [showCustomMode, setShowCustomMode] = useState(false);
     const [customSpeed, setCustomSpeed] = useState(70);
-
     useEffect(() => {
         return () => {
             if (timeoutRef.current) {
@@ -86,6 +92,23 @@ function SpeedSelector({ onSpeedChange, text, speedConfig }) {
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (speedConfig?.speed) {
+            setSelectedSpeed(speedConfig.speed);
+        } else if (
+            initialSelectedSpeed &&
+            initialSelectedSpeed !== selectedSpeed
+        ) {
+            setSelectedSpeed(initialSelectedSpeed);
+        }
+    }, [speedConfig, initialSelectedSpeed]);
+
+    useEffect(() => {
+        if (selectedSpeed && !speedConfig) {
+            onSpeedChange(selectedSpeed);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleTest = (speed) => {
         handleStopTest();
@@ -494,6 +517,7 @@ SpeedSelector.propTypes = {
         speed: PropTypes.number,
         locked: PropTypes.bool,
     }),
+    selectedSpeed: PropTypes.number,
 };
 
 export default SpeedSelector;
