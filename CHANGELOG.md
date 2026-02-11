@@ -15,14 +15,14 @@ Le format s'inspire de « Keep a Changelog » et les versions suivent le princip
     - Composant `HelpModal` : modale d'aide complète avec guide détaillé en 3 étapes
     - Composant `FirstTimeMessage` : message de bienvenue à la première visite (localStorage)
     - Tooltips contextuels sur les onglets de `TextInputManager` (Saisir, Fichier, Cloud)
-    - Tooltips contextuels sur les vitesses de `ChoixVitesseAmeliore` avec correspondances niveaux scolaires (30-110 MLM)
+    - Tooltips contextuels sur les vitesses de `SpeedSelectorAmeliore` avec correspondances niveaux scolaires (30-110 MLM)
     - Tooltip sur le bouton d'aide (?)
 - Animation CSS `fadeIn` dans `src/styles/index.css` pour les tooltips et éléments apparaissants
 
 ### Modifié
 
 - `TextInputManager` : ajout de tooltips sur les 3 onglets avec descriptions détaillées
-- `ChoixVitesseAmeliore` : ajout de tooltips sur chaque vitesse (30-110 MLM) avec recommandations pédagogiques
+- `SpeedSelectorAmeliore` : ajout de tooltips sur chaque vitesse (30-110 MLM) avec recommandations pédagogiques
 - `Input/index.jsx` : intégration de `FirstTimeMessage`, `HelpModal` et bouton d'aide (?)
 - `Mot.jsx` : ajout de `componentDidMount` et amélioration de `componentDidUpdate` pour déclencher correctement les animations
 - `FlashAmelioreTest.jsx` : correction du calcul de vitesse (`index <= idMot` et `speed * motClean.length`)

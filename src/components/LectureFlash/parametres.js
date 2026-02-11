@@ -1,11 +1,11 @@
 /**
- * Paramètres de l'application Lecture Flash
- * Définition des modes disponibles
+ * Lecture Flash application settings
+ * Definition of available modes
  *
- * @module parametres
+ * @module settings
  */
 
 export const mode = {
-    SAISIE: "SAISIE",
-    LECTURE: "LECTURE",
+    INPUT: "INPUT",
+    READING: "READING",
 };

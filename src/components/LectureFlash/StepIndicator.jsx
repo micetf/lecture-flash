@@ -1,16 +1,16 @@
 /**
- * Indicateur visuel de progression du workflow en 4 étapes
+ * Visual workflow progression indicator for 4 steps
  *
- * Affiche : [●○○○] avec labels et état actuel
- * - Étape active : bleu
- * - Étapes passées : vert avec ✓
- * - Étapes futures : gris
+ * Displays: [●○○○] with labels and current state
+ * - Active step: blue
+ * - Past steps: green with ✓
+ * - Future steps: gray
  *
  * @component
  * @param {Object} props
- * @param {number} props.currentStep - Étape actuelle (1-4)
- * @param {number} props.totalSteps - Nombre total d'étapes (4)
- * @param {string[]} props.stepLabels - Labels des étapes
+ * @param {number} props.currentStep - Current step (1-4)
+ * @param {number} props.totalSteps - Total number of steps (4)
+ * @param {string[]} props.stepLabels - Step labels
  */
 
 import React from "react";
@@ -27,7 +27,7 @@ function StepIndicator({ currentStep, totalSteps, stepLabels }) {
 
                 return (
                     <div key={index} className="flex items-center gap-2">
-                        {/* Cercle numéroté */}
+                        {/* Numbered circle */}
                         <div
                             className={`
                                 w-10 h-10 rounded-full flex items-center justify-center 
@@ -40,7 +40,7 @@ function StepIndicator({ currentStep, totalSteps, stepLabels }) {
                             {isPast ? "✓" : stepNumber}
                         </div>
 
-                        {/* Label de l'étape */}
+                        {/* Step label */}
                         <span
                             className={`
                                 text-sm font-medium hidden sm:inline
@@ -52,7 +52,7 @@ function StepIndicator({ currentStep, totalSteps, stepLabels }) {
                             {label}
                         </span>
 
-                        {/* Séparateur (sauf dernière étape) */}
+                        {/* Separator (except last step) */}
                         {index < totalSteps - 1 && (
                             <div
                                 className={`

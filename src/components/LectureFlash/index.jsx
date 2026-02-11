@@ -1,15 +1,15 @@
 /**
- * Composant principal de l'application Lecture Flash
- * VERSION 3.1.0 : Workflow en 4 étapes + Système d'aide restauré
+ * Main Lecture Flash application component
+ * VERSION 3.1.0 : 4-step workflow + Help system restored
  *
  * @component
  * @returns {JSX.Element}
  */
 
 import React, { useState, useEffect } from "react";
-import LectureAnimation from "./Flash/LectureAnimation";
+import TextAnimation from "./Flash/TextAnimation";
+import SpeedSelector from "./Flash/SpeedSelector";
 import TextInputManager from "./Input/TextInputManager";
-import ChoixVitesse from "./Flash/ChoixVitesse";
 import StepIndicator from "./StepIndicator";
 import StepContainer from "./StepContainer";
 import ShareConfiguration from "./ShareConfiguration";
@@ -24,13 +24,13 @@ function LectureFlash() {
     // ========================================
     // STATE
     // ========================================
-    const [step, setStep] = useState(1);
-    const [state, setState] = useState(initialState);
+    const [currentStep, setCurrentStep] = useState(1);
+    const [appState, setAppState] = useState(initialState);
     const [isAutoStarting, setIsAutoStarting] = useState(false);
-    const [showHelp, setShowHelp] = useState(false); // 🆕 État pour HelpModal
+    const [showHelp, setShowHelp] = useState(false); // Help modal state
 
     // ========================================
-    // HOOK CHARGEMENT CODIMD
+    // CODIMD LOADING HOOK
     // ========================================
     const {
         markdown,
@@ -43,123 +43,123 @@ function LectureFlash() {
     } = useMarkdownFromUrl();
 
     // ========================================
-    // EFFET : Chargement texte depuis markdown
+    // EFFECT: Load text from markdown
     // ========================================
     useEffect(() => {
         if (markdown) {
-            setState((prevState) => ({
+            setAppState((prevState) => ({
                 ...prevState,
-                texte: markdown,
+                text: markdown,
             }));
         }
     }, [markdown]);
 
     // ========================================
-    // EFFET : Gestion des skips automatiques
+    // EFFECT: Handle auto-skips
     // ========================================
     useEffect(() => {
         if (!markdown) return;
 
         if (speedConfig?.locked) {
-            setStep(4);
+            setCurrentStep(4);
             setIsAutoStarting(true);
             setTimeout(() => {
-                switchModeLecture(speedConfig.speed);
+                switchToReadingMode(speedConfig.speed);
                 setIsAutoStarting(false);
             }, 2000);
         } else if (speedConfig && !speedConfig.locked) {
-            setStep(2);
+            setCurrentStep(2);
         }
     }, [markdown, speedConfig]);
 
     // ========================================
     // HANDLERS
     // ========================================
-    const changeTexte = (texte) => {
-        setState({ ...state, texte });
+    const handleTextChange = (text) => {
+        setAppState({ ...appState, text });
     };
 
-    const switchModeLecture = (vitesse) => {
-        setState({ ...state, mode: mode.LECTURE, vitesse });
+    const switchToReadingMode = (speedWpm) => {
+        setAppState({ ...appState, mode: mode.LECTURE, speedWpm });
     };
 
-    const switchModeSaisie = () => {
-        setState({ ...state, mode: mode.SAISIE });
-        setStep(1);
+    const switchToInputMode = () => {
+        setAppState({ ...appState, mode: mode.SAISIE });
+        setCurrentStep(1);
     };
 
     const handleReset = () => {
-        setState(initialState);
+        setAppState(initialState);
         reset();
         setIsAutoStarting(false);
-        setStep(1);
+        setCurrentStep(1);
         window.history.pushState({}, "", window.location.pathname);
     };
 
-    const handleSpeedSelected = (vitesse) => {
-        setState((prev) => ({ ...prev, vitesse }));
+    const handleSpeedSelected = (speedWpm) => {
+        setAppState((prev) => ({ ...prev, speedWpm }));
     };
 
     // ========================================
-    // NAVIGATION ENTRE ÉTAPES
+    // STEP NAVIGATION
     // ========================================
     const goToNextStep = () => {
-        if (step === 2) {
-            setStep(sourceUrl ? 3 : 4);
+        if (currentStep === 2) {
+            setCurrentStep(sourceUrl ? 3 : 4);
         } else {
-            setStep(step + 1);
+            setCurrentStep(currentStep + 1);
         }
     };
 
     const goToPreviousStep = () => {
-        if (step === 3) {
-            setStep(2);
-        } else if (step === 4) {
-            setStep(sourceUrl ? 3 : 2);
+        if (currentStep === 3) {
+            setCurrentStep(2);
+        } else if (currentStep === 4) {
+            setCurrentStep(sourceUrl ? 3 : 2);
         } else {
-            setStep(step - 1);
+            setCurrentStep(currentStep - 1);
         }
     };
 
-    const startReading = (vitesse) => {
-        switchModeLecture(vitesse);
+    const startReading = (speedWpm) => {
+        switchToReadingMode(speedWpm);
     };
 
     // ========================================
-    // RENDU MODE LECTURE
+    // READING MODE RENDER
     // ========================================
-    if (state.mode === mode.LECTURE) {
+    if (appState.mode === mode.LECTURE) {
         return (
-            <LectureAnimation
-                texte={state.texte}
-                vitesse={state.vitesse}
-                switchMode={switchModeSaisie}
+            <TextAnimation
+                text={appState.text}
+                speedWpm={appState.speedWpm}
+                onSwitchMode={switchToInputMode}
             />
         );
     }
 
     // ========================================
-    // RENDU MODE SAISIE (WORKFLOW 4 ÉTAPES)
+    // INPUT MODE RENDER (4-STEP WORKFLOW)
     // ========================================
     const isSharedLink = speedConfig !== null;
-    const canGoBack = step > 1 && !isSharedLink;
+    const canGoBack = currentStep > 1 && !isSharedLink;
 
     return (
         <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-            {/* 🆕 MESSAGE PREMIÈRE VISITE */}
+            {/* First-time message */}
             <FirstTimeMessage />
 
-            {/* 🆕 MODALE D'AIDE */}
+            {/* Help modal */}
             <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
             <div className="max-w-5xl mx-auto">
-                {/* HEADER AVEC BOUTON AIDE */}
+                {/* Header with help button */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-800">
                         📖 Lecture Flash
                     </h1>
 
-                    {/* 🆕 BOUTON D'AIDE */}
+                    {/* Help button */}
                     <Tooltip content="Aide et mode d'emploi" position="bottom">
                         <button
                             onClick={() => setShowHelp(true)}
@@ -171,33 +171,34 @@ function LectureFlash() {
                     </Tooltip>
                 </div>
 
-                {/* INDICATEUR DE PROGRESSION */}
+                {/* Step indicator */}
                 <StepIndicator
-                    currentStep={step}
+                    currentStep={currentStep}
                     totalSteps={4}
                     stepLabels={["Texte", "Vitesse", "Partage", "Lecture"]}
                 />
 
-                {/* ÉTAPE 1 : TEXTE */}
+                {/* STEP 1: TEXT */}
                 <StepContainer
                     step={1}
-                    currentStep={step}
+                    currentStep={currentStep}
                     title="📝 Charger ou saisir le texte"
                 >
                     <TextInputManager
-                        texte={state.texte}
-                        changeTexte={changeTexte}
+                        text={appState.text}
+                        onTextChange={handleTextChange}
                         onUrlSubmit={loadMarkdownFromUrl}
                         loading={loading}
                         error={error}
                         sourceUrl={sourceUrl}
                         onReset={handleReset}
+                        speedConfig={speedConfig}
                     />
 
                     <div className="flex justify-end mt-6">
                         <button
                             onClick={goToNextStep}
-                            disabled={!state.texte.trim()}
+                            disabled={!appState.text.trim()}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                         >
                             Suivant : Choisir la vitesse →
@@ -205,13 +206,13 @@ function LectureFlash() {
                     </div>
                 </StepContainer>
 
-                {/* ÉTAPE 2 : VITESSE */}
+                {/* STEP 2: SPEED */}
                 <StepContainer
                     step={2}
-                    currentStep={step}
+                    currentStep={currentStep}
                     title="⚡ Choisir la vitesse de lecture"
                 >
-                    {/* Message si lien partagé avec vitesse suggérée */}
+                    {/* Message if shared link with suggested speed */}
                     {speedConfig && !speedConfig.locked && (
                         <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded">
                             <p className="text-sm text-yellow-800 flex items-center gap-2">
@@ -227,7 +228,7 @@ function LectureFlash() {
                         </div>
                     )}
 
-                    {/* Message si texte chargé depuis lien partagé */}
+                    {/* Message if text loaded from shared link */}
                     {isSharedLink && (
                         <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
                             <p className="text-sm text-blue-800 flex items-center gap-2">
@@ -238,8 +239,9 @@ function LectureFlash() {
                         </div>
                     )}
 
-                    <ChoixVitesse
-                        onSpeedSelected={handleSpeedSelected}
+                    <SpeedSelector
+                        onSpeedChange={handleSpeedSelected}
+                        text={appState.text}
                         speedConfig={speedConfig}
                     />
 
@@ -255,7 +257,7 @@ function LectureFlash() {
 
                         <button
                             onClick={goToNextStep}
-                            disabled={!state.vitesse}
+                            disabled={!appState.speedWpm}
                             className={`px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition ${
                                 !canGoBack ? "ml-auto" : ""
                             }`}
@@ -267,16 +269,16 @@ function LectureFlash() {
                     </div>
                 </StepContainer>
 
-                {/* ÉTAPE 3 : PARTAGE (optionnel) */}
+                {/* STEP 3: SHARE (optional) */}
                 {sourceUrl && (
                     <StepContainer
                         step={3}
-                        currentStep={step}
+                        currentStep={currentStep}
                         title="🔗 Partager ce texte avec une vitesse"
                     >
                         <ShareConfiguration
                             sourceUrl={sourceUrl}
-                            currentSpeed={state.vitesse}
+                            currentSpeed={appState.speedWpm}
                         />
 
                         <div className="flex justify-between mt-6">
@@ -297,13 +299,13 @@ function LectureFlash() {
                     </StepContainer>
                 )}
 
-                {/* ÉTAPE 4 : LECTURE */}
+                {/* STEP 4: READING */}
                 <StepContainer
                     step={4}
-                    currentStep={step}
+                    currentStep={currentStep}
                     title="🎬 Prêt à commencer la lecture"
                 >
-                    {/* Message si lecture auto-start (locked) */}
+                    {/* Message if auto-start reading (locked) */}
                     {isAutoStarting && (
                         <div className="p-6 bg-green-50 border-l-4 border-green-500 rounded animate-fade-in">
                             <p className="text-lg text-green-800 font-semibold flex items-center gap-2">
@@ -317,13 +319,13 @@ function LectureFlash() {
                         </div>
                     )}
 
-                    {/* Message si lecture normale */}
+                    {/* Normal reading message */}
                     {!isAutoStarting && (
                         <>
                             <div className="p-6 bg-white border-2 border-blue-200 rounded-lg">
                                 <p className="text-lg text-gray-800 mb-4">
                                     <strong>Vitesse sélectionnée :</strong>{" "}
-                                    {state.vitesse} MLM
+                                    {appState.speedWpm} MLM
                                 </p>
                                 <p className="text-sm text-gray-600">
                                     Cliquez sur "Commencer la lecture" pour
@@ -343,7 +345,9 @@ function LectureFlash() {
                                 )}
 
                                 <button
-                                    onClick={() => startReading(state.vitesse)}
+                                    onClick={() =>
+                                        startReading(appState.speedWpm)
+                                    }
                                     className={`px-8 py-4 bg-green-600 text-white text-lg rounded-lg font-bold hover:bg-green-700 transition shadow-lg ${
                                         isSharedLink ? "mx-auto" : "ml-auto"
                                     }`}

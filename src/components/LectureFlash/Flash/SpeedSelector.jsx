@@ -1,7 +1,7 @@
 /**
- * Composant amélioré de choix de vitesse de lecture
+ * Enhanced reading speed selection component
  *
- * VERSION 3.1.0 : Améliorations UX visuelles
+ * VERSION 3.1.0 : Visual UX improvements
  *
  * @component
  */
@@ -9,61 +9,61 @@
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
-import Mot from "./Mot";
+import Word from "./Word";
 
-const VITESSES = [
+const SPEEDS = [
     {
-        valeur: 30,
+        value: 30,
         label: "Très lent",
         color: "blue",
         colorClass: "bg-blue-500 hover:bg-blue-600 border-blue-600",
-        niveau: "CP - début CE1",
+        level: "CP - début CE1",
         description: "Déchiffrage en cours d'acquisition",
         tooltip:
             "30 mots/min - Idéal pour les élèves en début d'apprentissage de la lecture",
     },
     {
-        valeur: 50,
+        value: 50,
         label: "Lent",
         color: "green",
         colorClass: "bg-green-500 hover:bg-green-600 border-green-600",
-        niveau: "CE1",
+        level: "CE1",
         description: "Lecture mot à mot",
         tooltip: "50 mots/min - Recommandé pour la lecture à voix haute en CE1",
     },
     {
-        valeur: 70,
+        value: 70,
         label: "Moyen",
         color: "yellow",
         colorClass: "bg-yellow-500 hover:bg-yellow-600 border-yellow-600",
-        niveau: "CE2",
+        level: "CE2",
         description: "Lecture par groupes de mots",
         tooltip:
             "70 mots/min - Adapté aux élèves de CE2 qui lisent par groupes de mots",
     },
     {
-        valeur: 90,
+        value: 90,
         label: "Rapide",
         color: "orange",
         colorClass: "bg-orange-500 hover:bg-orange-600 border-orange-600",
-        niveau: "CM1-CM2",
+        level: "CM1-CM2",
         description: "Lecture fluide",
         tooltip: "90 mots/min - Pour une lecture fluide en CM1-CM2",
     },
     {
-        valeur: 110,
+        value: 110,
         label: "Très rapide",
         color: "red",
         colorClass: "bg-red-500 hover:bg-red-600 border-red-600",
-        niveau: "CM2 et +",
+        level: "CM2 et +",
         description: "Lecture experte",
         tooltip: "110 mots/min - Niveau de lecture expert, CM2 et collège",
     },
 ];
 
-const TEXTE_DEMO = "La lecture fluente permet de mieux comprendre les textes.";
+const DEMO_TEXT = "La lecture fluente permet de mieux comprendre les textes.";
 
-const getZoneEduscol = (speed) => {
+const getEduscolZone = (speed) => {
     if (speed <= 40) return "CP - début CE1 (déchiffrage)";
     if (speed <= 60) return "CE1 (lecture mot à mot)";
     if (speed <= 80) return "CE2 (lecture par groupes)";
@@ -71,9 +71,9 @@ const getZoneEduscol = (speed) => {
     return "CM2+ (lecture experte)";
 };
 
-function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
-    const [vitesseTest, setVitesseTest] = useState(null);
-    const [vitesseSelectionnee, setVitesseSelectionnee] = useState(null);
+function SpeedSelector({ onSpeedChange, text, speedConfig }) {
+    const [testSpeed, setTestSpeed] = useState(null);
+    const [selectedSpeed, setSelectedSpeed] = useState(null);
     const [isTestActive, setIsTestActive] = useState(false);
     const timeoutRef = useRef(null);
     const [showCustomMode, setShowCustomMode] = useState(false);
@@ -87,14 +87,14 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
         };
     }, []);
 
-    const handleTest = (vitesse) => {
+    const handleTest = (speed) => {
         handleStopTest();
-        setVitesseTest(vitesse);
+        setTestSpeed(speed);
         setIsTestActive(true);
 
         timeoutRef.current = setTimeout(() => {
             setIsTestActive(false);
-            setVitesseTest(null);
+            setTestSpeed(null);
         }, 10000);
     };
 
@@ -103,29 +103,29 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
             clearTimeout(timeoutRef.current);
         }
         setIsTestActive(false);
-        setVitesseTest(null);
+        setTestSpeed(null);
     };
 
-    const handleSelect = (vitesse) => {
+    const handleSelect = (speed) => {
         handleStopTest();
-        setVitesseSelectionnee(vitesse);
-        choisirVitesse(vitesse);
+        setSelectedSpeed(speed);
+        onSpeedChange(speed);
     };
 
-    // Composant Preview de vitesse avec animation
-    const PreviewVitesse = ({ vitesse, textePreview }) => {
-        const [idMotPreview, setIdMotPreview] = useState(0);
+    // Speed preview component with animation
+    const SpeedPreview = ({ speed, previewText }) => {
+        const [previewWordIndex, setPreviewWordIndex] = useState(0);
         const previewTimerRef = useRef(null);
 
-        // EXACTEMENT les mêmes constantes que LectureAnimation
-        const ESPACE_INSECABLE = "\u00a0";
-        const TIRET_INSECABLE = "\u2011";
+        // EXACTLY the same constants as TextAnimation
+        const NON_BREAKING_SPACE = "\u00a0";
+        const NON_BREAKING_HYPHEN = "\u2011";
         const specialsBeforeIn = /(^-|«|') +/g;
         const specialsAfterIn = / +(;|:|!|\?|»|')/g;
         const specialsBeforeOut = /(^-|«)/g;
         const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-        const textePurify = (textePreview || TEXTE_DEMO)
+        const purifiedText = (previewText || DEMO_TEXT)
             .trim()
             .replace(/'/g, "'")
             .replace(/ +/g, " ")
@@ -133,13 +133,13 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
             .replace(specialsAfterIn, "$1")
             .replace(specialsBeforeIn, "$1");
 
-        const mots = textePurify.split(" ");
-        const nbreMots = mots.length;
-        const nbreCaracteres = textePurify.length;
+        const words = purifiedText.split(" ");
+        const wordsCount = words.length;
+        const charsCount = purifiedText.length;
 
-        // EXACTEMENT le même calcul
-        const speed = Math.floor(
-            ((nbreMots / vitesse) * 60000) / nbreCaracteres
+        // EXACTLY the same calculation
+        const wordSpeed = Math.floor(
+            ((wordsCount / speed) * 60000) / charsCount
         );
 
         useEffect(() => {
@@ -150,12 +150,12 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
             };
         }, []);
 
-        const suivantPreview = () => {
-            if (idMotPreview < nbreMots - 1) {
-                setIdMotPreview((prev) => prev + 1);
+        const goToNextPreviewWord = () => {
+            if (previewWordIndex < wordsCount - 1) {
+                setPreviewWordIndex((prev) => prev + 1);
             } else {
                 previewTimerRef.current = setTimeout(() => {
-                    setIdMotPreview(0);
+                    setPreviewWordIndex(0);
                 }, 1500);
             }
         };
@@ -164,7 +164,7 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
             <div className="mt-4 p-6 bg-blue-50 border-2 border-blue-400 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-semibold text-blue-800">
-                        🧪 Aperçu à {vitesse} MLM
+                        🧪 Aperçu à {speed} MLM
                     </p>
                     <button
                         onClick={handleStopTest}
@@ -174,44 +174,45 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                     </button>
                 </div>
 
-                {/* EXACTEMENT la même structure que LectureAnimation */}
+                {/* EXACT same structure as TextAnimation */}
                 <div className="bg-white rounded-lg p-4 border border-gray-300">
                     <p className="texte text-xl leading-relaxed">
-                        {mots.map((mot, index) => {
-                            const motClean = mot
+                        {words.map((word, index) => {
+                            const cleanWord = word
                                 .replace(
                                     specialsAfterOut,
-                                    `${ESPACE_INSECABLE}$1`
+                                    `${NON_BREAKING_SPACE}$1`
                                 )
                                 .replace(
                                     specialsBeforeOut,
-                                    `$1${ESPACE_INSECABLE}`
+                                    `$1${NON_BREAKING_SPACE}`
                                 )
-                                .replace(/-/g, TIRET_INSECABLE);
+                                .replace(/-/g, NON_BREAKING_HYPHEN);
 
-                            // Mots terminés : EXACTEMENT comme LectureAnimation
-                            if (index < idMotPreview) {
+                            // Completed words: EXACTLY like TextAnimation
+                            if (index < previewWordIndex) {
                                 return (
                                     <span key={index} className="mot">
                                         <span style={{ visibility: "hidden" }}>
-                                            {motClean}
+                                            {cleanWord}
                                         </span>
                                         <span> </span>
                                     </span>
                                 );
                             }
 
-                            // Mot actuel et futurs : EXACTEMENT comme LectureAnimation
-                            const motSpeed = index === idMotPreview ? speed : 0;
+                            // Current and future words: EXACTLY like TextAnimation
+                            const currentWordSpeed =
+                                index === previewWordIndex ? wordSpeed : 0;
 
                             return (
-                                <Mot
+                                <Word
                                     key={index}
-                                    mot={motClean}
-                                    speed={motSpeed}
-                                    suivant={
-                                        index === idMotPreview
-                                            ? suivantPreview
+                                    word={cleanWord}
+                                    speed={currentWordSpeed}
+                                    onNext={
+                                        index === previewWordIndex
+                                            ? goToNextPreviewWord
                                             : () => {}
                                     }
                                 />
@@ -222,10 +223,10 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
 
                 <div className="mt-3 flex items-center justify-between">
                     <p className="text-xs text-gray-600">
-                        Mot {idMotPreview + 1} / {nbreMots}
+                        Mot {previewWordIndex + 1} / {wordsCount}
                     </p>
                     <p className="text-xs text-blue-700 font-medium">
-                        {vitesse} mots/minute
+                        {speed} mots/minute
                     </p>
                 </div>
             </div>
@@ -234,7 +235,7 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
 
     return (
         <div>
-            {/* Message vitesse suggérée si speedConfig présent */}
+            {/* Suggested speed message if speedConfig present */}
             {speedConfig && !speedConfig.locked && (
                 <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
                     <p className="text-yellow-900 font-semibold">
@@ -247,34 +248,53 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                 </div>
             )}
 
-            {/* Zone de preview si test actif */}
-            {isTestActive && vitesseTest && (
-                <PreviewVitesse vitesse={vitesseTest} textePreview={texte} />
+            {/* Preview zone when test is active */}
+            {isTestActive && testSpeed && (
+                <SpeedPreview speed={testSpeed} previewText={text} />
             )}
 
-            {/* Grille des 5 vitesses */}
+            {/* Grid of 5 speeds */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                {VITESSES.map((v) => {
-                    const isSuggested = speedConfig?.speed === v.valeur;
-                    const isSelected = vitesseSelectionnee === v.valeur;
-                    const isTesting = vitesseTest === v.valeur && isTestActive;
+                {SPEEDS.map((speedOption) => {
+                    const isSuggested =
+                        speedConfig?.speed === speedOption.value;
+                    const isSelected = selectedSpeed === speedOption.value;
+                    const isTesting =
+                        testSpeed === speedOption.value && isTestActive;
 
                     return (
                         <Tooltip
-                            key={v.valeur}
-                            content={v.tooltip}
+                            key={speedOption.value}
+                            content={speedOption.tooltip}
                             position="top"
                         >
                             <div
                                 className={`
                                     rounded-xl p-4 transition-all duration-300 cursor-pointer
-                                    ${isTesting && "border-4 border-blue-500 shadow-2xl ring-4 ring-blue-300 animate-pulse"}
-                                    ${isSelected && !isTesting && "border-4 border-green-600 shadow-2xl ring-4 ring-green-300"}
-                                    ${isSuggested && !isSelected && !isTesting && "border-4 border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-300"}
-                                    ${!isSelected && !isSuggested && !isTesting && "border-2 border-gray-300 bg-white hover:shadow-lg hover:border-gray-400"}
+                                    ${
+                                        isTesting &&
+                                        "border-4 border-blue-500 shadow-2xl ring-4 ring-blue-300 animate-pulse"
+                                    }
+                                    ${
+                                        isSelected &&
+                                        !isTesting &&
+                                        "border-4 border-green-600 shadow-2xl ring-4 ring-green-300"
+                                    }
+                                    ${
+                                        isSuggested &&
+                                        !isSelected &&
+                                        !isTesting &&
+                                        "border-4 border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-300"
+                                    }
+                                    ${
+                                        !isSelected &&
+                                        !isSuggested &&
+                                        !isTesting &&
+                                        "border-2 border-gray-300 bg-white hover:shadow-lg hover:border-gray-400"
+                                    }
                                 `}
                             >
-                                {/* Badge statut */}
+                                {/* Status badge */}
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex-1">
                                         {isSuggested && !isSelected && (
@@ -295,50 +315,66 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                                     </div>
                                 </div>
 
-                                {/* Vitesse et label */}
+                                {/* Speed and label */}
                                 <div className="text-center mb-3">
                                     <div
-                                        className={`text-4xl font-bold ${v.color === "blue" ? "text-blue-600" : v.color === "green" ? "text-green-600" : v.color === "yellow" ? "text-yellow-600" : v.color === "orange" ? "text-orange-600" : "text-red-600"}`}
+                                        className={`text-4xl font-bold ${
+                                            speedOption.color === "blue"
+                                                ? "text-blue-600"
+                                                : speedOption.color === "green"
+                                                  ? "text-green-600"
+                                                  : speedOption.color ===
+                                                      "yellow"
+                                                    ? "text-yellow-600"
+                                                    : speedOption.color ===
+                                                        "orange"
+                                                      ? "text-orange-600"
+                                                      : "text-red-600"
+                                        }`}
                                     >
-                                        {v.valeur}
+                                        {speedOption.value}
                                     </div>
                                     <div className="text-xs text-gray-500 font-medium">
                                         MLM
                                     </div>
                                     <div className="text-sm font-semibold text-gray-700 mt-1">
-                                        {v.label}
+                                        {speedOption.label}
                                     </div>
                                 </div>
 
-                                {/* Niveau et description */}
+                                {/* Level and description */}
                                 <div className="text-center mb-4">
                                     <div className="text-xs font-semibold text-gray-600 mb-1">
-                                        {v.niveau}
+                                        {speedOption.level}
                                     </div>
                                     <div className="text-xs text-gray-500">
-                                        {v.description}
+                                        {speedOption.description}
                                     </div>
                                 </div>
 
-                                {/* Boutons d'action */}
+                                {/* Action buttons */}
                                 <div className="flex flex-col gap-2">
                                     <button
                                         onClick={() =>
                                             isTesting
                                                 ? handleStopTest()
-                                                : handleTest(v.valeur)
+                                                : handleTest(speedOption.value)
                                         }
                                         disabled={
                                             isTestActive &&
-                                            vitesseTest !== v.valeur
+                                            testSpeed !== speedOption.value
                                         }
                                         className="w-full px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
                                     >
                                         {isTesting ? "⏸ Arrêter" : "🧪 Tester"}
                                     </button>
                                     <button
-                                        onClick={() => handleSelect(v.valeur)}
-                                        className={`w-full px-3 py-2 text-white text-sm rounded-lg transition font-bold ${v.colorClass} ${isSelected && "ring-4 ring-offset-2"}`}
+                                        onClick={() =>
+                                            handleSelect(speedOption.value)
+                                        }
+                                        className={`w-full px-3 py-2 text-white text-sm rounded-lg transition font-bold ${speedOption.colorClass} ${
+                                            isSelected && "ring-4 ring-offset-2"
+                                        }`}
                                     >
                                         {isSelected
                                             ? "✓ Sélectionnée"
@@ -351,21 +387,21 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                 })}
             </div>
 
-            {/* Message d'aide */}
+            {/* Help message */}
             <div className="text-center text-sm text-gray-600 mb-6 p-3 bg-gray-50 rounded-lg">
                 <p className="font-medium">
                     👆 Testez les vitesses pour trouver celle qui vous convient,
                     puis cliquez sur "Choisir"
                 </p>
-                {vitesseSelectionnee && (
+                {selectedSpeed && (
                     <p className="mt-2 text-green-700 font-semibold">
-                        ✓ Vitesse sélectionnée : {vitesseSelectionnee} MLM -
-                        Cliquez sur "Suivant" pour continuer
+                        ✓ Vitesse sélectionnée : {selectedSpeed} MLM - Cliquez
+                        sur "Suivant" pour continuer
                     </p>
                 )}
             </div>
 
-            {/* Lien vers mode personnalisé */}
+            {/* Link to custom mode */}
             {!speedConfig && !showCustomMode && (
                 <div className="text-center mt-6 border-t pt-6">
                     <button
@@ -377,7 +413,7 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                 </div>
             )}
 
-            {/* Mode personnalisé (inchangé) */}
+            {/* Custom mode */}
             {showCustomMode && (
                 <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-blue-400 rounded-lg shadow-md">
                     <div className="flex justify-between items-center mb-4">
@@ -420,7 +456,7 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
 
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm mb-4">
                         <p className="font-medium text-blue-800 mb-2">
-                            📍 Zone pédagogique : {getZoneEduscol(customSpeed)}
+                            📍 Zone pédagogique : {getEduscolZone(customSpeed)}
                         </p>
                         <p className="text-gray-700 text-xs">
                             💡 Les vitesses officielles (30-50-70-90-110)
@@ -431,12 +467,10 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleTest(customSpeed)}
-                            disabled={
-                                isTestActive && vitesseTest !== customSpeed
-                            }
+                            disabled={isTestActive && testSpeed !== customSpeed}
                             className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
                         >
-                            {isTestActive && vitesseTest === customSpeed
+                            {isTestActive && testSpeed === customSpeed
                                 ? "⏸ Test en cours..."
                                 : `🧪 Tester ${customSpeed} MLM`}
                         </button>
@@ -453,13 +487,13 @@ function ChoixVitesse({ choisirVitesse, texte, speedConfig }) {
     );
 }
 
-ChoixVitesse.propTypes = {
-    choisirVitesse: PropTypes.func.isRequired,
-    texte: PropTypes.string,
+SpeedSelector.propTypes = {
+    onSpeedChange: PropTypes.func.isRequired,
+    text: PropTypes.string,
     speedConfig: PropTypes.shape({
         speed: PropTypes.number,
         locked: PropTypes.bool,
     }),
 };
 
-export default ChoixVitesse;
+export default SpeedSelector;

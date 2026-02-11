@@ -1,32 +1,32 @@
 /**
- * Composant Flash amélioré avec pause/reprise élégante
- * SOLUTION : Classe CSS statique pour mots terminés
+ * Enhanced Flash component with smooth pause/resume
+ * SOLUTION: Static CSS class for completed words
  *
  * @component
  * @param {Object} props
- * @param {string} props.texte - Texte à afficher
- * @param {number} props.vitesse - Vitesse de lecture (mots/minute)
- * @param {Function} props.switchMode - Callback pour revenir en mode saisie
+ * @param {string} props.text - Text to display
+ * @param {number} props.speedWpm - Reading speed (words per minute)
+ * @param {Function} props.onSwitchMode - Callback to return to input mode
  */
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import Mot from "./Mot";
+import Word from "./Word";
 
-const ESPACE_INSECABLE = "\u00a0";
-const TIRET_INSECABLE = "\u2011";
+const NON_BREAKING_SPACE = "\u00a0";
+const NON_BREAKING_HYPHEN = "\u2011";
 
 const specialsBeforeIn = /(^-|«|') +/g;
 const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-function LectureAnimation({ texte, vitesse, switchMode }) {
-    const [idMot, setIdMot] = useState(undefined);
+function TextAnimation({ text, speedWpm, onSwitchMode }) {
+    const [currentWordIndex, setCurrentWordIndex] = useState(undefined);
     const [isPaused, setIsPaused] = useState(false);
 
-    // Préparation du texte
-    const textePurify = texte
+    // Text preparation
+    const purifiedText = text
         .trim()
         .replace(/'/g, "'")
         .replace(/ +/g, " ")
@@ -34,44 +34,48 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
         .replace(specialsAfterIn, "$1")
         .replace(specialsBeforeIn, "$1");
 
-    const mots = textePurify.split(" ");
-    const nbreMots = mots.length;
-    const nbreCaracteres = textePurify.length;
+    const words = purifiedText.split(" ");
+    const wordsCount = words.length;
+    const charactersCount = purifiedText.length;
 
-    // Durée de base par caractère (ms)
-    const speed = Math.floor(((nbreMots / vitesse) * 60000) / nbreCaracteres);
+    // Base duration per character (ms)
+    const charSpeed = Math.floor(
+        ((wordsCount / speedWpm) * 60000) / charactersCount
+    );
 
     const handleClickSwitch = (e) => {
         e.preventDefault();
-        switchMode();
+        onSwitchMode();
     };
 
     const handleClickStart = (e) => {
         e.preventDefault();
         setIsPaused(false);
-        setIdMot(0);
+        setCurrentWordIndex(0);
     };
 
     const handlePauseResume = () => {
-        setIsPaused(!isPaused);
+        setIsPaused((prev) => !prev);
     };
 
-    const suivant = () => {
+    const handleNextWord = () => {
         if (isPaused) {
             return;
         }
-        if (idMot === nbreMots - 1) {
-            setTimeout(() => switchMode(), 500);
+        if (currentWordIndex === wordsCount - 1) {
+            setTimeout(() => onSwitchMode(), 500);
         } else {
-            setIdMot((prev) => (prev !== undefined ? prev + 1 : 0));
+            setCurrentWordIndex((prev) => (prev !== undefined ? prev + 1 : 0));
         }
     };
 
-    const progression =
-        idMot !== undefined ? ((idMot + 1) / nbreMots) * 100 : 0;
+    const progress =
+        currentWordIndex !== undefined
+            ? ((currentWordIndex + 1) / wordsCount) * 100
+            : 0;
 
-    // AVANT DÉMARRAGE
-    if (idMot === undefined) {
+    // BEFORE START
+    if (currentWordIndex === undefined) {
         return (
             <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2 my-4">
@@ -86,21 +90,21 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
                         className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg"
                         onClick={handleClickStart}
                     >
-                        ▶ Commencer la lecture à {vitesse} MLM
+                        ▶ Commencer la lecture à {speedWpm} MLM
                     </button>
                 </div>
 
                 <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
-                    <p className="text-2xl leading-relaxed">{textePurify}</p>
+                    <p className="text-2xl leading-relaxed">{purifiedText}</p>
                 </div>
             </div>
         );
     }
 
-    // PENDANT LA LECTURE
+    // DURING READING
     return (
         <div className="max-w-4xl mx-auto">
-            {/* Barre de contrôle */}
+            {/* Control bar */}
             <div className="bg-white border-b border-gray-200 shadow-sm mb-4 p-4">
                 <div className="flex gap-3 items-center justify-between">
                     <div className="flex gap-2 items-center">
@@ -122,7 +126,7 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
                             ⏹ Arrêter
                         </button>
 
-                        {/* Indicateur de pause intégré */}
+                        {/* Inline pause indicator */}
                         {isPaused && (
                             <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
                                 ⏸ En pause
@@ -132,8 +136,8 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
 
                     <div className="flex items-center gap-3">
                         <span className="text-sm font-medium">
-                            {idMot + 1} / {nbreMots} mots (
-                            {Math.round(progression)}%)
+                            {currentWordIndex + 1} / {wordsCount} mots (
+                            {Math.round(progress)}%)
                         </span>
                     </div>
                 </div>
@@ -141,42 +145,54 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
                 <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-blue-600 transition-all duration-300"
-                        style={{ width: `${progression}%` }}
+                        style={{ width: `${progress}%` }}
                     />
                 </div>
             </div>
 
-            {/* Texte avec animation */}
+            {/* Text with animation */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
                 <p className="texte text-2xl leading-relaxed">
-                    {mots.map((mot, index) => {
-                        const motClean = mot
-                            .replace(specialsAfterOut, `${ESPACE_INSECABLE}$1`)
-                            .replace(specialsBeforeOut, `$1${ESPACE_INSECABLE}`)
-                            .replace(/-/g, TIRET_INSECABLE);
+                    {words.map((word, index) => {
+                        const cleanWord = word
+                            .replace(
+                                specialsAfterOut,
+                                `${NON_BREAKING_SPACE}$1`
+                            )
+                            .replace(
+                                specialsBeforeOut,
+                                `$1${NON_BREAKING_SPACE}`
+                            )
+                            .replace(/-/g, NON_BREAKING_HYPHEN);
 
-                        // Mots terminés : afficher directement avec classe CSS masquée
-                        if (index < idMot) {
+                        // Completed words: show directly with hidden class
+                        if (index < currentWordIndex) {
                             return (
                                 <span key={index} className="mot">
                                     <span style={{ visibility: "hidden" }}>
-                                        {motClean}
+                                        {cleanWord}
                                     </span>
                                     <span> </span>
                                 </span>
                             );
                         }
 
-                        // Mot actuel et mots futurs : animation normale
-                        const motSpeed =
-                            index === idMot && !isPaused ? speed : 0;
+                        // Current and future words: normal animation
+                        const wordSpeed =
+                            index === currentWordIndex && !isPaused
+                                ? charSpeed
+                                : 0;
 
                         return (
-                            <Mot
+                            <Word
                                 key={index}
-                                mot={motClean}
-                                speed={motSpeed}
-                                suivant={index === idMot ? suivant : () => {}}
+                                word={cleanWord}
+                                speed={wordSpeed}
+                                onNext={
+                                    index === currentWordIndex
+                                        ? handleNextWord
+                                        : () => {}
+                                }
                             />
                         );
                     })}
@@ -186,10 +202,10 @@ function LectureAnimation({ texte, vitesse, switchMode }) {
     );
 }
 
-LectureAnimation.propTypes = {
-    texte: PropTypes.string.isRequired,
-    vitesse: PropTypes.number.isRequired,
-    switchMode: PropTypes.func.isRequired,
+TextAnimation.propTypes = {
+    text: PropTypes.string.isRequired,
+    speedWpm: PropTypes.number.isRequired,
+    onSwitchMode: PropTypes.func.isRequired,
 };
 
-export default LectureAnimation;
+export default TextAnimation;

@@ -1,8 +1,8 @@
 /**
- * Composant unifié pour la gestion de l'entrée de texte
- * Centralise : saisie manuelle, import fichier local, chargement CodiMD
+ * Unified text input management component
+ * Centralizes: manual input, local file import, CodiMD loading
  *
- * VERSION 3.1.0 : Cohérence navigation entre onglets
+ * VERSION 3.1.0 : Consistent navigation between tabs
  *
  * @component
  */
@@ -43,8 +43,8 @@ const TABS_CONFIG = [
 ];
 
 function TextInputManager({
-    texte,
-    onTexteChange,
+    text,
+    onTextChange,
     onUrlSubmit,
     loading = false,
     error = null,
@@ -58,8 +58,8 @@ function TextInputManager({
     const fileInputRef = useRef(null);
 
     /**
-     * Effet : Retour automatique à l'onglet "Saisir" après chargement CodiMD
-     * Cohérence avec le comportement de l'import fichier
+     * Effect: Auto-switch back to "Manual" tab after CodiMD loading
+     * Consistent with file import behavior
      */
     useEffect(() => {
         if (sourceUrl && activeTab !== TAB_TYPES.MANUAL && !loading) {
@@ -68,10 +68,10 @@ function TextInputManager({
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [sourceUrl, loading]);
+    }, [sourceUrl, loading, activeTab]);
 
     /**
-     * Gère l'import d'un fichier local
+     * Handle local file import
      */
     const handleFileImport = (e) => {
         const files = e.target.files;
@@ -82,7 +82,7 @@ function TextInputManager({
                 const reader = new FileReader();
 
                 reader.onload = (event) => {
-                    onTexteChange(event.target.result);
+                    onTextChange(event.target.result);
                     setActiveTab(TAB_TYPES.MANUAL);
                 };
 
@@ -102,15 +102,15 @@ function TextInputManager({
     };
 
     /**
-     * Gère l'export du texte en fichier .txt
+     * Handle text export as .txt file
      */
     const handleExport = () => {
-        if (!texte.trim()) {
+        if (!text.trim()) {
             alert("Aucun texte à enregistrer.");
             return;
         }
 
-        const blob = new Blob([texte], { type: "text/plain;charset=utf-8" });
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -122,7 +122,7 @@ function TextInputManager({
     };
 
     /**
-     * Gère la soumission de l'URL CodiMD
+     * Handle CodiMD URL submission
      */
     const handleCodimdSubmit = (e) => {
         e.preventDefault();
@@ -134,7 +134,7 @@ function TextInputManager({
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
-            {/* Navigation par onglets */}
+            {/* Tab navigation */}
             <div className="flex border-b border-gray-300 mb-6">
                 {TABS_CONFIG.map((tab) => (
                     <Tooltip key={tab.id} content={tab.tooltip} position="top">
@@ -154,14 +154,14 @@ function TextInputManager({
                 ))}
             </div>
 
-            {/* Contenu de l'onglet SAISIE MANUELLE */}
+            {/* MANUAL INPUT TAB CONTENT */}
             {activeTab === TAB_TYPES.MANUAL && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
                         Saisir ou coller du texte
                     </h3>
 
-                    {/* Badge si texte chargé depuis le cloud */}
+                    {/* Badge if text loaded from cloud */}
                     {sourceUrl && (
                         <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
                             <div className="flex items-start justify-between">
@@ -192,20 +192,20 @@ function TextInputManager({
                     )}
 
                     <textarea
-                        value={texte}
-                        onChange={(e) => onTexteChange(e.target.value)}
+                        value={text}
+                        onChange={(e) => onTextChange(e.target.value)}
                         placeholder="Écrivez ou collez le texte ici..."
                         rows={17}
                         className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
                     />
                     <div className="text-sm text-gray-600 mt-2">
-                        {texte.length} caractères
+                        {text.length} caractères
                     </div>
 
                     <div className="flex gap-2 mt-4">
                         <button
                             onClick={handleExport}
-                            disabled={!texte.trim()}
+                            disabled={!text.trim()}
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                         >
                             💾 Enregistrer (.txt)
@@ -214,7 +214,7 @@ function TextInputManager({
                 </div>
             )}
 
-            {/* Contenu de l'onglet FICHIER */}
+            {/* FILE TAB CONTENT */}
             {activeTab === TAB_TYPES.FILE && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
@@ -244,7 +244,7 @@ function TextInputManager({
                 </div>
             )}
 
-            {/* Contenu de l'onglet CODIMD */}
+            {/* CODIMD TAB CONTENT */}
             {activeTab === TAB_TYPES.CODIMD && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
@@ -269,12 +269,12 @@ function TextInputManager({
                             <ul className="list-disc list-inside space-y-1 text-gray-700">
                                 <li>
                                     <code className="bg-white px-1 py-0.5 rounded">
-                                        https://codimd.apps.education.fr/s/w1D5hjCIC
+                                        [https://codimd.apps.education.fr/s/w1D5hjCIC](https://codimd.apps.education.fr/s/w1D5hjCIC)
                                     </code>
                                 </li>
                                 <li>
                                     <code className="bg-white px-1 py-0.5 rounded">
-                                        https://codimd.apps.education.fr/s/EVZXBuz6e
+                                        [https://codimd.apps.education.fr/s/EVZXBuz6e](https://codimd.apps.education.fr/s/EVZXBuz6e)
                                     </code>
                                 </li>
                             </ul>
@@ -338,8 +338,8 @@ function TextInputManager({
 }
 
 TextInputManager.propTypes = {
-    texte: PropTypes.string.isRequired,
-    onTexteChange: PropTypes.func.isRequired,
+    text: PropTypes.string.isRequired,
+    onTextChange: PropTypes.func.isRequired,
     onUrlSubmit: PropTypes.func.isRequired,
     loading: PropTypes.bool,
     error: PropTypes.string,

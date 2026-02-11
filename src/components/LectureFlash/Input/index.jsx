@@ -1,34 +1,34 @@
 /**
- * Composant de saisie de texte et choix de vitesse
- * VERSION 3.0.0 : Support complet speedConfig (locked/unlocked)
+ * Text input and reading‑speed selection component
+ * VERSION 3.0.0 : Full speedConfig support (locked/unlocked)
  *
  * @component
  * @param {Object} props
- * @param {string} props.texte - Texte actuel
- * @param {Function} props.changeTexte - Callback pour modifier le texte
- * @param {Function} props.switchMode - Callback pour passer en mode lecture avec vitesse
- * @param {Function} props.onUrlSubmit - Callback pour charger URL CodiMD
- * @param {boolean} props.loading - État de chargement CodiMD
- * @param {string} props.error - Message d'erreur CodiMD
- * @param {string} props.sourceUrl - URL source du texte CodiMD
- * @param {Function} props.onReset - Callback pour réinitialiser
- * @param {Object} props.speedConfig - Config vitesse depuis URL { speed: number, locked: boolean }
+ * @param {string} props.text - Current text
+ * @param {Function} props.onTextChange - Callback to modify the text
+ * @param {Function} props.onSwitchMode - Callback to switch to reading mode with a speed
+ * @param {Function} props.onUrlSubmit - Callback to load CodiMD URL
+ * @param {boolean} props.loading - CodiMD loading state
+ * @param {string} props.error - CodiMD error message
+ * @param {string} props.sourceUrl - CodiMD source URL
+ * @param {Function} props.onReset - Callback to reset
+ * @param {Object} props.speedConfig - Speed config from URL { speed: number, locked: boolean }
  */
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import ChoixVitesse from "../Flash/ChoixVitesse";
+import SpeedSelector from "../Flash/SpeedSelector";
 import TextInputManager from "./TextInputManager";
 import HelpModal from "../../HelpModal";
 import FirstTimeMessage from "../../FirstTimeMessage";
 import Tooltip from "../../Tooltip";
 
 /**
- * Retourne le libellé du niveau scolaire correspondant à une vitesse
- * @param {number} speed - Vitesse en MLM
- * @returns {string} Niveau scolaire
+ * Returns the grade level label corresponding to a speed
+ * @param {number} speed - Speed in MLM
+ * @returns {string} Grade level
  */
-const getVitesseLevelLabel = (speed) => {
+const getSpeedLevelLabel = (speed) => {
     const labels = {
         30: "CP - début CE1",
         50: "CE1",
@@ -40,9 +40,9 @@ const getVitesseLevelLabel = (speed) => {
 };
 
 function Input({
-    texte,
-    changeTexte,
-    switchMode,
+    text,
+    onTextChange,
+    onSwitchMode,
     onUrlSubmit,
     loading,
     error,
@@ -50,31 +50,31 @@ function Input({
     onReset,
     speedConfig,
 }) {
-    // État pour gérer l'affichage de la modale d'aide
+    // State for help modal visibility
     const [showHelp, setShowHelp] = useState(false);
 
     /**
-     * Handler qui déclenche le passage en mode lecture
-     * @param {number} vitesse - Vitesse sélectionnée
+     * Handler that triggers the switch to reading mode
+     * @param {number} selectedSpeed - Selected speed
      */
-    const handleSpeedSelected = (vitesse) => {
-        switchMode(vitesse);
+    const handleSpeedSelected = (selectedSpeed) => {
+        onSwitchMode(selectedSpeed);
     };
 
     // ========================================
-    // CONDITIONS D'AFFICHAGE
+    // DISPLAY CONDITIONS
     // ========================================
     const showSuggestedSpeedMessage = speedConfig && !speedConfig.locked;
     const showLockedMessage = speedConfig?.locked;
 
     return (
         <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center py-8 px-4">
-            {/* Message de première visite */}
+            {/* First‑time message */}
             <FirstTimeMessage />
 
-            {/* Container principal */}
+            {/* Main container */}
             <div className="w-full max-w-5xl">
-                {/* Header avec titre et bouton aide */}
+                {/* Header with title and help button */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-800">
                         📖 Lecture Flash
@@ -90,11 +90,11 @@ function Input({
                     </Tooltip>
                 </div>
 
-                {/* Zone de saisie / import */}
+                {/* Text input / import zone */}
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <TextInputManager
-                        texte={texte}
-                        onTexteChange={changeTexte}
+                        text={text}
+                        onTextChange={onTextChange}
                         onUrlSubmit={onUrlSubmit}
                         loading={loading}
                         error={error}
@@ -104,7 +104,7 @@ function Input({
                     />
                 </div>
 
-                {/* Message vitesse suggérée (cas locked=false) */}
+                {/* Message for suggested speed (locked = false) */}
                 {showSuggestedSpeedMessage && (
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
                         <div className="flex items-start">
@@ -120,10 +120,7 @@ function Input({
                                         <strong className="text-lg">
                                             {speedConfig.speed} MLM
                                         </strong>{" "}
-                                        (
-                                        {getVitesseLevelLabel(
-                                            speedConfig.speed
-                                        )}
+                                        ({getSpeedLevelLabel(speedConfig.speed)}
                                         )
                                     </p>
                                     <p className="mt-1 text-xs">
@@ -136,7 +133,7 @@ function Input({
                     </div>
                 )}
 
-                {/* Message vitesse imposée (cas locked=true) */}
+                {/* Message for locked speed (locked = true) */}
                 {showLockedMessage && (
                     <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-8 text-center shadow-md">
                         <div className="mb-4">
@@ -150,7 +147,7 @@ function Input({
                                 {speedConfig.speed} MLM
                             </p>
                             <p className="text-sm text-gray-600">
-                                {getVitesseLevelLabel(speedConfig.speed)}
+                                {getSpeedLevelLabel(speedConfig.speed)}
                             </p>
                         </div>
                         <p className="text-gray-600 animate-pulse flex items-center justify-center gap-2">
@@ -162,31 +159,31 @@ function Input({
                     </div>
                 )}
 
-                {/* Choix de vitesse (masqué si locked=true) */}
+                {/* Speed selector (hidden if locked = true) */}
                 {!showLockedMessage && (
                     <div className="bg-white rounded-xl shadow-lg p-6">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
                             ⚡ Choisissez la vitesse de lecture
                         </h2>
-                        <ChoixVitesse
-                            choisirVitesse={handleSpeedSelected}
-                            texte={texte}
+                        <SpeedSelector
+                            onSpeedChange={handleSpeedSelected}
+                            text={text}
                             speedConfig={speedConfig}
                         />
                     </div>
                 )}
             </div>
 
-            {/* Modale d'aide */}
+            {/* Help modal */}
             {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
         </div>
     );
 }
 
 Input.propTypes = {
-    texte: PropTypes.string.isRequired,
-    changeTexte: PropTypes.func.isRequired,
-    switchMode: PropTypes.func.isRequired,
+    text: PropTypes.string.isRequired,
+    onTextChange: PropTypes.func.isRequired,
+    onSwitchMode: PropTypes.func.isRequired,
     onUrlSubmit: PropTypes.func.isRequired,
     loading: PropTypes.bool,
     error: PropTypes.string,

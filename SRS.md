@@ -577,11 +577,9 @@ src/
 │ │ │ ├── index.jsx # Modifié (v2.2.0)
 │ │ │ └── TextInputManager.jsx # Modifié (v2.2.0)
 │ │ └── Flash/
-│ │ ├── ChoixVitesseAmeliore.jsx # Modifié (v2.2.0)
+│ │ ├── SpeedSelectorAmeliore.jsx # Modifié (v2.2.0)
 │ │ ├── FlashAmelioreTest.jsx # Modifié (v2.2.0)
 │ │ └── Mot.jsx # Modifié (v2.2.0)
-│ ├── CloudUrlInput.jsx
-│ └── ShareCloudLink.jsx
 ├── hooks/
 │ └── useMarkdownFromUrl.js
 └── styles/

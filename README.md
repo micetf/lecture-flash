@@ -83,6 +83,7 @@ Puis ouvrir `http://localhost:9000` dans le navigateur.
 pnpm build
 pnpm preview   # optionnel pour vérifier le build
 ```
+
 ## 🧩 Utilisation
 
 1. Ouvrir l'application dans le navigateur.
@@ -120,6 +121,13 @@ Les exigences sont identifiées par des IDs (`REQ-FUNC-001`, `REQ-FUNC-002`, etc
 
 Détails complets dans [`SRS.md`](./SRS.md).
 
+## Convention de nommage des composants
+
+     - Composant simple (< 100 lignes) : `MonComposant.jsx`
+     - Composant avec sous-composants : `MonComposant/index.jsx`
+     - Module multi-composants : dossier avec exports nommés
+
+
 ## 📦 Roadmap / pistes d'évolution
 
 - Historique de textes récents
@@ -133,6 +141,7 @@ Les modifications significatives sont décrites dans [`CHANGELOG.md`](./CHANGELO
 ## 📚 Fondements pédagogiques
 
 L'application s'appuie sur :
+
 - Les programmes officiels de l'Éducation Nationale (Eduscol)
 - Les travaux d'André Tricot sur la charge cognitive et le numérique éducatif
 - La méthode de Julie Meunier (@petitejulie89) sur la fluence
