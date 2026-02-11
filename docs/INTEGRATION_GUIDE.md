@@ -3,11 +3,13 @@
 ## 📋 Vue d'ensemble
 
 Le composant `TextInputManager` remplace et unifie :
+
 - `CloudUrlInput` (chargement cloud)
 - `ImportExport` (import/export fichiers)
 - Le textarea de saisie manuelle
 
 **Avantages** :
+
 - Interface unifiée avec onglets
 - Meilleure clarté cognitive
 - Réduction de l'espace vertical
@@ -47,11 +49,11 @@ function Input({
     texte,
     changeTexte,
     switchMode,
-    onUrlSubmit,        // ✅ Nouveau prop
-    loading,            // ✅ Nouveau prop
-    error,              // ✅ Nouveau prop
-    sourceUrl,          // ✅ Nouveau prop
-    onReset,            // ✅ Nouveau prop
+    onUrlSubmit, // ✅ Nouveau prop
+    loading, // ✅ Nouveau prop
+    error, // ✅ Nouveau prop
+    sourceUrl, // ✅ Nouveau prop
+    onReset, // ✅ Nouveau prop
 }) {
     const switchFlash = (vitesse) => {
         switchMode(vitesse);
@@ -101,28 +103,30 @@ export default Input;
 Adapter l'appel du composant `Input` :
 
 ```jsx
-{state.mode === mode.SAISIE ? (
-    <>
-        {/* ⚠️ SUPPRIMER ces composants, maintenant intégrés dans TextInputManager */}
-        {/* <CloudUrlInput ... /> */}
-        {/* <ShareCloudLink ... /> */}
-        {/* Badge indicateur cloud */}
+{
+    state.mode === mode.INPUT ? (
+        <>
+            {/* ⚠️ SUPPRIMER ces composants, maintenant intégrés dans TextInputManager */}
+            {/* <CloudUrlInput ... /> */}
+            {/* <ShareCloudLink ... /> */}
+            {/* Badge indicateur cloud */}
 
-        {/* ✅ Composant Input avec les nouveaux props */}
-        <Input
-            texte={state.texte}
-            changeTexte={changeTexte}
-            switchMode={switchModeLecture}
-            onUrlSubmit={loadMarkdownFromUrl}
-            loading={loading}
-            error={error}
-            sourceUrl={sourceUrl}
-            onReset={handleReset}
-        />
-    </>
-) : (
-    <Flash {...state} switchMode={switchModeSaisie} />
-)}
+            {/* ✅ Composant Input avec les nouveaux props */}
+            <Input
+                texte={state.texte}
+                changeTexte={changeTexte}
+                switchMode={switchModeLecture}
+                onUrlSubmit={loadMarkdownFromUrl}
+                loading={loading}
+                error={error}
+                sourceUrl={sourceUrl}
+                onReset={handleReset}
+            />
+        </>
+    ) : (
+        <Flash {...state} switchMode={switchModeSaisie} />
+    );
+}
 ```
 
 ---
@@ -143,6 +147,7 @@ Adapter l'appel du composant `Input` :
 ## 🧪 Tests à effectuer
 
 ### 1. Onglet "Saisir"
+
 - [ ] Saisie manuelle fonctionne
 - [ ] Compteur de caractères s'affiche
 - [ ] Export en .txt fonctionne
@@ -150,12 +155,14 @@ Adapter l'appel du composant `Input` :
 - [ ] Bouton "Réinitialiser" fonctionne
 
 ### 2. Onglet "Fichier"
+
 - [ ] Clic sur "Choisir un fichier" ouvre le sélecteur
 - [ ] Import .txt charge le texte
 - [ ] Message d'erreur si format invalide
 - [ ] Retour automatique à l'onglet "Saisir"
 
 ### 3. Onglet "Cloud"
+
 - [ ] Bouton "Aide" affiche/masque les exemples
 - [ ] Formulaire se soumet correctement
 - [ ] Spinner pendant le chargement
@@ -163,6 +170,7 @@ Adapter l'appel du composant `Input` :
 - [ ] Retour automatique à "Saisir" si succès
 
 ### 4. Navigation entre onglets
+
 - [ ] Changement d'onglet fluide
 - [ ] État actif visible (bordure bleue + fond)
 - [ ] Contenu de chaque onglet distinct
@@ -174,6 +182,7 @@ Adapter l'appel du composant `Input` :
 ### Modifier les couleurs
 
 Dans `TextInputManager.jsx`, chercher :
+
 ```jsx
 border-blue-600 text-blue-600 bg-blue-50
 ```
@@ -183,6 +192,7 @@ Remplacer par vos couleurs Tailwind préférées.
 ### Ajouter un 4ème onglet (exemple : Historique)
 
 1. Ajouter dans `TAB_TYPES` :
+
 ```jsx
 const TAB_TYPES = {
     MANUAL: "manual",
@@ -193,6 +203,7 @@ const TAB_TYPES = {
 ```
 
 2. Ajouter dans `TABS_CONFIG` :
+
 ```jsx
 {
     id: TAB_TYPES.HISTORY,
@@ -203,12 +214,13 @@ const TAB_TYPES = {
 ```
 
 3. Ajouter le contenu dans le switch :
+
 ```jsx
-{activeTab === TAB_TYPES.HISTORY && (
-    <div role="tabpanel">
-        {/* Votre composant historique */}
-    </div>
-)}
+{
+    activeTab === TAB_TYPES.HISTORY && (
+        <div role="tabpanel">{/* Votre composant historique */}</div>
+    );
+}
 ```
 
 ---
@@ -216,14 +228,17 @@ const TAB_TYPES = {
 ## 🐛 Dépannage
 
 ### Le texte ne se charge pas depuis le cloud
+
 ➡️ Vérifier que `onUrlSubmit` est bien passé en prop  
 ➡️ Vérifier que `useMarkdownFromUrl` fonctionne
 
 ### L'export .txt ne fonctionne pas
+
 ➡️ Vérifier que `texte.trim()` n'est pas vide  
 ➡️ Vérifier la console pour d'éventuelles erreurs
 
 ### Les onglets ne changent pas
+
 ➡️ Vérifier que `useState` est bien importé  
 ➡️ Vérifier la console React DevTools
 
@@ -232,6 +247,7 @@ const TAB_TYPES = {
 ## 📞 Support
 
 Pour toute question sur l'intégration :
+
 - Consulter la JSDoc dans `TextInputManager.jsx`
 - Vérifier PropTypes pour les props obligatoires
 - Tester en environnement de développement avant production
@@ -243,17 +259,17 @@ Pour toute question sur l'intégration :
 Une fois `TextInputManager` intégré, vous pourrez :
 
 1. **Supprimer les anciens composants** :
-   - `CloudUrlInput.jsx`
-   - `ShareCloudLink.jsx`
-   - `ImportExport/index.jsx`
+    - `CloudUrlInput.jsx`
+    - `ShareCloudLink.jsx`
+    - `ImportExport/index.jsx`
 
 2. **Ajouter le lien de partage** :
-   - Intégrer `ShareCloudLink` dans l'onglet "Cloud"
-   - Ou créer un bouton "Partager" dans l'onglet "Saisir"
+    - Intégrer `ShareCloudLink` dans l'onglet "Cloud"
+    - Ou créer un bouton "Partager" dans l'onglet "Saisir"
 
 3. **Passer à l'option B** :
-   - Contrôles de lecture (Play/Pause, navigation)
-   - Prévu dans la prochaine itération
+    - Contrôles de lecture (Play/Pause, navigation)
+    - Prévu dans la prochaine itération
 
 ---
 

@@ -1,31 +1,44 @@
 /**
- * Enhanced Flash component with smooth pause/resume
- * SOLUTION: Static CSS class for completed words
+ * Text Animation component for reading mode
+ * VERSION 3.3.1 : CORRECTION - Animation fonctionnelle avec pause
  *
  * @component
  * @param {Object} props
- * @param {string} props.text - Text to display
- * @param {number} props.speedWpm - Reading speed (words per minute)
- * @param {Function} props.onSwitchMode - Callback to return to input mode
+ * @param {string} props.text - Texte à afficher
+ * @param {number} props.speedWpm - Vitesse en mots par minute
+ * @param {boolean} [props.isPaused] - État pause (géré par le parent)
+ * @param {function} props.onSwitchMode - Callback pour revenir en mode saisie
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Word from "./Word";
 
+// ========================================
+// CONSTANTS (EXACTEMENT comme l'original qui fonctionne)
+// ========================================
 const NON_BREAKING_SPACE = "\u00a0";
 const NON_BREAKING_HYPHEN = "\u2011";
-
 const specialsBeforeIn = /(^-|«|') +/g;
 const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
-function TextAnimation({ text, speedWpm, onSwitchMode }) {
+function TextAnimation({
+    text,
+    speedWpm,
+    isStarted,
+    isPaused = false,
+    onComplete,
+}) {
+    // ========================================
+    // STATE
+    // ========================================
     const [currentWordIndex, setCurrentWordIndex] = useState(undefined);
-    const [isPaused, setIsPaused] = useState(false);
 
-    // Text preparation
+    // ========================================
+    // TEXT PROCESSING (EXACTEMENT comme l'original)
+    // ========================================
     const purifiedText = text
         .trim()
         .replace(/'/g, "'")
@@ -38,32 +51,43 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
     const wordsCount = words.length;
     const charactersCount = purifiedText.length;
 
-    // Base duration per character (ms)
+    // ========================================
+    // SPEED CALCULATION (EXACTEMENT comme l'original)
+    // ========================================
     const charSpeed = Math.floor(
         ((wordsCount / speedWpm) * 60000) / charactersCount
     );
 
-    const handleClickSwitch = (e) => {
-        e.preventDefault();
-        onSwitchMode();
-    };
+    // ========================================
+    // EFFECT: Start animation when isStarted becomes true
+    // ========================================
+    useEffect(() => {
+        if (isStarted && currentWordIndex === undefined) {
+            setCurrentWordIndex(0);
+        }
+    }, [isStarted, currentWordIndex]);
 
-    const handleClickStart = (e) => {
-        e.preventDefault();
-        setIsPaused(false);
-        setCurrentWordIndex(0);
-    };
+    // ========================================
+    // EFFECT: Reset when isStarted becomes false
+    // ========================================
+    useEffect(() => {
+        if (!isStarted && currentWordIndex !== undefined) {
+            setCurrentWordIndex(undefined);
+        }
+    }, [isStarted, currentWordIndex]);
 
-    const handlePauseResume = () => {
-        setIsPaused((prev) => !prev);
-    };
-
+    // ========================================
+    // HANDLERS
+    // ========================================
     const handleNextWord = () => {
         if (isPaused) {
             return;
         }
+
         if (currentWordIndex === wordsCount - 1) {
-            setTimeout(() => onSwitchMode(), 500);
+            setTimeout(() => {
+                onComplete();
+            }, 500);
         } else {
             setCurrentWordIndex((prev) => (prev !== undefined ? prev + 1 : 0));
         }
@@ -74,26 +98,12 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
             ? ((currentWordIndex + 1) / wordsCount) * 100
             : 0;
 
-    // BEFORE START
+    // ========================================
+    // RENDER: BEFORE START (écran initial)
+    // ========================================
     if (currentWordIndex === undefined) {
         return (
             <div className="max-w-4xl mx-auto">
-                <div className="flex gap-2 my-4">
-                    <button
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
-                        onClick={handleClickSwitch}
-                    >
-                        ← Modifier
-                    </button>
-
-                    <button
-                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg"
-                        onClick={handleClickStart}
-                    >
-                        ▶ Commencer la lecture à {speedWpm} MLM
-                    </button>
-                </div>
-
                 <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
                     <p className="text-2xl leading-relaxed">{purifiedText}</p>
                 </div>
@@ -101,58 +111,27 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
         );
     }
 
-    // DURING READING
+    // ========================================
+    // RENDER: DURING READING
+    // ========================================
     return (
         <div className="max-w-4xl mx-auto">
-            {/* Control bar */}
-            <div className="bg-white border-b border-gray-200 shadow-sm mb-4 p-4">
-                <div className="flex gap-3 items-center justify-between">
-                    <div className="flex gap-2 items-center">
-                        <button
-                            className={`px-6 py-2 rounded-lg transition font-semibold ${
-                                isPaused
-                                    ? "bg-green-600 hover:bg-green-700 text-white"
-                                    : "bg-yellow-500 hover:bg-yellow-600 text-white"
-                            }`}
-                            onClick={handlePauseResume}
-                        >
-                            {isPaused ? "▶ Reprendre" : "⏸ Pause"}
-                        </button>
-
-                        <button
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                            onClick={handleClickSwitch}
-                        >
-                            ⏹ Arrêter
-                        </button>
-
-                        {/* Inline pause indicator */}
-                        {isPaused && (
-                            <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
-                                ⏸ En pause
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium">
-                            {currentWordIndex + 1} / {wordsCount} mots (
-                            {Math.round(progress)}%)
-                        </span>
-                    </div>
-                </div>
-
-                <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-blue-600 transition-all duration-300"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+            {/* Progress bar */}
+            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                    className="h-full bg-blue-600 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                    role="progressbar"
+                    aria-valuenow={Math.round(progress)}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Progression de la lecture"
+                />
             </div>
 
-            {/* Text with animation */}
-            <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
-                <p className="texte text-2xl leading-relaxed">
+            {/* Text display */}
+            <div className="bg-white rounded-lg border-2 border-gray-300 p-6 mt-4">
+                <p className="text-2xl leading-relaxed">
                     {words.map((word, index) => {
                         const cleanWord = word
                             .replace(
@@ -165,7 +144,7 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
                             )
                             .replace(/-/g, NON_BREAKING_HYPHEN);
 
-                        // Completed words: show directly with hidden class
+                        // ✅ CORRECTION : Completed words (hide them)
                         if (index < currentWordIndex) {
                             return (
                                 <span key={index} className="mot">
@@ -177,7 +156,8 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
                             );
                         }
 
-                        // Current and future words: normal animation
+                        // ✅ CORRECTION : Current and future words
+                        // Le mot actuel reçoit une vitesse, les futurs 0
                         const wordSpeed =
                             index === currentWordIndex && !isPaused
                                 ? charSpeed
@@ -205,7 +185,9 @@ function TextAnimation({ text, speedWpm, onSwitchMode }) {
 TextAnimation.propTypes = {
     text: PropTypes.string.isRequired,
     speedWpm: PropTypes.number.isRequired,
-    onSwitchMode: PropTypes.func.isRequired,
+    isStarted: PropTypes.bool.isRequired,
+    isPaused: PropTypes.bool,
+    onComplete: PropTypes.func.isRequired,
 };
 
 export default TextAnimation;
