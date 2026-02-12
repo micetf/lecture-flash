@@ -1,67 +1,72 @@
 /**
- * Enhanced reading speed selection component
- *
- * VERSION 3.1.0 : Visual UX improvements
+ * Speed Selector Component with discreet sharing button
+ * VERSION 3.5.0 : Partage discret (bouton + modale) - Conformité Tricot
  *
  * @component
+ * @param {Object} props
+ * @param {function} props.onSpeedChange - Callback quand vitesse sélectionnée
+ * @param {string} [props.text] - Texte pour la preview (optionnel)
+ * @param {Object} [props.speedConfig] - Config vitesse depuis URL
+ * @param {number} [props.selectedSpeed] - Vitesse déjà sélectionnée (persistance)
+ * @param {string} [props.sourceUrl] - URL cloud si texte chargé depuis CodiMD
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
-import Word from "./Word";
 
-const SPEEDS = [
+// ========================================
+// CONSTANTS
+// ========================================
+const SPEED_OPTIONS = [
     {
         value: 30,
         label: "Très lent",
-        color: "blue",
-        colorClass: "bg-blue-500 hover:bg-blue-600 border-blue-600",
         level: "CP - début CE1",
-        description: "Déchiffrage en cours d'acquisition",
-        tooltip:
-            "30 mots/min - Idéal pour les élèves en début d'apprentissage de la lecture",
+        description:
+            "Idéal pour CP - début CE1 (déchiffrage en cours d'acquisition)",
+        colorClass: "bg-blue-500 hover:bg-blue-600",
     },
     {
         value: 50,
         label: "Lent",
-        color: "green",
-        colorClass: "bg-green-500 hover:bg-green-600 border-green-600",
         level: "CE1",
-        description: "Lecture mot à mot",
-        tooltip: "50 mots/min - Recommandé pour la lecture à voix haute en CE1",
+        description: "Recommandé pour CE1 (lecture mot à mot)",
+        colorClass: "bg-green-500 hover:bg-green-600",
     },
     {
         value: 70,
         label: "Moyen",
-        color: "yellow",
-        colorClass: "bg-yellow-500 hover:bg-yellow-600 border-yellow-600",
         level: "CE2",
-        description: "Lecture par groupes de mots",
-        tooltip:
-            "70 mots/min - Adapté aux élèves de CE2 qui lisent par groupes de mots",
+        description: "Adapté au CE2 (lecture par groupes de mots)",
+        colorClass: "bg-yellow-500 hover:bg-yellow-600",
     },
     {
         value: 90,
         label: "Rapide",
-        color: "orange",
-        colorClass: "bg-orange-500 hover:bg-orange-600 border-orange-600",
         level: "CM1-CM2",
-        description: "Lecture fluide",
-        tooltip: "90 mots/min - Pour une lecture fluide en CM1-CM2",
+        description: "Pour CM1-CM2 (lecture fluide)",
+        colorClass: "bg-orange-500 hover:bg-orange-600",
     },
     {
         value: 110,
         label: "Très rapide",
-        color: "red",
-        colorClass: "bg-red-500 hover:bg-red-600 border-red-600",
         level: "CM2 et +",
-        description: "Lecture experte",
-        tooltip: "110 mots/min - Niveau de lecture expert, CM2 et collège",
+        description: "Pour CM2 et + (lecture experte)",
+        colorClass: "bg-red-500 hover:bg-red-600",
     },
 ];
 
-const DEMO_TEXT = "La lecture fluente permet de mieux comprendre les textes.";
+const getSpeedLevelLabel = (speed) => {
+    const labels = {
+        30: "CP - début CE1",
+        50: "CE1",
+        70: "CE2",
+        90: "CM1-CM2",
+        110: "CM2 et +",
+    };
+    return labels[speed] || "Personnalisé";
+};
 
 const getEduscolZone = (speed) => {
     if (speed <= 40) return "CP - début CE1 (déchiffrage)";
@@ -76,23 +81,31 @@ function SpeedSelector({
     text,
     speedConfig,
     selectedSpeed: initialSelectedSpeed,
+    sourceUrl,
 }) {
-    const [testSpeed, setTestSpeed] = useState(null);
+    // ========================================
+    // STATE: Speed selection
+    // ========================================
     const [selectedSpeed, setSelectedSpeed] = useState(
         speedConfig?.speed || initialSelectedSpeed || 70
     );
-    const [isTestActive, setIsTestActive] = useState(false);
-    const timeoutRef = useRef(null);
     const [showCustomMode, setShowCustomMode] = useState(false);
     const [customSpeed, setCustomSpeed] = useState(70);
-    useEffect(() => {
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, []);
 
+    // Test mode
+    const [isTestActive, setIsTestActive] = useState(false);
+    const [testSpeed, setTestSpeed] = useState(null);
+
+    // ========================================
+    // STATE: Sharing modal (nouveau - discret)
+    // ========================================
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [shareLocked, setShareLocked] = useState(false);
+    const [showShareSuccess, setShowShareSuccess] = useState(false);
+
+    // ========================================
+    // EFFECT: Sync with external props
+    // ========================================
     useEffect(() => {
         if (speedConfig?.speed) {
             setSelectedSpeed(speedConfig.speed);
@@ -104,284 +117,167 @@ function SpeedSelector({
         }
     }, [speedConfig, initialSelectedSpeed]);
 
+    // ========================================
+    // EFFECT: Close modal on Escape key
+    // ========================================
     useEffect(() => {
-        if (selectedSpeed && !speedConfig) {
-            onSpeedChange(selectedSpeed);
-        }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        const handleEscape = (e) => {
+            if (e.key === "Escape" && showShareModal) {
+                setShowShareModal(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [showShareModal]);
+
+    // ========================================
+    // HANDLERS: Speed selection
+    // ========================================
+    const handleSelect = (speed) => {
+        setSelectedSpeed(speed);
+        onSpeedChange(speed);
+        setShowCustomMode(false);
+    };
 
     const handleTest = (speed) => {
-        handleStopTest();
+        if (isTestActive && testSpeed === speed) {
+            setIsTestActive(false);
+            setTestSpeed(null);
+            return;
+        }
+
         setTestSpeed(speed);
         setIsTestActive(true);
 
-        timeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
             setIsTestActive(false);
             setTestSpeed(null);
         }, 10000);
     };
 
-    const handleStopTest = () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
+    // ========================================
+    // HANDLER: Share link generation
+    // ========================================
+    const handleGenerateShareLink = async () => {
+        const baseUrl = `${window.location.origin}/index.html`;
+        const params = new URLSearchParams({
+            url: sourceUrl,
+            speed: selectedSpeed,
+        });
+
+        if (shareLocked) {
+            params.set("locked", "true");
         }
-        setIsTestActive(false);
-        setTestSpeed(null);
-    };
 
-    const handleSelect = (speed) => {
-        handleStopTest();
-        setSelectedSpeed(speed);
-        onSpeedChange(speed);
-    };
+        const shareUrl = `${baseUrl}?${params.toString()}`;
 
-    // Speed preview component with animation
-    const SpeedPreview = ({ speed, previewText }) => {
-        const [previewWordIndex, setPreviewWordIndex] = useState(0);
-        const previewTimerRef = useRef(null);
-
-        // EXACTLY the same constants as TextAnimation
-        const NON_BREAKING_SPACE = "\u00a0";
-        const NON_BREAKING_HYPHEN = "\u2011";
-        const specialsBeforeIn = /(^-|«|') +/g;
-        const specialsAfterIn = / +(;|:|!|\?|»|')/g;
-        const specialsBeforeOut = /(^-|«)/g;
-        const specialsAfterOut = /(;|:|!|\?|»)/g;
-
-        const purifiedText = (previewText || DEMO_TEXT)
-            .trim()
-            .replace(/'/g, "'")
-            .replace(/ +/g, " ")
-            .replace(/\n+/g, " ")
-            .replace(specialsAfterIn, "$1")
-            .replace(specialsBeforeIn, "$1");
-
-        const words = purifiedText.split(" ");
-        const wordsCount = words.length;
-        const charsCount = purifiedText.length;
-
-        // EXACTLY the same calculation
-        const wordSpeed = Math.floor(
-            ((wordsCount / speed) * 60000) / charsCount
-        );
-
-        useEffect(() => {
-            return () => {
-                if (previewTimerRef.current) {
-                    clearTimeout(previewTimerRef.current);
-                }
-            };
-        }, []);
-
-        const goToNextPreviewWord = () => {
-            if (previewWordIndex < wordsCount - 1) {
-                setPreviewWordIndex((prev) => prev + 1);
-            } else {
-                previewTimerRef.current = setTimeout(() => {
-                    setPreviewWordIndex(0);
-                }, 1500);
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setShowShareSuccess(true);
+            setTimeout(() => {
+                setShowShareSuccess(false);
+            }, 3000);
+        } catch (err) {
+            console.error("Erreur copie lien:", err);
+            // Fallback pour navigateurs plus anciens
+            const textArea = document.createElement("textarea");
+            textArea.value = shareUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand("copy");
+                setShowShareSuccess(true);
+                setTimeout(() => {
+                    setShowShareSuccess(false);
+                }, 3000);
+            } catch (fallbackErr) {
+                console.error("Fallback copie échoué:", fallbackErr);
+                alert(
+                    "Impossible de copier le lien automatiquement. Copiez-le manuellement."
+                );
             }
-        };
+            document.body.removeChild(textArea);
+        }
+    };
 
+    // ========================================
+    // COMPUTED: Is speed suggested?
+    // ========================================
+    const isSuggested = (speed) => {
         return (
-            <div className="mt-4 p-6 bg-blue-50 border-2 border-blue-400 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-semibold text-blue-800">
-                        🧪 Aperçu à {speed} MLM
-                    </p>
-                    <button
-                        onClick={handleStopTest}
-                        className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition"
-                    >
-                        ⏸ Arrêter
-                    </button>
-                </div>
-
-                {/* EXACT same structure as TextAnimation */}
-                <div className="bg-white rounded-lg p-4 border border-gray-300">
-                    <p className="texte text-xl leading-relaxed">
-                        {words.map((word, index) => {
-                            const cleanWord = word
-                                .replace(
-                                    specialsAfterOut,
-                                    `${NON_BREAKING_SPACE}$1`
-                                )
-                                .replace(
-                                    specialsBeforeOut,
-                                    `$1${NON_BREAKING_SPACE}`
-                                )
-                                .replace(/-/g, NON_BREAKING_HYPHEN);
-
-                            // Completed words: EXACTLY like TextAnimation
-                            if (index < previewWordIndex) {
-                                return (
-                                    <span key={index} className="mot">
-                                        <span style={{ visibility: "hidden" }}>
-                                            {cleanWord}
-                                        </span>
-                                        <span> </span>
-                                    </span>
-                                );
-                            }
-
-                            // Current and future words: EXACTLY like TextAnimation
-                            const currentWordSpeed =
-                                index === previewWordIndex ? wordSpeed : 0;
-
-                            return (
-                                <Word
-                                    key={index}
-                                    word={cleanWord}
-                                    speed={currentWordSpeed}
-                                    onNext={
-                                        index === previewWordIndex
-                                            ? goToNextPreviewWord
-                                            : () => {}
-                                    }
-                                />
-                            );
-                        })}
-                    </p>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-gray-600">
-                        Mot {previewWordIndex + 1} / {wordsCount}
-                    </p>
-                    <p className="text-xs text-blue-700 font-medium">
-                        {speed} mots/minute
-                    </p>
-                </div>
-            </div>
+            speedConfig && !speedConfig.locked && speedConfig.speed === speed
         );
     };
 
+    // ========================================
+    // RENDER
+    // ========================================
     return (
-        <div>
-            {/* Suggested speed message if speedConfig present */}
+        <div className="space-y-6">
+            {/* Suggested speed message */}
             {speedConfig && !speedConfig.locked && (
-                <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
-                    <p className="text-yellow-900 font-semibold">
-                        ⭐ Vitesse recommandée : {speedConfig.speed} MLM
+                <div className="p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                    <p className="text-yellow-900 font-semibold mb-2">
+                        ⭐ Vitesse recommandée : {speedConfig.speed} MLM (
+                        {getSpeedLevelLabel(speedConfig.speed)})
                     </p>
-                    <p className="text-sm text-yellow-800 mt-1">
-                        💡 Votre enseignant suggère cette vitesse, mais vous
-                        pouvez en choisir une autre si nécessaire.
+                    <p className="text-sm text-yellow-800">
+                        💡 Votre enseignant a pré-sélectionné cette vitesse,
+                        mais vous pouvez en choisir une autre si besoin.
                     </p>
                 </div>
             )}
 
-            {/* Preview zone when test is active */}
-            {isTestActive && testSpeed && (
-                <SpeedPreview speed={testSpeed} previewText={text} />
-            )}
-
-            {/* Grid of 5 speeds */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                {SPEEDS.map((speedOption) => {
-                    const isSuggested =
-                        speedConfig?.speed === speedOption.value;
+            {/* Level 1: 5 guided buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {SPEED_OPTIONS.map((speedOption) => {
                     const isSelected = selectedSpeed === speedOption.value;
-                    const isTesting =
-                        testSpeed === speedOption.value && isTestActive;
+                    const isSuggestedSpeed = isSuggested(speedOption.value);
+                    const isTestingThis =
+                        isTestActive && testSpeed === speedOption.value;
 
                     return (
                         <Tooltip
                             key={speedOption.value}
-                            content={speedOption.tooltip}
+                            content={speedOption.description}
                             position="top"
                         >
                             <div
-                                className={`
-                                    rounded-xl p-4 transition-all duration-300 cursor-pointer
-                                    ${
-                                        isTesting &&
-                                        "border-4 border-blue-500 shadow-2xl ring-4 ring-blue-300 animate-pulse"
-                                    }
-                                    ${
-                                        isSelected &&
-                                        !isTesting &&
-                                        "border-4 border-green-600 shadow-2xl ring-4 ring-green-300"
-                                    }
-                                    ${
-                                        isSuggested &&
-                                        !isSelected &&
-                                        !isTesting &&
-                                        "border-4 border-yellow-400 bg-yellow-50 shadow-lg ring-2 ring-yellow-300"
-                                    }
-                                    ${
-                                        !isSelected &&
-                                        !isSuggested &&
-                                        !isTesting &&
-                                        "border-2 border-gray-300 bg-white hover:shadow-lg hover:border-gray-400"
-                                    }
-                                `}
+                                className={`border-2 rounded-lg p-4 transition-all ${
+                                    isSuggestedSpeed
+                                        ? "border-yellow-400 bg-yellow-50 ring-2 ring-yellow-300"
+                                        : isSelected
+                                          ? "border-blue-600 bg-blue-50 shadow-lg"
+                                          : "border-gray-300 bg-white hover:border-gray-400"
+                                }`}
                             >
-                                {/* Status badge */}
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex-1">
-                                        {isSuggested && !isSelected && (
-                                            <span className="inline-block px-2 py-0.5 bg-yellow-400 text-yellow-900 font-bold text-xs rounded-full mb-2">
-                                                ⭐ Suggérée
-                                            </span>
-                                        )}
-                                        {isSelected && (
-                                            <span className="inline-block px-2 py-0.5 bg-green-600 text-white font-bold text-xs rounded-full mb-2">
-                                                ✓ Sélectionnée
-                                            </span>
-                                        )}
-                                        {isTesting && (
-                                            <span className="inline-block px-2 py-0.5 bg-blue-600 text-white font-bold text-xs rounded-full mb-2 animate-pulse">
-                                                🧪 Test en cours
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
+                                {isSuggestedSpeed && (
+                                    <span className="inline-block px-3 py-1 bg-yellow-400 text-yellow-900 font-semibold text-xs rounded-full mb-2">
+                                        ⭐ Suggérée
+                                    </span>
+                                )}
 
-                                {/* Speed and label */}
                                 <div className="text-center mb-3">
-                                    <div
-                                        className={`text-4xl font-bold ${
-                                            speedOption.color === "blue"
-                                                ? "text-blue-600"
-                                                : speedOption.color === "green"
-                                                  ? "text-green-600"
-                                                  : speedOption.color ===
-                                                      "yellow"
-                                                    ? "text-yellow-600"
-                                                    : speedOption.color ===
-                                                        "orange"
-                                                      ? "text-orange-600"
-                                                      : "text-red-600"
-                                        }`}
-                                    >
+                                    <p className="text-3xl font-bold text-gray-800">
                                         {speedOption.value}
-                                    </div>
-                                    <div className="text-xs text-gray-500 font-medium">
-                                        MLM
-                                    </div>
-                                    <div className="text-sm font-semibold text-gray-700 mt-1">
+                                    </p>
+                                    <p className="text-sm text-gray-600">MLM</p>
+                                </div>
+
+                                <div className="mb-3">
+                                    <p className="text-sm font-semibold text-gray-700">
                                         {speedOption.label}
-                                    </div>
-                                </div>
-
-                                {/* Level and description */}
-                                <div className="text-center mb-4">
-                                    <div className="text-xs font-semibold text-gray-600 mb-1">
+                                    </p>
+                                    <p className="text-xs text-gray-600">
                                         {speedOption.level}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                        {speedOption.description}
-                                    </div>
+                                    </p>
                                 </div>
 
-                                {/* Action buttons */}
                                 <div className="flex flex-col gap-2">
                                     <button
                                         onClick={() =>
-                                            isTesting
-                                                ? handleStopTest()
-                                                : handleTest(speedOption.value)
+                                            handleTest(speedOption.value)
                                         }
                                         disabled={
                                             isTestActive &&
@@ -389,7 +285,9 @@ function SpeedSelector({
                                         }
                                         className="w-full px-3 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
                                     >
-                                        {isTesting ? "⏸ Arrêter" : "🧪 Tester"}
+                                        {isTestingThis
+                                            ? "⏸ Arrêter"
+                                            : "🧪 Tester"}
                                     </button>
                                     <button
                                         onClick={() =>
@@ -424,7 +322,7 @@ function SpeedSelector({
                 )}
             </div>
 
-            {/* Link to custom mode */}
+            {/* Link to custom mode (hidden if speedConfig present) */}
             {!speedConfig && !showCustomMode && (
                 <div className="text-center mt-6 border-t pt-6">
                     <button
@@ -436,27 +334,28 @@ function SpeedSelector({
                 </div>
             )}
 
-            {/* Custom mode */}
+            {/* Custom mode: slider */}
             {showCustomMode && (
-                <div className="mt-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-blue-400 rounded-lg shadow-md">
+                <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-800">
+                        <h3 className="text-lg font-semibold text-gray-800">
                             ⚙️ Réglage personnalisé
                         </h3>
                         <button
                             onClick={() => setShowCustomMode(false)}
-                            className="text-sm text-gray-600 hover:text-gray-800"
+                            className="text-gray-500 hover:text-gray-700 text-2xl"
                         >
-                            ✕ Fermer
+                            ×
                         </button>
                     </div>
 
-                    <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="text-sm font-semibold text-gray-700">
-                                Vitesse : {customSpeed} MLM
-                            </label>
-                        </div>
+                    <div className="text-center mb-4">
+                        <p className="text-4xl font-bold text-blue-900">
+                            {customSpeed} MLM
+                        </p>
+                    </div>
+
+                    <div className="mb-4">
                         <input
                             type="range"
                             min="30"
@@ -464,9 +363,12 @@ function SpeedSelector({
                             step="5"
                             value={customSpeed}
                             onChange={(e) =>
-                                setCustomSpeed(Number(e.target.value))
+                                setCustomSpeed(parseInt(e.target.value, 10))
                             }
-                            className="w-full h-3 bg-gradient-to-r from-blue-500 via-yellow-500 to-red-500 rounded-lg appearance-none cursor-pointer"
+                            className="w-full h-2 bg-gradient-to-r from-blue-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer"
+                            style={{
+                                background: `linear-gradient(to right, rgb(59, 130, 246) 0%, rgb(234, 179, 8) 50%, rgb(239, 68, 68) 100%)`,
+                            }}
                         />
                         <div className="flex justify-between text-xs text-gray-600 mt-1">
                             <span className="font-semibold">30</span>
@@ -506,6 +408,116 @@ function SpeedSelector({
                     </div>
                 </div>
             )}
+
+            {/* ======================================== */}
+            {/* NOUVEAU: Bouton partage discret */}
+            {/* ======================================== */}
+            {sourceUrl && selectedSpeed && (
+                <div className="text-center mt-6 pt-4 border-t border-gray-200">
+                    <button
+                        onClick={() => setShowShareModal(true)}
+                        className="text-sm text-blue-600 hover:text-blue-800 underline font-medium transition"
+                    >
+                        🔗 Partager ce texte avec vos élèves
+                    </button>
+                </div>
+            )}
+
+            {/* ======================================== */}
+            {/* MODALE de partage (légère et compacte) */}
+            {/* ======================================== */}
+            {showShareModal && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setShowShareModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full animate-fade-in"
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-labelledby="share-modal-title"
+                        aria-modal="true"
+                    >
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-4">
+                            <h3
+                                id="share-modal-title"
+                                className="text-lg font-semibold text-gray-800"
+                            >
+                                🔗 Partager avec vos élèves
+                            </h3>
+                            <button
+                                onClick={() => setShowShareModal(false)}
+                                className="text-gray-400 hover:text-gray-600 text-2xl leading-none transition"
+                                aria-label="Fermer"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Selected speed display */}
+                        <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
+                            <p className="text-xs text-gray-600 mb-1">
+                                Vitesse sélectionnée
+                            </p>
+                            <p className="text-2xl font-bold text-blue-900">
+                                {selectedSpeed} MLM
+                            </p>
+                            <p className="text-xs text-gray-600">
+                                {getSpeedLevelLabel(selectedSpeed)}
+                            </p>
+                        </div>
+
+                        {/* Locked/unlocked choice (compact) */}
+                        <div className="mb-4 space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="radio"
+                                    name="lockMode"
+                                    checked={!shareLocked}
+                                    onChange={() => setShareLocked(false)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                                    💡 Suggérée (modifiable)
+                                </span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="radio"
+                                    name="lockMode"
+                                    checked={shareLocked}
+                                    onChange={() => setShareLocked(true)}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                                    🔒 Imposée (auto-démarrage)
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Copy button */}
+                        <button
+                            onClick={handleGenerateShareLink}
+                            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold focus:outline-none focus:ring-4 focus:ring-blue-300"
+                        >
+                            📋 Copier le lien
+                        </button>
+
+                        {/* Success message */}
+                        {showShareSuccess && (
+                            <div className="mt-3 p-2 bg-green-100 text-green-800 text-sm rounded text-center animate-fade-in">
+                                ✅ Lien copié dans le presse-papier !
+                            </div>
+                        )}
+
+                        {/* Help text */}
+                        <p className="mt-4 text-xs text-gray-500 text-center">
+                            Collez ce lien dans votre ENT, Digipad ou email
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -518,6 +530,7 @@ SpeedSelector.propTypes = {
         locked: PropTypes.bool,
     }),
     selectedSpeed: PropTypes.number,
+    sourceUrl: PropTypes.string,
 };
 
 export default SpeedSelector;
