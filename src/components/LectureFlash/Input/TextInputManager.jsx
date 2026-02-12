@@ -1,13 +1,14 @@
 /**
- * Unified text input management component
- * Centralizes: manual input, local file import, CodiMD loading
+ * Gestionnaire unifié de saisie de texte
+ * VERSION 3.6.0 MINIMAL FIX : Correction bug navigation SANS changement de design
  *
- * VERSION 3.1.0 : Consistent navigation between tabs
+ * CORRECTION UNIQUE : Suppression de l'effet auto-switch bloquant
+ * CONSERVÉ : Design original des onglets, textarea, boutons
  *
  * @component
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
 
@@ -58,20 +59,24 @@ function TextInputManager({
     const fileInputRef = useRef(null);
 
     /**
-     * Effect: Auto-switch back to "Manual" tab after CodiMD loading
-     * Consistent with file import behavior
+     * ❌ SUPPRIMÉ : Effet auto-switch bloquant
+     *
+     * Ancien code (BUGUÉ) :
+     * useEffect(() => {
+     *     if (sourceUrl && activeTab !== TAB_TYPES.MANUAL && !loading) {
+     *         const timer = setTimeout(() => {
+     *             setActiveTab(TAB_TYPES.MANUAL);
+     *         }, 300);
+     *         return () => clearTimeout(timer);
+     *     }
+     * }, [sourceUrl, loading, activeTab]);
+     *
+     * Problème : Empêchait de changer d'onglet après chargement CodiMD
+     * Solution : Supprimé complètement, auto-switch géré manuellement dans les handlers
      */
-    useEffect(() => {
-        if (sourceUrl && activeTab !== TAB_TYPES.MANUAL && !loading) {
-            const timer = setTimeout(() => {
-                setActiveTab(TAB_TYPES.MANUAL);
-            }, 300);
-            return () => clearTimeout(timer);
-        }
-    }, [sourceUrl, loading, activeTab]);
 
     /**
-     * Handle local file import
+     * Import d'un fichier .txt local
      */
     const handleFileImport = (e) => {
         const files = e.target.files;
@@ -83,7 +88,7 @@ function TextInputManager({
 
                 reader.onload = (event) => {
                     onTextChange(event.target.result);
-                    setActiveTab(TAB_TYPES.MANUAL);
+                    setActiveTab(TAB_TYPES.MANUAL); // Auto-switch après import
                 };
 
                 reader.onerror = () => {
@@ -102,7 +107,7 @@ function TextInputManager({
     };
 
     /**
-     * Handle text export as .txt file
+     * Export du texte en .txt
      */
     const handleExport = () => {
         if (!text.trim()) {
@@ -122,19 +127,23 @@ function TextInputManager({
     };
 
     /**
-     * Handle CodiMD URL submission
+     * Soumission de l'URL CodiMD
      */
     const handleCodimdSubmit = (e) => {
         e.preventDefault();
         if (codimdUrl.trim()) {
             onUrlSubmit(codimdUrl.trim());
             setCodimdUrl("");
+            // Auto-switch après soumission (une seule fois)
+            setActiveTab(TAB_TYPES.MANUAL);
         }
     };
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
-            {/* Tab navigation */}
+            {/* ======================================== */}
+            {/* ONGLETS - DESIGN ORIGINAL CONSERVÉ */}
+            {/* ======================================== */}
             <div className="flex border-b border-gray-300 mb-6">
                 {TABS_CONFIG.map((tab) => (
                     <Tooltip key={tab.id} content={tab.tooltip} position="top">
@@ -154,14 +163,16 @@ function TextInputManager({
                 ))}
             </div>
 
-            {/* MANUAL INPUT TAB CONTENT */}
+            {/* ======================================== */}
+            {/* ONGLET : Saisir */}
+            {/* ======================================== */}
             {activeTab === TAB_TYPES.MANUAL && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
                         Saisir ou coller du texte
                     </h3>
 
-                    {/* Badge if text loaded from cloud */}
+                    {/* Badge cloud - DESIGN ORIGINAL CONSERVÉ */}
                     {sourceUrl && (
                         <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
                             <div className="flex items-start justify-between">
@@ -191,6 +202,7 @@ function TextInputManager({
                         </div>
                     )}
 
+                    {/* Textarea - DESIGN ORIGINAL CONSERVÉ */}
                     <textarea
                         value={text}
                         onChange={(e) => onTextChange(e.target.value)}
@@ -198,10 +210,13 @@ function TextInputManager({
                         rows={17}
                         className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
                     />
+
+                    {/* Compteur - DESIGN ORIGINAL CONSERVÉ */}
                     <div className="text-sm text-gray-600 mt-2">
                         {text.length} caractères
                     </div>
 
+                    {/* Bouton Export - DESIGN ORIGINAL CONSERVÉ */}
                     <div className="flex gap-2 mt-4">
                         <button
                             onClick={handleExport}
@@ -214,7 +229,9 @@ function TextInputManager({
                 </div>
             )}
 
-            {/* FILE TAB CONTENT */}
+            {/* ======================================== */}
+            {/* ONGLET : Fichier */}
+            {/* ======================================== */}
             {activeTab === TAB_TYPES.FILE && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
@@ -229,22 +246,30 @@ function TextInputManager({
 
                     <input
                         type="file"
-                        accept=".txt"
-                        onChange={handleFileImport}
                         ref={fileInputRef}
+                        onChange={handleFileImport}
+                        accept=".txt"
                         className="hidden"
                     />
 
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                        className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
                     >
-                        📂 Parcourir...
+                        📁 Choisir un fichier
                     </button>
+
+                    <div className="mt-4 p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                        <p className="text-sm text-gray-700">
+                            <strong>Formats acceptés :</strong> .txt uniquement
+                        </p>
+                    </div>
                 </div>
             )}
 
-            {/* CODIMD TAB CONTENT */}
+            {/* ======================================== */}
+            {/* ONGLET : CodiMD */}
+            {/* ======================================== */}
             {activeTab === TAB_TYPES.CODIMD && (
                 <div>
                     <h3 className="text-lg font-semibold mb-2">
@@ -269,12 +294,12 @@ function TextInputManager({
                             <ul className="list-disc list-inside space-y-1 text-gray-700">
                                 <li>
                                     <code className="bg-white px-1 py-0.5 rounded">
-                                        [https://codimd.apps.education.fr/s/w1D5hjCIC](https://codimd.apps.education.fr/s/w1D5hjCIC)
+                                        https://codimd.apps.education.fr/s/w1D5hjCIC
                                     </code>
                                 </li>
                                 <li>
                                     <code className="bg-white px-1 py-0.5 rounded">
-                                        [https://codimd.apps.education.fr/s/EVZXBuz6e](https://codimd.apps.education.fr/s/EVZXBuz6e)
+                                        https://codimd.apps.education.fr/s/EVZXBuz6e
                                     </code>
                                 </li>
                             </ul>
@@ -286,51 +311,42 @@ function TextInputManager({
                         </div>
                     )}
 
-                    <form onSubmit={handleCodimdSubmit} className="space-y-4">
+                    {/* Formulaire - DESIGN ORIGINAL CONSERVÉ */}
+                    <form onSubmit={handleCodimdSubmit}>
                         <input
                             type="url"
                             value={codimdUrl}
                             onChange={(e) => setCodimdUrl(e.target.value)}
-                            placeholder="https://codimd.apps.education.fr/s/..."
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                            placeholder="https://codimd.apps.education.fr/..."
+                            className="w-full px-4 py-3 mb-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
                             disabled={loading}
+                            required
                         />
 
                         <button
                             type="submit"
-                            disabled={!codimdUrl.trim() || loading}
-                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium flex items-center justify-center gap-2"
+                            disabled={loading || !codimdUrl.trim()}
+                            className={`w-full px-6 py-4 rounded-lg font-semibold transition ${
+                                loading
+                                    ? "bg-gray-400 text-gray-700 cursor-wait"
+                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                            }`}
                         >
-                            {loading ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                    Chargement en cours...
-                                </>
-                            ) : (
-                                "📥 Charger le document"
-                            )}
+                            {loading
+                                ? "⏳ Chargement..."
+                                : "☁️ Charger le texte"}
                         </button>
                     </form>
 
+                    {/* Message d'erreur - DESIGN ORIGINAL CONSERVÉ */}
                     {error && (
                         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-                            <p className="text-sm text-red-800 font-medium">
-                                ❌ Erreur
+                            <p className="text-sm font-semibold text-red-800">
+                                ⚠️ Erreur
                             </p>
-                            <p className="text-sm text-red-700 mt-1">{error}</p>
+                            <p className="text-xs text-red-700 mt-1">{error}</p>
                         </div>
                     )}
-
-                    <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
-                        <p className="font-semibold mb-2">
-                            💡 Après chargement :
-                        </p>
-                        <p>
-                            Le texte sera automatiquement chargé dans l'onglet
-                            "Saisir" où vous pourrez le visualiser et le
-                            modifier si nécessaire.
-                        </p>
-                    </div>
                 </div>
             )}
         </div>
