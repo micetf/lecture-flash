@@ -1,6 +1,12 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION 3.6.0 : Architecture cohérente avec StepContainer enrichi
+ * VERSION 3.7.0 : Correction chargement CodiMD + invalidation lien si modifié
+ *
+ * Modifications v3.7.0 :
+ * - Ajout state isCodiMDTextUnmodified pour tracker validité du lien
+ * - 2 effets séparés pour chargement CodiMD (avec/sans speedConfig)
+ * - Invalidation lien CodiMD si texte modifié ou remplacé
+ * - Passage conditionnel de sourceUrl au TextInputManager
  *
  * Modifications v3.6.0 :
  * - locked=true : Étape 3 direct, PAS d'auto-start, PAS de "Changer vitesse"
@@ -39,6 +45,9 @@ function LectureFlash() {
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
 
+    // État pour tracker si le texte actuel est toujours celui de CodiMD
+    const [isCodiMDTextUnmodified, setIsCodiMDTextUnmodified] = useState(false);
+
     // Labels et nombre total d'étapes
     const stepLabels = ["Texte", "Vitesse", "Lecture"];
     const totalSteps = 3;
@@ -53,6 +62,7 @@ function LectureFlash() {
         sourceUrl,
         speedConfig,
         loadMarkdownFromUrl,
+        reset: resetMarkdownHook,
     } = useMarkdownFromUrl();
 
     // ========================================
@@ -60,12 +70,12 @@ function LectureFlash() {
     // ========================================
 
     /**
-     * Détection et chargement automatique depuis URL
-     * v3.6.0 : Toujours aller à l'étape 3 (lecture), jamais d'auto-start
+     * CAS 1 : CodiMD AVEC speedConfig (lien partagé par enseignant)
+     * v3.7.0 : Ajout setIsCodiMDTextUnmodified(true)
      */
     useEffect(() => {
         if (markdown && speedConfig) {
-            // Charger le texte
+            // Charger le texte + vitesse
             setAppState((prev) => ({
                 ...prev,
                 text: markdown,
@@ -74,6 +84,33 @@ function LectureFlash() {
 
             // Aller directement à l'étape 3 (lecture)
             setCurrentStep(3);
+
+            // Marquer le texte comme provenant de CodiMD
+            setIsCodiMDTextUnmodified(true);
+
+            console.log(
+                "✅ Texte CodiMD chargé avec speedConfig:",
+                speedConfig
+            );
+        }
+    }, [markdown, speedConfig]);
+
+    /**
+     * CAS 2 : CodiMD SANS speedConfig (chargement manuel)
+     * v3.7.0 : Nouvel effet pour gérer le cas sans speedConfig
+     */
+    useEffect(() => {
+        if (markdown && !speedConfig) {
+            // Charger juste le texte, rester à l'étape 1
+            setAppState((prev) => ({
+                ...prev,
+                text: markdown,
+            }));
+
+            // Marquer le texte comme provenant de CodiMD
+            setIsCodiMDTextUnmodified(true);
+
+            console.log("✅ Texte CodiMD chargé dans le champ de saisie");
         }
     }, [markdown, speedConfig]);
 
@@ -110,12 +147,15 @@ function LectureFlash() {
 
     /**
      * Réinitialisation complète
+     * v3.7.0 : Ajout setIsCodiMDTextUnmodified(false)
      */
     const reset = () => {
         setAppState(initialState);
         setCurrentStep(1);
         setHasStartedReading(false);
         setIsPaused(false);
+        setIsCodiMDTextUnmodified(false);
+        resetMarkdownHook();
         window.history.pushState({}, "", window.location.pathname);
     };
 
@@ -125,9 +165,16 @@ function LectureFlash() {
 
     /**
      * Mise à jour du texte
+     * v3.7.0 : Invalidation du lien CodiMD si le texte est modifié
      */
     const handleTextChange = (newText) => {
         setAppState((prev) => ({ ...prev, text: newText }));
+
+        // Si on a un texte CodiMD et qu'il est modifié
+        if (isCodiMDTextUnmodified && markdown && newText !== markdown) {
+            setIsCodiMDTextUnmodified(false);
+            console.log("⚠️ Texte modifié, le lien CodiMD n'est plus valide");
+        }
     };
 
     /**
@@ -205,18 +252,30 @@ function LectureFlash() {
                 <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">
-                            <span className="text-4xl">⚠️</span>
+                            <svg
+                                className="h-6 w-6 text-red-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
                         </div>
                         <div className="ml-3">
-                            <h3 className="text-lg font-semibold text-red-800 mb-2">
+                            <h3 className="text-lg font-semibold text-red-800">
                                 Erreur de chargement
                             </h3>
-                            <p className="text-red-700 mb-4">{error}</p>
+                            <p className="text-red-700 mt-2">{error}</p>
                             <button
                                 onClick={reset}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                             >
-                                ← Retour à l'accueil
+                                Réessayer
                             </button>
                         </div>
                     </div>
@@ -231,61 +290,52 @@ function LectureFlash() {
 
     if (currentStep === 3) {
         return (
-            <div className="container mx-auto p-4">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    {/* Messages contextuels selon speedConfig */}
-                    {speedConfig?.locked && (
-                        <div className="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg">
-                            <p className="text-orange-800 font-semibold">
-                                🔒 Configuration de lecture imposée par votre
-                                enseignant
-                            </p>
-                            <p className="text-sm text-orange-700 mt-1">
-                                Vitesse : {speedConfig.speed} MLM (
-                                {speedConfig.speed <= 60
-                                    ? "CP-CE1"
-                                    : speedConfig.speed <= 80
-                                      ? "CE2"
-                                      : "CM1-CM2"}
-                                )
-                            </p>
-                        </div>
-                    )}
-
-                    {speedConfig && !speedConfig.locked && (
-                        <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                            <p className="text-blue-800 font-semibold">
-                                ℹ️ Texte préparé par votre enseignant
-                            </p>
-                            <p className="text-sm text-blue-700 mt-1">
-                                Vous pouvez relire ou changer la vitesse si
-                                nécessaire.
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Affichage de la vitesse */}
-                    <div className="mb-6 text-center">
-                        <p className="text-sm text-gray-600 mb-2">
-                            Vitesse de lecture
-                        </p>
-                        <p className="text-4xl font-bold text-blue-900">
-                            {appState.speedWpm} MLM
-                        </p>
+            <div className="container mx-auto p-4 relative">
+                <div className="max-w-6xl mx-auto">
+                    {/* Bouton aide en haut à droite */}
+                    <div className="absolute top-0 right-0 z-10">
+                        <Tooltip
+                            content="Afficher l'aide complète"
+                            position="bottom"
+                        >
+                            <button
+                                onClick={() => setShowHelp(true)}
+                                className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
+                                aria-label="Aide"
+                            >
+                                ?
+                            </button>
+                        </Tooltip>
                     </div>
 
-                    {/* Contrôles de lecture */}
-                    {!hasStartedReading ? (
+                    <HelpModal
+                        isOpen={showHelp}
+                        onClose={() => setShowHelp(false)}
+                    />
+
+                    {/* Titre de l'étape */}
+                    <div className="mb-6">
+                        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                            <span className="text-4xl">📖</span>
+                            Mode Lecture
+                        </h2>
+                    </div>
+
+                    {/* Bouton démarrer (avant le début) */}
+                    {!hasStartedReading && (
                         <div className="flex justify-center mb-6">
                             <button
                                 onClick={handleStartReading}
-                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl shadow-lg transform hover:scale-105"
+                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl focus:outline-none focus:ring-4 focus:ring-green-300"
                                 aria-label="Démarrer la lecture"
                             >
                                 ▶️ Démarrer la lecture
                             </button>
                         </div>
-                    ) : (
+                    )}
+
+                    {/* Contrôles pendant la lecture */}
+                    {hasStartedReading && (
                         <div className="flex justify-center gap-3 mb-6">
                             <button
                                 onClick={handleTogglePause}
@@ -380,7 +430,7 @@ function LectureFlash() {
                     onUrlSubmit={loadMarkdownFromUrl}
                     loading={loading}
                     error={error}
-                    sourceUrl={sourceUrl}
+                    sourceUrl={isCodiMDTextUnmodified ? sourceUrl : null}
                     onReset={reset}
                 />
 
@@ -415,18 +465,18 @@ function LectureFlash() {
                             <button
                                 onClick={() => setShowCustomModal(true)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
-                                title="Ajuster la vitesse finement"
+                                aria-label="Ouvrir le réglage de vitesse personnalisé"
                             >
                                 ⚙️ Réglage personnalisé
                             </button>
                         )}
 
                         {/* Bouton Partage */}
-                        {sourceUrl && appState.speedWpm && (
+                        {sourceUrl && isCodiMDTextUnmodified && (
                             <button
                                 onClick={() => setShowShareModal(true)}
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                                title="Partager ce texte avec vos élèves"
+                                aria-label="Générer un lien de partage"
                             >
                                 🔗 Partager
                             </button>
@@ -435,24 +485,22 @@ function LectureFlash() {
                 )}
             >
                 <SpeedSelector
-                    onSpeedChange={handleSpeedChange}
-                    text={appState.text}
-                    speedConfig={speedConfig}
                     selectedSpeed={appState.speedWpm}
-                    sourceUrl={sourceUrl}
+                    onSpeedChange={handleSpeedChange}
+                    speedConfig={speedConfig}
                     showCustomModal={showCustomModal}
                     setShowCustomModal={setShowCustomModal}
                     showShareModal={showShareModal}
                     setShowShareModal={setShowShareModal}
+                    sourceUrl={sourceUrl}
                 />
 
                 {/* Navigation */}
                 <div className="flex justify-between mt-6">
-                    {/* Bouton Retour : masqué si lien partagé */}
                     {!speedConfig && (
                         <button
                             onClick={handleBack}
-                            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
+                            className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
                         >
                             ← Changer le texte
                         </button>
@@ -461,13 +509,15 @@ function LectureFlash() {
                     <button
                         onClick={handleNextStep}
                         disabled={!appState.speedWpm}
-                        className={`px-6 py-3 rounded-lg transition font-bold ml-auto ${
+                        className={`px-6 py-3 rounded-lg transition font-bold ${
+                            !speedConfig ? "ml-auto" : ""
+                        } ${
                             appState.speedWpm
                                 ? "bg-blue-600 text-white hover:bg-blue-700"
                                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                     >
-                        Suivant : Lire →
+                        Suivant : Lancer la lecture →
                     </button>
                 </div>
             </StepContainer>

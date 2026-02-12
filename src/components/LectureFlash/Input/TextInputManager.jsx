@@ -1,9 +1,10 @@
 /**
  * Gestionnaire unifié de saisie de texte
- * VERSION 3.6.0 MINIMAL FIX : Correction bug navigation SANS changement de design
+ * VERSION 3.7.0 : Ajout compteur mots + Suppression bouton Réinitialiser
  *
- * CORRECTION UNIQUE : Suppression de l'effet auto-switch bloquant
- * CONSERVÉ : Design original des onglets, textarea, boutons
+ * Modifications v3.7.0 :
+ * - Ajout du nombre de mots au compteur (en plus des caractères)
+ * - Suppression du bouton "Réinitialiser" dans le badge cloud (redondant)
  *
  * @component
  */
@@ -43,6 +44,23 @@ const TABS_CONFIG = [
     },
 ];
 
+/**
+ * Calcul du nombre de mots dans le texte
+ * Utilise le même algorithme que TextAnimation pour cohérence
+ *
+ * @param {string} text - Le texte à analyser
+ * @returns {number} Nombre de mots
+ */
+const countWords = (text) => {
+    const cleanText = text
+        .trim()
+        .replace(/'/g, "'")
+        .replace(/ +/g, " ")
+        .replace(/\n+/g, " ");
+
+    return cleanText === "" ? 0 : cleanText.split(" ").length;
+};
+
 function TextInputManager({
     text,
     onTextChange,
@@ -59,23 +77,6 @@ function TextInputManager({
     const fileInputRef = useRef(null);
 
     /**
-     * ❌ SUPPRIMÉ : Effet auto-switch bloquant
-     *
-     * Ancien code (BUGUÉ) :
-     * useEffect(() => {
-     *     if (sourceUrl && activeTab !== TAB_TYPES.MANUAL && !loading) {
-     *         const timer = setTimeout(() => {
-     *             setActiveTab(TAB_TYPES.MANUAL);
-     *         }, 300);
-     *         return () => clearTimeout(timer);
-     *     }
-     * }, [sourceUrl, loading, activeTab]);
-     *
-     * Problème : Empêchait de changer d'onglet après chargement CodiMD
-     * Solution : Supprimé complètement, auto-switch géré manuellement dans les handlers
-     */
-
-    /**
      * Import d'un fichier .txt local
      */
     const handleFileImport = (e) => {
@@ -88,7 +89,7 @@ function TextInputManager({
 
                 reader.onload = (event) => {
                     onTextChange(event.target.result);
-                    setActiveTab(TAB_TYPES.MANUAL); // Auto-switch après import
+                    setActiveTab(TAB_TYPES.MANUAL);
                 };
 
                 reader.onerror = () => {
@@ -134,7 +135,6 @@ function TextInputManager({
         if (codimdUrl.trim()) {
             onUrlSubmit(codimdUrl.trim());
             setCodimdUrl("");
-            // Auto-switch après soumission (une seule fois)
             setActiveTab(TAB_TYPES.MANUAL);
         }
     };
@@ -142,7 +142,7 @@ function TextInputManager({
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
             {/* ======================================== */}
-            {/* ONGLETS - DESIGN ORIGINAL CONSERVÉ */}
+            {/* ONGLETS */}
             {/* ======================================== */}
             <div className="flex border-b border-gray-300 mb-6">
                 {TABS_CONFIG.map((tab) => (
@@ -172,10 +172,10 @@ function TextInputManager({
                         Saisir ou coller du texte
                     </h3>
 
-                    {/* Badge cloud - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Badge cloud - SANS bouton Réinitialiser */}
                     {sourceUrl && (
                         <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start">
                                 <div className="flex-1">
                                     <p className="text-sm font-semibold text-blue-800 mb-1">
                                         ☁️ Document chargé depuis CodiMD
@@ -189,20 +189,11 @@ function TextInputManager({
                                         {sourceUrl}
                                     </a>
                                 </div>
-                                {onReset && (
-                                    <button
-                                        onClick={onReset}
-                                        className="ml-4 px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition"
-                                        title="Réinitialiser et revenir à la saisie manuelle"
-                                    >
-                                        ✕ Réinitialiser
-                                    </button>
-                                )}
                             </div>
                         </div>
                     )}
 
-                    {/* Textarea - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Textarea */}
                     <textarea
                         value={text}
                         onChange={(e) => onTextChange(e.target.value)}
@@ -211,12 +202,12 @@ function TextInputManager({
                         className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
                     />
 
-                    {/* Compteur - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Compteur avec nombre de mots */}
                     <div className="text-sm text-gray-600 mt-2">
-                        {text.length} caractères
+                        {text.length} caractères • {countWords(text)} mots
                     </div>
 
-                    {/* Bouton Export - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Bouton Export */}
                     <div className="flex gap-2 mt-4">
                         <button
                             onClick={handleExport}
@@ -311,7 +302,7 @@ function TextInputManager({
                         </div>
                     )}
 
-                    {/* Formulaire - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Formulaire */}
                     <form onSubmit={handleCodimdSubmit}>
                         <input
                             type="url"
@@ -338,7 +329,7 @@ function TextInputManager({
                         </button>
                     </form>
 
-                    {/* Message d'erreur - DESIGN ORIGINAL CONSERVÉ */}
+                    {/* Message d'erreur */}
                     {error && (
                         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
                             <p className="text-sm font-semibold text-red-800">
