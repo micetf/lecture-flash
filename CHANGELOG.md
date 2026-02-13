@@ -12,10 +12,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 **Version cible** : 3.9.0 complète
 
+- Refactorisation `TextInputManager.jsx` (Sprint 10 - orchestrateur)
 - Hook `useLocalStorage.js` (abstraction persistance)
 - Hook `useFullscreen.js` (gestion API Fullscreen)
-- Composant `CodiMDTab.jsx` (Sprint 9 - onglet CodiMD)
-- Refactorisation `TextInputManager.jsx` (Sprint 10 - orchestrateur)
 - Composant `DisplayOptions.jsx` (police + taille)
 - Composant `FullscreenButton.jsx` (bouton plein écran)
 - Suppression mode test vitesse (simplification UX)
@@ -78,7 +77,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - `validateWordCount()` : validation nombre de mots min/max
     - `sanitizeString()` : échappement caractères HTML
 
-**Components (Sprints 7, 8)** :
+**Components (Sprints 7, 8, 9)** :
 
 - **`components/LectureFlash/Input/ManualInputTab.jsx` (Sprint 7)** :
 
@@ -90,6 +89,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - PropTypes strictes (text, onTextChange, sourceUrl, onReset)
 
 - **`components/LectureFlash/Input/FileUploadTab.jsx` (Sprint 8)** :
+
     - Onglet "Fichier" extrait de TextInputManager
     - Import fichier .txt avec validation (extension, taille, encodage)
     - Utilise `validateTextFile()` depuis validation service
@@ -97,6 +97,16 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Gestion erreurs avec messages utilisateur
     - Retour automatique onglet "Saisir" après chargement
     - PropTypes strictes (onFileLoad, onTabChange)
+
+- **`components/LectureFlash/Input/CodiMDTab.jsx` (Sprint 9)** :
+    - Onglet "CodiMD" extrait de TextInputManager
+    - Chargement documents depuis codimd.apps.education.fr
+    - Validation URL avec type="url" et required
+    - Aide toggle avec exemples d'URLs
+    - Information service officiel Éducation Nationale (RGPD)
+    - Gestion états chargement et erreur
+    - Réinitialisation champ après soumission
+    - PropTypes strictes (onUrlLoad, loading, error)
 
 ### Changed
 
