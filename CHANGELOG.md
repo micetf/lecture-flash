@@ -12,6 +12,34 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 - Ajout `services/textProcessing.js` (Sprint 2)
 - Ajout `services/speedCalculations.js` (Sprint 4)
+- Ajout `services/urlGeneration.js` (Sprint 5)
+- **Ajout `utils/validation.js` (Sprint 6)** :
+    - `isValidCodiMDUrl()` : validation URL CodiMD apps.education.fr
+    - `validateTextFile()` : validation fichier .txt (extension, taille, type)
+    - `isValidText()` : vérification texte non vide
+    - `isValidSpeed()` : validation vitesse 20-200 MLM
+    - `isValidUrl()` : validation format URL général
+    - `isSecureUrl()` : vérification HTTPS
+    - `isValidEncoding()` : détection encodage UTF-8
+    - `validateWordCount()` : validation nombre de mots min/max
+    - `sanitizeString()` : échappement caractères HTML
+
+### Changed
+
+- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
+
+### Fixed
+
+- Filtrage titres H1 Markdown CodiMD (Sprint 1)
+- Conservation retours ligne et paragraphes (Sprint 2-3)
+- Correction bouton Relire et fin de lecture (v3.9.1)
+
+## [3.9.0] - 2026-02-13
+
+### Added
+
+- Ajout `services/textProcessing.js` (Sprint 2)
+- Ajout `services/speedCalculations.js` (Sprint 4)
 - **Ajout `services/urlGeneration.js` (Sprint 5)** :
     - `generateShareUrl()` : génération URL avec paramètres url/speed/locked
     - `parseShareUrl()` : extraction configuration depuis URL
