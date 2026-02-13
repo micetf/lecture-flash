@@ -11,6 +11,30 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 ### Added
 
 - Ajout `services/textProcessing.js` (Sprint 2)
+- Ajout `services/speedCalculations.js` (Sprint 4)
+- **Ajout `services/urlGeneration.js` (Sprint 5)** :
+    - `generateShareUrl()` : génération URL avec paramètres url/speed/locked
+    - `parseShareUrl()` : extraction configuration depuis URL
+    - `copyToClipboard()` : copie presse-papier avec fallback execCommand
+    - `isValidShareUrl()` : validation format URL partage
+    - `shortenUrl()` : raccourcissement URL pour affichage
+    - `extractDomain()` : extraction nom de domaine
+
+### Changed
+
+- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
+
+### Fixed
+
+- Filtrage titres H1 Markdown CodiMD (Sprint 1)
+- Conservation retours ligne et paragraphes (Sprint 2-3)
+- Correction bouton Relire et fin de lecture (v3.9.1)
+
+## [3.9.0] - 2026-02-13
+
+### Added
+
+- Ajout `services/textProcessing.js` (Sprint 2)
 - **Ajout `services/speedCalculations.js` (Sprint 4)** :
     - `calculateAnimationSpeed()` : calcul ms/caractère depuis MLM
     - `getEduscolZone()` : détermination zone pédagogique Eduscol
