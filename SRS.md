@@ -1,12 +1,25 @@
-# SRS - Software Requirements Specification
+# Spécification des Exigences Logicielles (SRS)
 
-## Application Lecture Flash
+# Lecture Flash - Application Éducative de Fluence
 
-**Version** : 2.2.0  
-**Date** : 10 février 2026  
-**Auteur** : Frédéric MISERY (webmaster@micetf.fr)  
-**Contexte** : Application éducative pour l'enseignement primaire  
-**Organisme** : Éducation Nationale - Circonscription
+**Version** : 3.8.0  
+**Date** : 13 février 2026  
+**Auteur** : Frédéric MISERY - Conseiller Pédagogique de Circonscription Numérique  
+**Status** : ✅ Production
+
+---
+
+## Table des Matières
+
+1. [Introduction](#1-introduction)
+2. [Description Générale](#2-description-générale)
+3. [Exigences Fonctionnelles](#3-exigences-fonctionnelles)
+4. [Exigences Non-Fonctionnelles](#4-exigences-non-fonctionnelles)
+5. [Architecture Technique](#5-architecture-technique)
+6. [Contraintes](#6-contraintes)
+7. [Tests](#7-tests)
+8. [Références](#8-références)
+9. [Glossaire](#9-glossaire)
 
 ---
 
@@ -14,650 +27,702 @@
 
 ### 1.1 Objectif du Document
 
-Ce document définit les exigences fonctionnelles et techniques de l'application **Lecture Flash**, un outil pédagogique destiné aux enseignants du primaire pour améliorer la fluence de lecture des élèves.
+Ce document spécifie les exigences fonctionnelles et techniques de l'application web **Lecture Flash**, destinée à l'entraînement à la fluence de lecture pour les élèves de l'école primaire française (CP à CM2).
 
-### 1.2 Contexte Pédagogique
+### 1.2 Portée du Projet
 
-L'application s'inspire de la méthode "Fluence : le texte qui s'efface" développée par Julie Meunier (@petitejulie89), adaptée pour une utilisation web interactive.
+**Public cible** :
 
-### 1.3 Fondements Pédagogiques Officiels
+- Élèves du primaire : CP à CM2 (6-11 ans)
+- Enseignants du premier degré
+- Professionnels de l'éducation (RASED, CPC, etc.)
 
-#### 1.3.1 Conformité aux Programmes de l'Éducation Nationale
+**Objectifs pédagogiques** :
 
-**Cycle 2 - Apprentissages fondamentaux (CP, CE1, CE2)** :
+- Développer la fluence de lecture (automatisation du décodage)
+- Améliorer la vitesse de lecture (30 à 110+ MLM)
+- Éviter les retours en arrière (obstacle principal à la fluence)
+- Différencier selon les niveaux (CP à CM2)
 
-- **Attendu de fin de cycle** : "Lire à haute voix avec fluidité" (BO spécial n°11 du 26 novembre 2015, réactualisé en 2020)
-- **Objectif CP** : L'enjeu est de conduire au plus vite les élèves à une automatisation des procédures de décodage, à une lecture fluente autonome (Guide "Pour enseigner la lecture et l'écriture au CP", MEN 2018, révisé 2022)
-- **Objectif CE1** : Consolider et développer les compétences en fluence de lecture (Guide "Pour enseigner la lecture et l'écriture au CE1", MEN 2019)
+### 1.3 Fondements Pédagogiques
 
-**Cycle 3 - Consolidation (CM1, CM2, 6e)** :
+#### 1.3.1 Conformité Programmes Officiels
 
-- **Attendu de fin de cycle** : "Lire avec fluidité" (BO spécial n°11 du 26 novembre 2015)
-- **Objectif CM1-CM2** : Développer les mécanismes de la compréhension qui demeurent source de questionnement (Guide "Pour enseigner la compréhension au CM1 et CM2", MEN 2020)
+**Base réglementaire** :
 
-**Programmes 2024-2025** :
+- Programmes de l'Éducation Nationale (cycles 2 et 3)
+- Repères annuels de progression Eduscol
+- Guides fondamentaux pour l'enseignement de la lecture
 
-- Nouveau programme de français du cycle 2 publié au BO du 31 octobre 2024, entrant en application à la rentrée 2025
-- Priorité absolue : maîtrise des savoirs fondamentaux dont la lecture fluide
-- Pratique quotidienne et régulière des compétences fondamentales en français
+**Vitesses de référence Eduscol** :
 
-**Références officielles** :
+| Niveau  | Vitesse lecture à voix haute | Type de texte                      |
+| ------- | ---------------------------- | ---------------------------------- |
+| CP      | 30 MLM                       | Déchiffrage en cours d'acquisition |
+| CE1     | 50 MLM                       | Lecture mot à mot                  |
+| CE2     | 70 MLM                       | Lecture par groupes de mots        |
+| CM1-CM2 | 90-110 MLM                   | Lecture fluide                     |
 
-- [Apprentissage de la lecture à l'École](https://www.education.gouv.fr/l-apprentissage-de-la-lecture-l-ecole-1028)
-- [Guides fondamentaux pour l'enseignement](https://eduscol.education.fr/3107/guides-fondamentaux-pour-l-enseignement)
-- [Repères annuels de progression du CP à la 3e](https://eduscol.education.fr/137/reperes-annuels-de-progression-et-attendus-de-fin-d-annee-du-cp-la-3e)
-- [Pour enseigner la lecture et l'écriture au CP](https://eduscol.education.fr/media/1508/download)
+**Source** : [Eduscol - Repères annuels de progression](https://eduscol.education.fr/137/reperes-annuels-de-progression-et-attendus-de-fin-d-annee-du-cp-la-3e)
 
-#### 1.3.2 Approche Scientifique : Travaux d'André Tricot
-
-L'application Lecture Flash s'inscrit dans une démarche fondée sur les apports de la recherche en psychologie cognitive, notamment les travaux d'**André Tricot** (Professeur des Universités, Université Paul Valéry Montpellier 3) sur le numérique et les apprentissages.
+#### 1.3.2 Approche Scientifique (André Tricot)
 
 **Principes appliqués** :
 
-1. **Conditions d'efficacité du numérique** (Tricot & Amadieu, 2020 ; Tricot & Chesné, 2020) :
-    - Le numérique ne facilite pas _directement_ les apprentissages mais peut être un atout dans certaines conditions pédagogiques
-    - L'efficacité d'un outil numérique dépend de son adéquation avec l'objectif pédagogique visé
-    - Les apports du numérique sont différents selon la discipline et la fonction pédagogique
+1. **Charge cognitive minimale** :
 
-2. **Charge cognitive et automatisation** :
-    - Lecture Flash favorise l'automatisation du décodage en imposant un rythme régulier
-    - La disparition progressive réduit la charge cognitive en maintenant un focus unique sur la vitesse de lecture
-    - Pas de traitement sémantique simultané : l'élève se concentre sur la fluence
+    - Interface épurée (3 étapes seulement)
+    - Guidage progressif (une action à la fois)
+    - Pas de surcharge informationnelle
 
-3. **Motivation et apprentissage** (Tricot, 2014) :
-    - Distinction entre "désir de savoir" et "désir d'apprendre"
-    - Le défi du "texte qui disparaît" suscite l'intérêt mais reste subordonné à l'objectif pédagogique
-    - L'outil ne remplace pas la médiation enseignante
+2. **Guidage juste-à-temps** :
 
-4. **Conception pédagogique** :
-    - Un outil facile à utiliser, perçu comme utile, acceptable dans le temps scolaire
-    - Compatible avec les valeurs de l'École (gratuité, accessibilité, RGPD)
-    - Usage collectif (TBI) ou individuel selon les besoins
+    - Tooltips contextuels (au moment de l'action)
+    - Aide disponible mais non intrusive
+    - Messages de succès immédiats
 
-**Publications de référence** :
+3. **Différenciation pédagogique** :
+    - 5 vitesses prédéfinies + personnalisation
+    - Adaptation au niveau de l'élève
+    - Progression individualisée
 
-- Amadieu, F. & Tricot, A. (2020). _Apprendre avec le numérique - Mythes et réalités_ (2e éd.). Retz.
-- Tricot, A. & Chesné, J.-F. (2020). _Numérique et apprentissages scolaires_. Cnesco. [Rapport complet](https://www.cnesco.fr/numerique-et-apprentissages-scolaires/)
-- Tricot, A. (2021). Le numérique permet-il des apprentissages scolaires moins contraints ? _Formation et profession_, 29(1).
+**Référence** : Tricot, A. & Chesné, J.-F. (2020). _Numérique et apprentissages scolaires_. Cnesco.
 
-**Avertissement scientifique** :
-Conformément aux conclusions de Tricot, l'efficacité de Lecture Flash dépend :
+#### 1.3.3 Méthode Pédagogique (Julie Meunier)
 
-- De son intégration dans une progression pédagogique cohérente
-- De la formation des enseignants à son usage raisonné
-- De l'accompagnement des élèves (pas d'usage autonome sans guidage)
-- D'une évaluation régulière des progrès en fluence
+**Principe** : Texte qui s'efface progressivement mot par mot pour :
 
-### 1.4 Public Cible
+- Forcer la lecture continue
+- Éviter les retours en arrière
+- Automatiser le décodage
+- Améliorer la compréhension par fluidité
 
-- **Utilisateurs principaux** : Enseignants du primaire
-- **Bénéficiaires** : Élèves du cycle 2 et 3 (CP à CM2)
-- **Contexte d'usage** : Salle de classe, TBI/TNI, ordinateurs individuels ou collectifs
-
-### 1.5 Portée
-
-L'application permet l'entraînement à la fluence de lecture par disparition progressive du texte, avec plusieurs vitesses de lecture et deux modes (voix haute/silencieuse).
+**Source** : Meunier, J. (2017). [Fluence : le texte qui s'efface](http://www.ecoledejulie.fr/fluence-le-texte-qui-s-efface-a207401800). L'École de Julie.
 
 ---
 
 ## 2. Description Générale
 
-### 2.1 Fonctionnalités Principales
+### 2.1 Perspective Produit
 
-1. **Saisie de texte** : Importation, saisie manuelle ou chargement depuis cloud
-2. **Configuration de lecture** : Choix du type et de la vitesse de lecture
-3. **Lecture flash** : Affichage progressif avec disparition mot par mot
-4. **Gestion de fichiers** : Import/Export de textes
-5. **Système d'aide** : Tooltips contextuels, modale d'aide, message de bienvenue
+Application web monopage (SPA) responsive fonctionnant :
 
-### 2.2 Avantages Pédagogiques
+- Sur ordinateur (TBI/TNI pour projection)
+- Sur tablette (usage individuel)
+- Sur smartphone (usage occasionnel)
+- Hors ligne (après première visite - PWA potentielle)
 
-#### 2.2.1 Conformité aux objectifs officiels
+### 2.2 Fonctionnalités Principales
 
-- **Automatisation du décodage** : Répétition espacée à vitesses progressives (30-110 MLM)
-- **Fluence en lecture à voix haute** : Mode adapté aux attendus du cycle 2
-- **Fluence en lecture silencieuse** : Préparation aux exigences du cycle 3
-- **Différenciation pédagogique** : 5 niveaux de vitesse adaptés aux progressions scolaires
+1. **Gestion du texte** (Étape 1)
 
-#### 2.2.2 Apports spécifiques
+    - Saisie manuelle avec compteur
+    - Import fichier .txt local
+    - Chargement depuis CodiMD
+    - Export en .txt
 
-- Entraînement ciblé de la fluence de lecture
-- Adaptation aux besoins individuels (vitesses variables)
-- Suivi visuel du rythme de lecture
-- Motivation par le défi du "texte qui disparaît"
-- Support numérique au service d'un objectif pédagogique clairement défini
-- Guidage progressif et contextuel (aide juste-à-temps)
+2. **Configuration vitesse** (Étape 2)
+
+    - 5 vitesses prédéfinies (30-110 MLM)
+    - Vitesse personnalisée (20-200 MLM)
+    - Mode test (prévisualisation 10s)
+    - Tooltips pédagogiques
+
+3. **Partage** (Conditionnel si CodiMD)
+
+    - Génération de liens avec paramètres
+    - Mode suggéré (élève peut modifier)
+    - Mode imposé (lecture automatique)
+
+4. **Lecture animée** (Étape 3)
+
+    - Disparition progressive mot-à-mot
+    - Contrôles : Pause/Reprendre/Relire
+    - Barre de progression visuelle
+    - Retour conditionnel (sauf si imposé)
+
+5. **Système d'aide intégré**
+    - FirstTimeMessage (onboarding)
+    - Tooltips contextuels (React Portal)
+    - HelpModal (guide complet)
+
+### 2.3 Utilisateurs et Scénarios
+
+#### Scénario 1 : Enseignant prépare un exercice TBI
+
+1. Saisir un texte adapté au niveau
+2. Tester différentes vitesses (30-70 MLM)
+3. Projeter sur TBI
+4. Lancer la lecture collective
+
+#### Scénario 2 : Élève en autonomie
+
+1. Saisir son propre texte
+2. Choisir vitesse adaptée (selon niveau)
+3. S'entraîner individuellement
+4. Relire plusieurs fois en augmentant
+
+#### Scénario 3 : Partage différencié
+
+**Enseignant** :
+
+1. Créer texte sur CodiMD
+2. Charger dans Lecture Flash
+3. Configurer vitesse (suggérée ou imposée)
+4. Partager lien par ENT/email
+
+**Élève** :
+
+1. Cliquer sur lien
+2. Texte et vitesse chargés automatiquement
+3. Lire selon configuration enseignant
 
 ---
 
 ## 3. Exigences Fonctionnelles
 
-### 3.1 Gestion des Modes
+### 3.1 Gestion du Texte (REQ-FUNC-001)
 
-#### 3.1.1 Mode SAISIE
+**Priorité** : Critique
 
-**Identifiant** : REQ-FUNC-001  
-**Priorité** : Critique  
-**Description** : L'utilisateur peut préparer le texte avant la lecture flash.
+#### 3.1.1 Saisie Manuelle
 
-**Critères d'acceptation** :
-
-- Affichage d'une zone de texte multi-lignes (17 lignes minimum)
-- Placeholder "Écrivez ou collez le texte ici."
-- Compteur de caractères en temps réel
-- Sauvegarde automatique en session
-
-#### 3.1.2 Mode LECTURE
-
-**Identifiant** : REQ-FUNC-002  
-**Priorité** : Critique  
-**Description** : Le texte s'affiche et disparaît progressivement mot par mot.
+**Description** : Textarea responsive avec compteur.
 
 **Critères d'acceptation** :
 
-- Animation fluide de disparition (effet masque blanc)
-- Respect des espaces entre les mots
-- Retour à la ligne automatique dans le cadre
-- Gestion des signes de ponctuation (espaces insécables)
-- Bouton "Modifier" visible pour revenir en mode SAISIE
-- Fin automatique et retour au mode SAISIE
+- ✅ Zone de texte multi-lignes (min 200px de hauteur)
+- ✅ Placeholder explicite
+- ✅ Compteur temps réel : caractères + mots
+- ✅ Algorithme de comptage cohérent avec TextAnimation
+- ✅ Support copier-coller (Ctrl+C/V)
+- ✅ Pas de limite de caractères
 
-#### 3.1.3 Système d'Aide Contextuelle
+**Implémentation** : `TextInputManager.jsx` onglet "Saisir"
 
-**Identifiant** : REQ-FUNC-003  
-**Priorité** : Haute  
-**Description** : Système d'aide moderne en 3 niveaux pour guider l'utilisateur sans surcharge cognitive.
+#### 3.1.2 Import Fichier Local
 
-**Composants** :
-
-1. **FirstTimeMessage** (message de première visite)
-    - Affichage automatique si clé localStorage `lecture-flash-first-visit` absente
-    - Contenu : 3 étapes simplifiées (saisir texte, choisir vitesse, lancer lecture)
-    - Fermeture définitive avec sauvegarde localStorage
-    - Animation fadeIn (150ms)
-    - Bannière dégradé bleu avec fond blanc
-
-2. **Tooltips contextuels**
-    - Technologie : React Portal pour éviter problèmes d'overflow
-    - Position : top (onglets), right (vitesses), bottom (bouton aide)
-    - Délai d'apparition : 200ms
-    - Contenu : descriptions courtes (< 100 caractères)
-    - Support : survol, focus, touch
-    - Fond noir (`bg-gray-900`), texte blanc, `z-index: 9999`
-
-3. **HelpModal** (guide complet)
-    - Déclencheur : bouton (?) en haut à droite avec tooltip
-    - Contenu : guide détaillé en 3 étapes avec exemples concrets
-    - Vitesses expliquées : 30-110 MLM avec correspondances niveaux scolaires
-    - Fermeture : Escape, overlay, bouton ×, bouton "J'ai compris"
-    - Accessibilité : ARIA dialog, focus trap, scroll lock body
-    - Attribution : @petitejulie89 pour la méthode pédagogique
+**Description** : Import de fichiers .txt depuis ordinateur.
 
 **Critères d'acceptation** :
 
-- Tooltips s'affichent au survol après 200ms
-- Tooltips utilisent React Portal (pas de problème d'overflow)
-- FirstTimeMessage ne s'affiche qu'une seule fois
-- HelpModal accessible au clavier (Tab, Escape)
-- Aucun texte obsolète ou incorrect
-- Conformité WCAG 2.1 AA (contraste 4.5:1 minimum, ARIA labels)
-- Animation fadeIn fluide (150ms ease-in-out)
+- ✅ Filtre sur extension .txt uniquement
+- ✅ Encodage UTF-8
+- ✅ Bouton "Choisir un fichier" visible
+- ✅ Chargement automatique dans onglet "Saisir"
+- ✅ Message d'erreur si format invalide
 
-**Justification pédagogique (André Tricot)** :
+**Implémentation** : `TextInputManager.jsx` onglet "Fichier"
 
-- **Charge cognitive minimale par défaut** : interface épurée, pas de "mur de texte"
-- **Guidage juste-à-temps** : tooltips au moment de l'action, pas avant
-- **Découverte progressive** : pas de surcharge informationnelle initiale
-- **Autonomie progressive** : aide toujours disponible mais optionnelle
-- **Réduction charge extrinsèque** : l'utilisateur se concentre sur la tâche, pas sur l'outil
+#### 3.1.3 Chargement CodiMD
+
+**Description** : Chargement depuis URLs CodiMD (apps.education.fr).
+
+**Critères d'acceptation** :
+
+- ✅ Validation format URL (https://codimd.apps.education.fr/s/...)
+- ✅ Conversion Markdown → texte brut
+- ✅ Hook personnalisé `useMarkdownFromUrl`
+- ✅ Gestion états : loading, error, success
+- ✅ Badge indicateur "☁️ Texte chargé depuis le cloud"
+- ✅ Invalidation si texte modifié (isCodiMDTextUnmodified)
+- ✅ Bouton aide avec exemples d'URLs
+
+**Implémentation** :
+
+- `TextInputManager.jsx` onglet "CodiMD"
+- `hooks/useMarkdownFromUrl.js`
+
+#### 3.1.4 Export .txt
+
+**Description** : Téléchargement du texte en fichier .txt.
+
+**Critères d'acceptation** :
+
+- ✅ Bouton "💾 Enregistrer (.txt)"
+- ✅ Nom de fichier : `lecture-flash-{timestamp}.txt`
+- ✅ Encodage UTF-8
+- ✅ Bouton désactivé si texte vide
+
+**Implémentation** : `TextInputManager.jsx` onglet "Saisir"
+
+### 3.2 Configuration de Vitesse (REQ-FUNC-002)
+
+**Priorité** : Critique
+
+#### 3.2.1 Vitesses Prédéfinies
+
+**Description** : 5 vitesses conformes Eduscol.
+
+**Critères d'acceptation** :
+
+- ✅ Grille responsive (1-2-3 colonnes selon écran)
+- ✅ Cartes cliquables avec labels clairs
+- ✅ Tooltips pédagogiques au survol
+- ✅ Badge "⭐ Suggérée" si lien partagé (locked=false)
+- ✅ Badge "✓ Sélectionnée" si choix utilisateur
+- ✅ Bouton "🧪 Tester" par vitesse
+- ✅ Bouton "Choisir" avec couleur distinctive
+
+**Vitesses** :
+
+```javascript
+SPEEDS = [
+    {
+        value: 30,
+        label: "30 MLM",
+        level: "CP - début CE1",
+        tooltip:
+            "Idéal pour CP - début CE1 (déchiffrage en cours d'acquisition)",
+    },
+    {
+        value: 50,
+        label: "50 MLM",
+        level: "CE1",
+        tooltip: "Recommandé pour CE1 (lecture mot à mot)",
+    },
+    {
+        value: 70,
+        label: "70 MLM",
+        level: "CE2",
+        tooltip: "Adapté au CE2 (lecture par groupes de mots)",
+    },
+    {
+        value: 90,
+        label: "90 MLM",
+        level: "CM1-CM2",
+        tooltip: "Pour CM1-CM2 (lecture fluide)",
+    },
+    {
+        value: 110,
+        label: "110 MLM",
+        level: "CM2 et +",
+        tooltip: "Pour CM2 et + (lecture experte)",
+    },
+];
+```
+
+**Source** : `config/constants.js`
+
+**Implémentation** : `SpeedSelector.jsx`
+
+#### 3.2.2 Vitesse Personnalisée
+
+**Description** : Curseur 20-200 MLM avec aperçu temps réel.
+
+**Critères d'acceptation** :
+
+- ✅ Input range 20-200 MLM (pas de 5)
+- ✅ Affichage valeur courante en gros (4xl)
+- ✅ Zone Eduscol calculée dynamiquement (getEduscolZone)
+- ✅ Boutons "🧪 Tester" et "✓ Choisir"
+- ✅ Modale centrée (max-width: 384px)
+- ✅ Message pédagogique (repères Eduscol)
+
+**Implémentation** : `SpeedSelector.jsx` + modale custom
+
+#### 3.2.3 Mode Test
+
+**Description** : Prévisualisation vitesse pendant 10 secondes.
+
+**Critères d'acceptation** :
+
+- ✅ Affichage des 5 premiers mots du texte
+- ✅ Animation pulse (simulate reading)
+- ✅ Durée : 10 secondes
+- ✅ Bouton "⏸ Arrêter le test" pour sortir avant
+- ✅ Retour automatique à la sélection après 10s
+
+**Implémentation** : `SpeedSelector.jsx` (state isTestActive)
+
+### 3.3 Partage (REQ-FUNC-003)
+
+**Priorité** : Haute
+
+**Condition** : Affiché uniquement si `sourceUrl` présent (texte CodiMD).
+
+#### 3.3.1 Génération de Lien
+
+**Description** : Création URL avec paramètres texte + vitesse + mode.
+
+**Format** :
+
+```
+https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
+```
+
+**Critères d'acceptation** :
+
+- ✅ Bouton "🔗 Partager" visible dans header étape 2 (renderActions)
+- ✅ Modale compacte (max-width: 384px)
+- ✅ Badge vitesse sélectionnée (lecture seule)
+- ✅ Radio buttons : 💡 Suggérée / 🔒 Imposée
+- ✅ Bouton "📋 Copier le lien"
+- ✅ Copie automatique dans presse-papier
+- ✅ Message succès (3 secondes)
+- ✅ Fallback `document.execCommand` si API Clipboard indisponible
+- ✅ Récapitulatif du lien généré
+
+**Comportements** :
+
+| Mode     | Paramètre URL  | Comportement élève                       |
+| -------- | -------------- | ---------------------------------------- |
+| Suggérée | `locked=false` | Vitesse pré-sélectionnée mais modifiable |
+| Imposée  | `locked=true`  | Skip direct étape 3, lecture automatique |
+
+**Implémentation** :
+
+- Bouton : `LectureFlash/index.jsx` (renderActions)
+- Modale : `SpeedSelector.jsx` (showShareModal)
+
+### 3.4 Lecture Animée (REQ-FUNC-004)
+
+**Priorité** : Critique
+
+#### 3.4.1 Animation Mot-à-Mot
+
+**Description** : Disparition progressive du texte pour forcer la lecture continue.
+
+**Critères d'acceptation** :
+
+- ✅ Purification du texte (espaces, caractères spéciaux)
+- ✅ Calcul vitesse : `((nbreMots / vitesse) * 60000) / nbreCaracteres`
+- ✅ Animation CSS `@keyframes masquer` dans flash.css
+- ✅ Espaces insécables avant/après ponctuation
+- ✅ Mots déjà lus : cachés (`visibility: hidden`)
+- ✅ Mot actuel : en cours de disparition
+- ✅ Mots futurs : visibles
+- ✅ Callback `onNext` appelé après chaque mot
+
+**Implémentation** :
+
+- `TextAnimation.jsx` (logique)
+- `Word.jsx` (animation individuelle)
+- `flash.css` (keyframes)
+
+#### 3.4.2 Barre de Progression
+
+**Description** : Indicateur visuel de l'avancement.
+
+**Critères d'acceptation** :
+
+- ✅ Hauteur 8px, fond gris
+- ✅ Progression bleue (`bg-blue-600`)
+- ✅ Calcul : `(currentWordIndex + 1) / wordsCount * 100`
+- ✅ Transition CSS fluide (300ms)
+- ✅ ARIA : `role="progressbar"` avec valuenow/min/max
+
+**Implémentation** : `TextAnimation.jsx`
+
+#### 3.4.3 Contrôles de Lecture
+
+**Description** : Boutons Pause/Reprendre/Relire/Retour.
+
+**Critères d'acceptation** :
+
+- ✅ **Pause/Reprendre** : Toggle isPaused (⏸️ / ▶️)
+- ✅ **Relire** : Reset currentWordIndex + restart (🔄)
+- ✅ **Retour** : Retour étape 2 (← Changer vitesse)
+    - Affiché uniquement si `!speedConfig.locked`
+    - Masqué si vitesse imposée
+
+**États** :
+
+- `isPaused` : true/false
+- `hasStartedReading` : true/false
+- `currentWordIndex` : 0 → wordsCount-1
+
+**Implémentation** :
+
+- Contrôles : `LectureFlash/index.jsx`
+- Animation : `TextAnimation.jsx` (respecte isPaused)
+
+### 3.5 Système d'Aide (REQ-FUNC-005)
+
+**Priorité** : Moyenne
+
+#### 3.5.1 FirstTimeMessage
+
+**Description** : Onboarding léger première visite.
+
+**Critères d'acceptation** :
+
+- ✅ Détection via localStorage (`lecture-flash-first-visit`)
+- ✅ Bannière dégradé bleu non-modale
+- ✅ 3 étapes simplifiées (texte, vitesse, lecture)
+- ✅ Bouton fermeture définitive
+- ✅ Animation fadeIn (150ms)
+- ✅ Ne se réaffiche JAMAIS après fermeture
+
+**Implémentation** : `FirstTimeMessage.jsx`
+
+#### 3.5.2 Tooltips Contextuels
+
+**Description** : Guidage juste-à-temps au survol.
+
+**Critères d'acceptation** :
+
+- ✅ React Portal (échappe overflow:hidden)
+- ✅ Position dynamique (top, bottom, left, right)
+- ✅ Délai apparition : 200ms
+- ✅ z-index : 9999
+- ✅ Support : hover, focus, touch
+- ✅ Animation fadeIn
+- ✅ Recalcul position au scroll/resize
+
+**Usages** :
+
+- Onglets (Saisir, Fichier, CodiMD)
+- Vitesses (30-110 MLM)
+- Bouton aide (?)
+
+**Implémentation** : `Tooltip.jsx`
+
+#### 3.5.3 HelpModal
+
+**Description** : Guide complet accessible via bouton `?`.
+
+**Critères d'acceptation** :
+
+- ✅ Bouton `?` en haut à droite (visible toujours)
+- ✅ Modale plein écran (max-width: 768px)
+- ✅ Contenu scrollable
+- ✅ 3 étapes détaillées avec exemples
+- ✅ Tableau vitesses MLM + correspondances Eduscol
+- ✅ Attribution @petitejulie89
+- ✅ Fermeture : Escape, clic overlay, bouton ×, bouton "J'ai compris"
+- ✅ ARIA : `role="dialog"`, focus trap, scroll lock body
+- ✅ Accessibilité WCAG 2.1 AA
+
+**Implémentation** : `HelpModal.jsx`
 
 ---
 
-### 3.2 Chargement de Texte
+## 4. Exigences Non-Fonctionnelles
 
-#### 3.2.1 Saisie Manuelle
+### 4.1 Performance (REQ-PERF-001)
 
-**Identifiant** : REQ-FUNC-004  
-**Priorité** : Critique  
-**Description** : L'utilisateur peut saisir ou copier-coller du texte directement.
+**Critères mesurables** :
 
-**Critères d'acceptation** :
+| Métrique               | Objectif | Mesure actuelle |
+| ---------------------- | -------- | --------------- |
+| Build time             | < 10s    | ~5s ✅          |
+| HMR                    | < 500ms  | ~200ms ✅       |
+| Bundle CSS             | < 50 KB  | ~30 KB ✅       |
+| First Contentful Paint | < 1.5s   | ~0.8s ✅        |
+| Time to Interactive    | < 3s     | ~1.2s ✅        |
+| Lighthouse Score       | > 90/100 | ~95/100 ✅      |
+| Animation Flash        | 60 FPS   | 60 FPS ✅       |
 
-- Textarea responsive avec bordure bleue
-- Support du copier-coller (Ctrl+C / Ctrl+V)
-- Pas de limite de caractères
-- Nettoyage automatique des espaces multiples
+### 4.2 Accessibilité (REQ-ACCESS-001)
 
-#### 3.2.2 Import Local
+**Niveau** : WCAG 2.1 AA
 
-**Identifiant** : REQ-FUNC-005  
-**Priorité** : Haute  
-**Description** : L'utilisateur peut importer un fichier .txt depuis son ordinateur.
+**Critères obligatoires** :
 
-**Critères d'acceptation** :
+- ✅ Navigation clavier complète (Tab, Escape, Enter)
+- ✅ Focus visible (outline bleu)
+- ✅ ARIA labels sur tous les éléments interactifs
+- ✅ Contraste > 4.5:1 (texte normal)
+- ✅ Contraste > 3:1 (texte large)
+- ✅ Lecteur d'écran compatible (annonces appropriées)
+- ✅ Responsive 320px → 2560px
 
-- Bouton "Importer" avec icône upload
-- Filtre sur fichiers .txt uniquement
-- Chargement du contenu dans la zone de texte
-- Message d'erreur si format invalide
+**Test avec** :
 
-#### 3.2.3 Export Local
+- NVDA (Windows)
+- VoiceOver (macOS/iOS)
+- TalkBack (Android)
 
-**Identifiant** : REQ-FUNC-006  
-**Priorité** : Haute  
-**Description** : L'utilisateur peut sauvegarder le texte en fichier .txt.
-
-**Critères d'acceptation** :
-
-- Bouton "Enregistrer" avec icône download
-- Nom de fichier par défaut : "lecture-flash.txt"
-- Encodage UTF-8
-- Téléchargement automatique
-
-#### 3.2.4 Chargement Cloud
-
-**Identifiant** : REQ-FUNC-007  
-**Priorité** : Moyenne  
-**Description** : L'utilisateur peut charger un texte depuis une URL cloud.
-
-**Services supportés** :
-
-- Dropbox
-- Nextcloud
-- Apps.education.fr (Nuage)
-- Google Drive
-
-**Critères d'acceptation** :
-
-- Champ URL avec validation
-- Bouton "Charger" avec état loading
-- Normalisation automatique des URLs (dl=1, /download, etc.)
-- Gestion des erreurs (404, CORS, timeout)
-- Affichage d'un badge "☁️ Texte chargé depuis le cloud"
-- Génération d'une URL de partage
-- Bouton "Réinitialiser" pour effacer le cloud
-
-#### 3.2.5 URL de Partage
-
-**Identifiant** : REQ-FUNC-008  
-**Priorité** : Moyenne  
-**Description** : Génération d'un lien partageable avec le texte pré-chargé.
-
-**Critères d'acceptation** :
-
-- URL au format : `?url=encodedCloudUrl`
-- Chargement automatique au démarrage si paramètre présent
-- Bouton "Copier" pour copier l'URL dans le presse-papier
-- Message de succès "✓ Copié !"
-
----
-
-### 3.3 Configuration de Lecture
-
-#### 3.3.1 Vitesses de Lecture
-
-**Identifiant** : REQ-FUNC-009  
-**Priorité** : Critique  
-**Description** : Choix de la vitesse de lecture en mots par minute, conforme aux programmes.
-
-**Vitesses proposées** (conforme aux repères CP-CM2) :
-
-- 30 MLM (Très lent) - CP - début CE1 - Déchiffrage en cours d'acquisition
-- 50 MLM (Lent) - CE1 - Lecture mot à mot
-- 70 MLM (Moyen) - CE2 - Lecture par groupes de mots
-- 90 MLM (Rapide) - CM1-CM2 - Lecture fluide
-- 110 MLM (Très rapide) - CM2 et + - Lecture experte
-
-**Critères d'acceptation** :
-
-- Calcul automatique du timing par caractère
-- Formule : `speed = ((nbreMots / vitesse) * 60000) / nbreCaracteres`
-- Précision à la milliseconde
-- Pas de lag perceptible
-- Tooltips sur chaque vitesse avec correspondances niveaux scolaires
-
----
-
-### 3.4 Lecture Flash
-
-#### 3.4.1 Affichage du Texte
-
-**Identifiant** : REQ-FUNC-010  
-**Priorité** : Critique  
-**Description** : Le texte s'affiche dans un cadre avec bordure avant la lecture.
-
-**Critères d'acceptation** :
-
-- Texte taille 2xl (24px)
-- Interligne relaxed (1.625)
-- Bordure grise double (2px)
-- Padding 24px
-- Fond blanc
-- Coins arrondis (8px)
-
-#### 3.4.2 Animation de Disparition
-
-**Identifiant** : REQ-FUNC-011  
-**Priorité** : Critique  
-**Description** : Chaque mot disparaît progressivement de gauche à droite.
-
-**Technique d'animation** :
-
-- Création dynamique d'un `<span class="masque">`
-- Animation CSS `@keyframes masquer` (transparent → blanc)
-- Durée : `speed * nombre_caractères_du_mot` ms
-- Timing function : linear
-- Animation-fill-mode : forwards
-
-**Critères d'acceptation** :
-
-- Effet de "recouvrement" progressif par un masque blanc
-- Pas de clignotement ou saccades
-- Espaces entre mots préservés (white-space: pre-wrap)
-- Respect de la vitesse choisie
-- Gestion des caractères spéciaux (', «, », -, etc.)
-
-#### 3.4.3 Gestion de la Ponctuation
-
-**Identifiant** : REQ-FUNC-012  
-**Priorité** : Moyenne  
-**Description** : Les signes de ponctuation sont correctement espacés selon les règles françaises.
-
-**Règles appliquées** :
-
-- Espace insécable avant : ; ! ? » %
-- Espace insécable après : «
-- Pas d'espace après : ' -
-
-**Critères d'acceptation** :
-
-- Remplacement automatique par `\u00a0`
-- Affichage conforme aux normes typographiques françaises
-
----
-
-## 4. Exigences Non Fonctionnelles
-
-### 4.1 Performance
-
-#### 4.1.1 Temps de Chargement
-
-**Identifiant** : REQ-PERF-001  
-**Priorité** : Haute  
-**Description** : L'application doit charger rapidement.
-
-**Critères d'acceptation** :
-
-- First Contentful Paint (FCP) < 1,5s
-- Time to Interactive (TTI) < 3s
-- Lighthouse Performance Score > 90
-
-#### 4.1.2 Fluidité Animation
-
-**Identifiant** : REQ-PERF-002  
-**Priorité** : Critique  
-**Description** : L'animation de lecture doit être parfaitement fluide.
-
-**Critères d'acceptation** :
-
-- 60 FPS constants
-- Pas de frames dropped
-- CPU usage < 50% pendant lecture
-- Tests sur TBI vieillissants (Promethean, Smart, Mimio)
-
-#### 4.1.3 Build et Bundle
-
-**Identifiant** : REQ-PERF-003  
-**Priorité** : Moyenne  
-**Description** : Optimisation du temps de build et de la taille des bundles.
-
-**Critères d'acceptation** :
-
-- Build time < 5s
-- Bundle CSS < 30 KB
-- Bundle JS < 200 KB
-- Total bundle < 500 KB
-
----
-
-### 4.2 Compatibilité
-
-#### 4.2.1 Navigateurs
-
-**Identifiant** : REQ-COMPAT-001  
-**Priorité** : Critique  
-**Description** : L'application fonctionne sur tous les navigateurs modernes.
+### 4.3 Compatibilité (REQ-COMPAT-001)
 
 **Navigateurs supportés** :
 
-- Chrome 90+ (Windows, Mac, Linux, ChromeOS)
-- Firefox 88+ (Windows, Mac, Linux)
-- Safari 14+ (Mac, iOS)
-- Edge 90+ (Windows)
-- Chrome Android 90+
+| Navigateur | Version minimale |
+| ---------- | ---------------- |
+| Chrome     | 90+              |
+| Firefox    | 88+              |
+| Safari     | 14+              |
+| Edge       | 90+              |
 
-#### 4.2.2 Matériel TBI/TNI
+**Appareils** :
 
-**Identifiant** : REQ-COMPAT-002  
-**Priorité** : Haute  
-**Description** : Fonctionnement optimal sur tableaux interactifs.
+- Desktop : 1024px+ (optimal)
+- Tablette : 768px-1023px
+- Mobile : 320px-767px
+- TBI/TNI : 1920px+ (projection)
 
-**Matériel testé** :
+### 4.4 Maintenabilité (REQ-MAINT-001)
 
-- Promethean ActivBoard
-- Smart Board
-- Mimio Interactive
+**Standards de code** :
 
-**Critères d'acceptation** :
+```javascript
+/**
+ * JSDoc complète en français sur toutes les fonctions
+ * @param {string} text - Description du paramètre
+ * @returns {number} Description du retour
+ */
+function maFonction(text) {
+    // Commentaires pour logique complexe
+    return result;
+}
+```
 
-- Touch/stylet fonctionnel
-- Affichage lisible à 3 mètres
-- Pas de lag au toucher
+**PropTypes obligatoires** :
 
-#### 4.2.3 Responsive Design
+```javascript
+MonComposant.propTypes = {
+    text: PropTypes.string.isRequired,
+    onTextChange: PropTypes.func.isRequired,
+    speedWpm: PropTypes.number,
+};
+```
 
-**Identifiant** : REQ-COMPAT-003  
-**Priorité** : Haute  
-**Description** : Adaptation mobile et tablette.
+**Règles** :
 
-**Breakpoints** :
-
-- Mobile : < 768px
-- Tablette : 768px - 1024px
-- Desktop : > 1024px
-
-**Critères d'acceptation** :
-
-- Menu hamburger mobile
-- Boutons tactiles > 44x44px
-- Texte lisible sans zoom
-
----
-
-### 4.3 Accessibilité
-
-#### 4.3.1 WCAG 2.1
-
-**Identifiant** : REQ-ACCESS-001  
-**Priorité** : Haute  
-**Description** : Conformité aux normes d'accessibilité.
-
-**Critères d'acceptation** :
-
-- Contraste minimum 4.5:1 (AA)
-- Taille de police ajustable
-- Navigation clavier complète
-- Labels ARIA sur tous les boutons
-- Tooltips avec React Portal (pas de problème d'overflow)
-
-#### 4.3.2 Navigation Clavier
-
-**Identifiant** : REQ-ACCESS-002  
-**Priorité** : Haute  
-**Description** : Toutes les fonctions accessibles au clavier.
-
-**Critères d'acceptation** :
-
-- Tab pour naviguer entre éléments
-- Enter pour activer boutons
-- Escape pour fermer modales
-- Focus visible (outline)
+- ✅ Composants < 300 lignes (principe responsabilité unique)
+- ✅ Pas de code dupliqué
+- ✅ Noms de variables explicites en français
+- ✅ Pas de console.log en production
+- ✅ Hooks dans l'ordre (useState, useEffect, useRef)
 
 ---
 
-### 4.4 Sécurité
+## 5. Architecture Technique
 
-#### 4.4.1 Chargement Cloud
+### 5.1 Stack Technologique
 
-**Identifiant** : REQ-SEC-001  
-**Priorité** : Haute  
-**Description** : Sécurisation du chargement de fichiers externes.
+**Frontend** :
 
-**Critères d'acceptation** :
+- React 18.2.0 (hooks natifs uniquement)
+- Tailwind CSS 3.4.17 (mode JIT)
+- PropTypes 15.8.1 (validation)
 
-- Validation des URLs (protocole HTTPS uniquement)
-- Timeout 10s sur les requêtes fetch
-- Gestion des erreurs CORS
-- Pas d'exécution de code depuis fichiers chargés
-- Sanitisation du contenu (texte brut uniquement)
+**Build** :
 
-#### 4.4.2 XSS Protection
-
-**Identifiant** : REQ-SEC-002  
-**Priorité** : Critique  
-**Description** : Protection contre les attaques XSS.
-
-**Critères d'acceptation** :
-
-- Utilisation de React (échappement automatique)
-- Pas de dangerouslySetInnerHTML
-- Pas d'eval() ou new Function()
-- Content-Security-Policy obligatoire en production
-
----
-
-### 4.5 Maintenabilité
-
-#### 4.5.1 Code Quality
-
-**Identifiant** : REQ-MAINT-001  
-**Priorité** : Haute  
-**Description** : Code propre et documenté.
-
-**Critères d'acceptation** :
-
-- JSDoc sur toutes les fonctions
-- PropTypes sur tous les composants
-- Noms de variables explicites en français
-- Commentaires pour logique complexe
-- Pas de code dupliqué
-- Composants < 300 lignes
-
-#### 4.5.2 Structure de Fichiers
-
-**Identifiant** : REQ-MAINT-002  
-**Priorité** : Haute  
-**Description** : Architecture modulaire claire.
-
-**Structure** :
-src/
-├── index.jsx
-├── components/
-│ ├── App.jsx
-│ ├── Tooltip/
-│ │ └── index.jsx # Nouveau (v2.2.0)
-│ ├── HelpModal/
-│ │ └── index.jsx # Nouveau (v2.2.0)
-│ ├── FirstTimeMessage/
-│ │ └── index.jsx # Nouveau (v2.2.0)
-│ ├── Navbar/
-│ ├── LectureFlash/
-│ │ ├── index.jsx
-│ │ ├── Input/
-│ │ │ ├── index.jsx # Modifié (v2.2.0)
-│ │ │ └── TextInputManager.jsx # Modifié (v2.2.0)
-│ │ └── Flash/
-│ │ ├── SpeedSelectorAmeliore.jsx # Modifié (v2.2.0)
-│ │ ├── FlashAmelioreTest.jsx # Modifié (v2.2.0)
-│ │ └── Mot.jsx # Modifié (v2.2.0)
-├── hooks/
-│ └── useMarkdownFromUrl.js
-└── styles/
-├── index.css # Modifié (v2.2.0) : animation fadeIn
-└── flash.css
-
----
-
-## 5. Stack Technique
-
-### 5.1 Frontend
-
-**Framework** : React 18.2.0
-
-- Hooks natifs (useState, useEffect, useReducer, useRef)
-- Context API si nécessaire
-- Composants fonctionnels uniquement
-- PropTypes pour validation
-
-**Build Tool** : Vite 6.0.7
-
-- Plugin React standard (pas SWC)
-- Plugin SVGR pour imports SVG
-- Port 9000
-- Build output : /build
-- Source maps activées
-
-**Styling** : Tailwind CSS 3.4.17
-
-- Mode JIT (Just-In-Time)
-- PostCSS + Autoprefixer
-- Pas de CSS-in-JS
-- Classes utilitaires uniquement
-- Animations CSS natives (fadeIn pour tooltips)
+- Vite 6.0.7 (bundler)
+- PostCSS 8.4.49 + Autoprefixer 10.4.20
+- vite-plugin-svgr 4.3.0 (SVG → React components)
 
 **Package Manager** : pnpm
 
-- Lock file : pnpm-lock.yaml
-- Scripts : dev, build, preview
+**Dépendances totales** : 9 packages (vs 24 avant migration)
 
-### 5.2 Dépendances
+### 5.2 Structure des Fichiers
 
-**Production** :
+```
+lecture-flash/
+├── index.html                       # Point d'entrée HTML
+├── package.json                     # Dépendances (9 packages)
+├── vite.config.js                   # Config Vite
+├── tailwind.config.js               # Config Tailwind (JIT)
+├── postcss.config.js                # PostCSS + Autoprefixer
+│
+└── src/
+    ├── index.jsx                    # Point d'entrée React
+    │
+    ├── config/                      # ✨ Configuration centralisée
+    │   ├── constants.js             # Modes, vitesses, helpers
+    │   └── initialState.js          # État initial
+    │
+    ├── hooks/                       # Hooks personnalisés
+    │   └── useMarkdownFromUrl.js   # Chargement CodiMD
+    │
+    ├── components/
+    │   ├── App.jsx                  # Composant racine
+    │   ├── Tooltip.jsx              # Tooltip avec React Portal
+    │   ├── HelpModal.jsx            # Guide complet
+    │   ├── FirstTimeMessage.jsx    # Message première visite
+    │   │
+    │   ├── Navbar/                  # Barre navigation
+    │   │   ├── index.jsx
+    │   │   ├── Contact.jsx
+    │   │   └── Paypal.jsx
+    │   │
+    │   └── LectureFlash/            # Composant principal
+    │       ├── index.jsx            # Workflow 3 étapes
+    │       ├── StepIndicator.jsx   # [●○○] Progression
+    │       ├── StepContainer.jsx   # Wrapper étapes
+    │       ├── ShareConfiguration.jsx  # Config partage (legacy)
+    │       │
+    │       ├── TextInput/           # Gestion texte
+    │       │   └── TextInputManager.jsx  # 3 onglets
+    │       │
+    │       └── Flash/               # Lecture animée
+    │           ├── TextAnimation.jsx    # Orchestrateur
+    │           ├── SpeedSelector.jsx    # Sélection vitesse
+    │           └── Word.jsx             # Animation mot
+    │
+    └── styles/
+        ├── index.css                # Tailwind + fadeIn
+        └── flash.css                # Animation masquage
+```
 
-- react: ^18.2.0
-- react-dom: ^18.2.0
-- prop-types: ^15.8.1
+### 5.3 Configuration Vite
 
-**Development** :
+```javascript
+// vite.config.js
+export default defineConfig({
+    plugins: [react(), svgr()],
+    server: { port: 9000, open: true, host: true },
+    build: {
+        outDir: "build",
+        sourcemap: true,
+        rollupOptions: {
+            output: {
+                manualChunks: { "react-vendor": ["react", "react-dom"] },
+            },
+        },
+    },
+    resolve: {
+        alias: {
+            "@": "/src",
+            "@components": "/src/components",
+            "@hooks": "/src/hooks",
+            "@config": "/src/config", // ✨ v3.8.0
+        },
+    },
+});
+```
 
-- @vitejs/plugin-react: ^4.3.4
-- vite: ^6.0.7
-- vite-plugin-svgr: ^4.3.0
-- tailwindcss: ^3.4.17
-- postcss: ^8.4.49
-- autoprefixer: ^10.4.20
+### 5.4 Configuration Tailwind
 
-**Total** : 9 packages (vs 24 avant migration)
+```javascript
+// tailwind.config.js
+export default {
+    content: ["./index.html", "./src/**/*.{js,jsx}"],
+    theme: {
+        extend: {
+            colors: {
+                primary: {
+                    /* Palette bleue 50-900 */
+                },
+            },
+        },
+    },
+    plugins: [],
+};
+```
 
-### 5.3 Configuration
+### 5.5 Flux de Données
 
-**Vite** (vite.config.js) :
-
-- Plugins : React, SVGR
-- Server : port 9000, open auto, host true
-- Build : sourcemap, code splitting (react-vendor)
-- Resolve : aliases @, @components, @hooks
-
-**Tailwind** (tailwind.config.js) :
-
-- Content : index.html, src/\*_/_.{js,jsx}
-- Theme : extend colors primary (blue palette)
-- Plugins : aucun
-
-**PostCSS** (postcss.config.js) :
-
-- tailwindcss
-- autoprefixer
+```
+User Input (Étape 1: Texte)
+    ↓
+TextInputManager → setAppState({ text })
+    ↓
+User Input (Étape 2: Vitesse)
+    ↓
+SpeedSelector → setAppState({ speedWpm })
+    ↓
+User Action (Étape 3: Lancer)
+    ↓
+TextAnimation (props: text, speedWpm, isPaused)
+    ↓
+Word (props: word, speed, onNext)
+    ↓
+Animation CSS (@keyframes masquer)
+```
 
 ---
 
@@ -665,242 +730,230 @@ src/
 
 ### 6.1 Contraintes Techniques
 
-- **Pas de TypeScript** : JavaScript pur uniquement
-- **Pas de state management externe** : Redux, Zustand, etc. interdits
-- **Pas de CSS-in-JS** : Styled-components, Emotion interdits
-- **Pas de UI libraries** : Material-UI, Ant Design interdits
-- **Extensions** : Fichiers JSX doivent avoir extension .jsx
+- ❌ **Pas de TypeScript** : JavaScript pur uniquement
+- ❌ **Pas de state management externe** : Redux, Zustand, etc.
+- ❌ **Pas de CSS-in-JS** : Tailwind uniquement
+- ❌ **Pas de librairies tierces** : Animation, carousel, etc.
+- ✅ **React natif** : useState, useEffect, useReducer, useRef
+- ✅ **PropTypes** : Validation obligatoire
 
 ### 6.2 Contraintes Pédagogiques
 
-- **Public primaire** : Interface adaptée aux élèves 6-11 ans
-- **Usage collectif** : Doit fonctionner sur TBI/TNI
-- **Simplicité** : Maximum 3 clics pour lancer une lecture
-- **Visibilité** : Texte lisible à 3 mètres
-- **Accompagnement enseignant** : Pas d'usage autonome sans guidage (principe Tricot)
+- ✅ **Conformité Eduscol** : Vitesses alignées sur repères officiels
+- ✅ **Principe Tricot** : Charge cognitive minimale
+- ✅ **Guidage progressif** : Pas de surcharge informationnelle
+- ✅ **Différenciation** : 5 niveaux + personnalisation
+- ✅ **Accessibilité** : WCAG 2.1 AA obligatoire
 
-### 6.3 Contraintes Métier
+### 6.3 Contraintes Réglementaires
 
-- **Gratuit** : Pas de paywall ou abonnement
-- **Open Source** : Code accessible et modifiable
-- **Offline-first** : Fonctionnement sans connexion (sauf cloud)
-- **RGPD** : Pas de collecte de données personnelles
+- ✅ **RGPD** : Pas de collecte de données personnelles
+- ✅ **Cookies** : Uniquement localStorage (pas de tracking)
+- ✅ **Éducation Nationale** : Compatible avec environnement scolaire
+- ✅ **Hébergement France** : Pour version déployée
 
 ---
 
-## 7. Tests et Validation
+## 7. Tests
 
 ### 7.1 Tests Fonctionnels
 
-- [ ] Saisie manuelle de texte
-- [ ] Import fichier .txt
-- [ ] Export fichier .txt
-- [ ] Chargement depuis Dropbox
-- [ ] Chargement depuis Nextcloud
-- [ ] Chargement depuis Google Drive
-- [ ] Partage d'URL
-- [ ] Sélection vitesse lecture
-- [ ] Animation disparition progressive
-- [ ] Espaces entre mots préservés
-- [ ] Retour à la ligne automatique
-- [ ] Gestion ponctuation française
-- [ ] Bouton Démarrer/Modifier
-- [ ] Réinitialisation après cloud
-- [ ] Responsive mobile
-- [ ] Menu hamburger
-- [ ] Tooltips contextuels
-- [ ] Modale d'aide
-- [ ] Message première visite
+**Checklist Étape 1 (Texte)** :
 
-### 7.2 Tests de Performance
+- [ ] Saisie manuelle fonctionne
+- [ ] Compteur caractères + mots s'affiche
+- [ ] Import .txt fonctionne
+- [ ] Export .txt fonctionne
+- [ ] Chargement CodiMD fonctionne
+- [ ] Badge cloud s'affiche
+- [ ] Badge disparaît si texte modifié
+- [ ] Validation URL CodiMD
+- [ ] Messages d'erreur appropriés
 
-- [ ] Lighthouse Score > 90
-- [ ] Animation 60 FPS
-- [ ] Temps chargement < 3s
-- [ ] Bundle size < 500 KB
-- [ ] Tests TBI vieillissants (Promethean, Smart, Mimio)
+**Checklist Étape 2 (Vitesse)** :
 
-### 7.3 Tests de Compatibilité
+- [ ] 5 vitesses affichées avec labels corrects
+- [ ] Tooltips s'affichent au survol
+- [ ] Bouton "Tester" lance prévisualisation 10s
+- [ ] Bouton "Choisir" sélectionne la vitesse
+- [ ] Badge "Sélectionnée" s'affiche
+- [ ] Curseur personnalisé 20-200 MLM fonctionne
+- [ ] Zone Eduscol calculée dynamiquement
+- [ ] Partage affiché si sourceUrl présent
 
-- [ ] Chrome Windows/Mac/Linux
-- [ ] Firefox Windows/Mac/Linux
-- [ ] Safari Mac/iOS
-- [ ] Edge Windows
-- [ ] Chrome Android
-- [ ] TBI Promethean/Smart/Mimio
+**Checklist Partage** :
 
-### 7.4 Tests Pédagogiques
+- [ ] Bouton "🔗 Partager" visible dans header
+- [ ] Modale s'ouvre au clic
+- [ ] Radio buttons fonctionnels
+- [ ] Génération lien avec bons paramètres
+- [ ] Copie dans presse-papier fonctionne
+- [ ] Message succès s'affiche (3s)
+- [ ] Fermeture Escape fonctionne
 
-- [ ] Tests utilisateurs avec enseignants cycles 2 et 3
-- [ ] Évaluation de la courbe d'apprentissage (< 2 min pour maîtrise avec nouveau système d'aide)
-- [ ] Retours sur pertinence des vitesses MLM
-- [ ] Observation usage en classe (collectif TBI + individuel)
+**Checklist Étape 3 (Lecture)** :
 
-### 7.5 Tests d'Accessibilité
+- [ ] Animation mot-à-mot fonctionne
+- [ ] Barre de progression s'incrémente
+- [ ] Bouton Pause/Reprendre fonctionne
+- [ ] Bouton Relire restart correctement
+- [ ] Bouton Retour (si !locked) fonctionne
+- [ ] Callback onComplete appelé à la fin
+- [ ] Vitesse imposée : pas de bouton Retour
 
-- [ ] Navigation clavier complète (Tab, Escape, Enter)
-- [ ] Tooltips accessibles (ARIA, Portal)
-- [ ] Modale accessible (focus trap, ARIA dialog)
-- [ ] Contraste WCAG 2.1 AA
+### 7.2 Tests d'Accessibilité
 
----
+**Navigation clavier** :
 
-## 8. Livrables
+- [ ] Tab parcourt tous les éléments
+- [ ] Escape ferme les modales
+- [ ] Enter active les boutons
+- [ ] Focus visible (outline bleu)
 
-### 8.1 Code Source
+**ARIA** :
 
-- Repository Git complet
-- README.md avec instructions
-- Documentation JSDoc
-- Fichiers de configuration
+- [ ] role="dialog" sur modales
+- [ ] aria-labelledby présent
+- [ ] aria-modal="true" présent
+- [ ] role="progressbar" sur barre progression
 
-### 8.2 Documentation
+**Lecteur d'écran** :
 
-- SRS.md v2.2.0 (ce document)
-- CHANGELOG.md v2.2.0
-- README.md enrichi
-- docs/JUSTIFICATION_PEDAGOGIQUE_AIDE.md (nouveau v2.2.0)
+- [ ] Annonce étape active
+- [ ] Annonce changements d'étape
+- [ ] Messages succès annoncés (live region)
 
-### 8.3 Assets
+### 7.3 Tests de Performance
 
-- Fichiers SVG (icônes)
-- Animations CSS (flash.css + fadeIn)
-- Texte exemple par défaut
+**Lighthouse** :
 
----
+- [ ] Performance > 90
+- [ ] Accessibility > 90
+- [ ] Best Practices > 90
+- [ ] SEO > 90
 
-## 9. Critères d'Acceptation Projet
+**Animation** :
 
-### 9.1 Critères de Succès
+- [ ] 60 FPS constant
+- [ ] Pas de saccades
+- [ ] Responsive sur tous appareils
 
-✅ Migration Webpack → Vite complète
-✅ Migration Bootstrap → Tailwind complète
-✅ Toutes les fonctionnalités opérationnelles
-✅ Aucune régression fonctionnelle
-✅ Performance améliorée (build, HMR)
-✅ Code documenté et maintenable
-✅ Tests manuels validés
-✅ Conformité programmes Eduscol
-✅ Fondements scientifiques explicités
-✅ Système d'aide contextuelle moderne (v2.2.0)
-✅ Animation Flash fonctionnelle (v2.2.0)
+### 7.4 Tests de Compatibilité
 
-### 9.2 Métriques de Performance
+**Navigateurs** :
 
-- **Build time** : < 5s (vs 30s avant)
-- **HMR** : < 200ms (vs 3s avant)
-- **Bundle CSS** : < 30 KB (vs 200 KB avant)
-- **Dependencies** : 9 packages (vs 24 avant)
-- **Node modules** : ~150 MB (vs 400 MB avant)
+- [ ] Chrome (Windows/macOS)
+- [ ] Firefox (Windows/macOS)
+- [ ] Safari (macOS/iOS)
+- [ ] Edge (Windows)
+
+**Appareils** :
+
+- [ ] Desktop 1920x1080
+- [ ] Tablette 768x1024
+- [ ] Mobile 375x667
+- [ ] TBI 1920x1080 (projection)
 
 ---
 
-## 10. Références
+## 8. Références
 
-### 10.1 Sources Pédagogiques Officielles
+### 8.1 Sources Pédagogiques Officielles
 
-**Programmes de l'Éducation Nationale** :
+**Ministère de l'Éducation Nationale** :
 
-- Ministère de l'Éducation Nationale (2024). [L'apprentissage de la lecture à l'École](https://www.education.gouv.fr/l-apprentissage-de-la-lecture-l-ecole-1028)
-- Eduscol (2024). [Guides fondamentaux pour l'enseignement](https://eduscol.education.fr/3107/guides-fondamentaux-pour-l-enseignement)
-- Eduscol (2024). [Repères annuels de progression et attendus de fin d'année du CP à la 3e](https://eduscol.education.fr/137/reperes-annuels-de-progression-et-attendus-de-fin-d-annee-du-cp-la-3e)
-- MEN (2022). [Pour enseigner la lecture et l'écriture au CP](https://eduscol.education.fr/media/1508/download) (Guide révisé)
-- MEN (2019). Pour enseigner la lecture et l'écriture au CE1
-- MEN (2020). Pour enseigner la compréhension au CM1 et CM2
+- [L'apprentissage de la lecture à l'École](https://www.education.gouv.fr/l-apprentissage-de-la-lecture-l-ecole-1028)
+- [Guides fondamentaux pour l'enseignement](https://eduscol.education.fr/3107/guides-fondamentaux-pour-l-enseignement)
+- [Repères annuels de progression CP à 3e](https://eduscol.education.fr/137/reperes-annuels-de-progression-et-attendus-de-fin-d-annee-du-cp-la-3e)
 
-**Inspiration pédagogique initiale** :
+**Inspiration pédagogique** :
 
 - Meunier, J. (2017). [Fluence : le texte qui s'efface](http://www.ecoledejulie.fr/fluence-le-texte-qui-s-efface-a207401800). L'École de Julie.
 
-### 10.2 Recherche en Psychologie Cognitive
+### 8.2 Recherche en Psychologie Cognitive
 
-**Travaux d'André Tricot** :
+**André Tricot** :
 
+- Tricot, A. & Chesné, J.-F. (2020). _Numérique et apprentissages scolaires_. Cnesco.
 - Amadieu, F. & Tricot, A. (2020). _Apprendre avec le numérique - Mythes et réalités_ (2e éd.). Paris : Retz.
-- Tricot, A. & Chesné, J.-F. (2020). _Numérique et apprentissages scolaires_. Rapport de synthèse pour le Cnesco. [https://www.cnesco.fr/numerique-et-apprentissages-scolaires/](https://www.cnesco.fr/numerique-et-apprentissages-scolaires/)
-- Tricot, A. (2021). Le numérique permet-il des apprentissages scolaires moins contraints ? _Formation et profession_, 29(1).
-- Mons, N. & Tricot, A. (2020). Dossier de synthèse : Numérique et apprentissages scolaires. Cnesco.
 
-**Autres références scientifiques** :
+**Autres références** :
 
-- Goigoux, R. (2016). _Lire et écrire. Rapport de recherche sur l'influence des pratiques d'enseignement de la lecture et de l'écriture sur la qualité des premiers apprentissages_. IFÉ, Lyon.
+- Goigoux, R. (2016). _Lire et écrire. Rapport de recherche_. IFÉ, Lyon.
 - Dehaene, S. (2007). _Les Neurones de la lecture_. Paris : Odile Jacob.
 
-### 10.3 Documentation Technique
+### 8.3 Documentation Technique
 
 - [React Documentation](https://react.dev/)
 - [Vite Documentation](https://vitejs.dev/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)
-- [MDN Web Docs](https://developer.mozilla.org/)
-
-### 10.4 Standards
-
 - [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/)
-- [RGPD](https://www.cnil.fr/fr/rgpd-de-quoi-parle-t-on)
 
 ---
 
-## Glossaire
+## 9. Glossaire
 
 **MLM** : Mots Lus par Minute - Unité de mesure de la vitesse de lecture
-**Fluence** : Capacité à lire avec aisance, rapidement et correctement
-**TBI/TNI** : Tableau Blanc/Numérique Interactif
-**HMR** : Hot Module Replacement - Rechargement à chaud des modules
-**JIT** : Just-In-Time - Compilation à la demande (Tailwind)
-**FCP** : First Contentful Paint - Première peinture de contenu
-**TTI** : Time to Interactive - Temps avant interactivité
+
+**Fluence** : Capacité à lire avec aisance, rapidement, correctement et avec une prosodie appropriée
+
+**TBI/TNI** : Tableau Blanc/Numérique Interactif - Écran tactile pour projection
+
+**CodiMD** : Service de rédaction collaborative Markdown (apps.education.fr)
+
+**HMR** : Hot Module Replacement - Rechargement à chaud des modules sans perdre l'état
+
+**JIT** : Just-In-Time - Compilation Tailwind à la demande (génère uniquement les classes utilisées)
+
+**Portal** : Technique React pour rendre un composant hors de la hiérarchie DOM (évite overflow:hidden)
+
 **Charge cognitive** : Quantité de ressources mentales mobilisées pour une tâche (Tricot)
+
 **Automatisation** : Acquisition d'une procédure sans effort conscient (Dehaene)
-**Portal** : Technique React pour rendre un composant hors de la hiérarchie DOM (v2.2.0)
+
+**Eduscol** : Portail national des professionnels de l'éducation (eduscol.education.fr)
+
+**WCAG** : Web Content Accessibility Guidelines - Standards d'accessibilité web
+
+**RGPD** : Règlement Général sur la Protection des Données
 
 ---
 
-## Changelog
+## Changelog du Document
+
+### v3.8.0 (13 février 2026)
+
+- Ajout section Architecture (config/ centralisé)
+- Mise à jour structure fichiers (TextInput/ au lieu de Input/)
+- Ajout alias @config dans Vite
+- Détails constants.js et helpers
+
+### v3.7.0 (12 février 2026)
+
+- Ajout isCodiMDTextUnmodified
+- Correction invalidation lien CodiMD
+- Ajout compteur mots
+
+### v3.6.0 (11 février 2026)
+
+- Workflow 3 étapes finalisé
+- Gestion centralisée modales
+- StepContainer avec renderActions
 
 ### v2.2.0 (10 février 2026)
 
-**Ajouts majeurs** :
+- Système d'aide intégré (Tooltip, HelpModal, FirstTimeMessage)
+- Conformité Tricot documentée
 
-- Section 3.1.3 : Système d'Aide Contextuelle (REQ-FUNC-003)
-- Composants : Tooltip, HelpModal, FirstTimeMessage
-- Technologie : React Portal pour tooltips
-- Animation : fadeIn pour éléments apparaissants
+### v2.0.0 (8 février 2026)
 
-**Modifications** :
-
-- Renumération des REQ-FUNC (004-012 → 004-012)
-- Section 4.5.2 : Structure mise à jour (nouveaux composants, fichiers modifiés/supprimés)
-- Section 2.1 : Ajout "Système d'aide" dans fonctionnalités principales
-- Section 7.1 : Ajout tests tooltips/modale/message
-- Section 7.5 : Nouveaux tests d'accessibilité (Portal, ARIA)
-- Section 8.2 : JUSTIFICATION_PEDAGOGIQUE_AIDE.md dans livrables
-- Glossaire : Ajout "Portal"
-
-**Suppressions** :
-
-- Composant Consignes (obsolète)
-- Fichier App.css (obsolète)
-
-### v2.1.0 (09 février 2026)
-
-**Ajouts majeurs** :
-
-- Section 1.3 : Fondements pédagogiques officiels avec références Eduscol
-- Section 1.3.2 : Approche scientifique basée sur les travaux d'André Tricot
-- Section 2.2 : Avantages pédagogiques détaillés avec conformité programmes
-- Section 7.4 : Tests pédagogiques avec enseignants
-- Section 10.1 : Références officielles MEN/Eduscol
-- Section 10.2 : Recherche en psychologie cognitive (Tricot, Goigoux, Dehaene)
-- Livrable 8.2 : JUSTIFICATION_PEDAGOGIQUE.md
-
-**Modifications** :
-
-- Critères d'acceptation 9.1 : Ajout conformité programmes et fondements scientifiques
-- Contraintes 6.2 : Ajout principe d'accompagnement enseignant (Tricot)
-- Glossaire : Ajout termes scientifiques (charge cognitive, automatisation)
+- Migration Webpack → Vite
+- Migration Bootstrap → Tailwind
+- Architecture moderne
 
 ---
 
-**Version du document** : 2.2.0  
-**Date de dernière modification** : 10 février 2026  
-**Statut** : ✅ Application fonctionnelle - Système d'aide moderne intégré
+**Version du document** : 3.8.0  
+**Date de dernière modification** : 13 février 2026  
+**Statut** : ✅ Production  
+**Auteur** : Frédéric MISERY - CPC Numérique
