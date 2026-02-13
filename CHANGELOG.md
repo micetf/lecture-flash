@@ -6,6 +6,30 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.0] - 2026-02-13
+
+### Added
+
+- Ajout `services/textProcessing.js` (Sprint 2)
+- **Ajout `services/speedCalculations.js` (Sprint 4)** :
+    - `calculateAnimationSpeed()` : calcul ms/caractère depuis MLM
+    - `getEduscolZone()` : détermination zone pédagogique Eduscol
+    - `estimateReadingTime()` : estimation temps lecture en secondes
+    - `formatReadingTime()` : formatage temps lisible ("2 min 30 s")
+    - `getNiveauScolaire()` : niveau scolaire court
+    - `isValidSpeed()` : validation vitesse 20-200 MLM
+    - `roundToNearestFive()` : arrondi au multiple de 5
+
+### Changed
+
+- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
+
+### Fixed
+
+- Filtrage titres H1 Markdown CodiMD (Sprint 1)
+- Conservation retours ligne et paragraphes (Sprint 2-3)
+- Correction bouton Relire et fin de lecture (v3.9.1)
+
 ## [3.9.1] - 2026-02-13
 
 ### Fixed
