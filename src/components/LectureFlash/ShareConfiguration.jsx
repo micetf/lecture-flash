@@ -11,17 +11,7 @@
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-
-const getSpeedLevelLabel = (speedWpm) => {
-    const labels = {
-        30: "CP - début CE1",
-        50: "CE1",
-        70: "CE2",
-        90: "CM1-CM2",
-        110: "CM2 et +",
-    };
-    return labels[speedWpm] || "Personnalisé";
-};
+import { getSpeedLevel } from "../../config/constants";
 
 function ShareConfiguration({ sourceUrl, speedWpm }) {
     const [isSpeedLocked, setIsSpeedLocked] = useState(false);
@@ -61,7 +51,7 @@ function ShareConfiguration({ sourceUrl, speedWpm }) {
                         {speedWpm} MLM
                     </p>
                     <p className="text-sm text-gray-600">
-                        {getSpeedLevelLabel(speedWpm)}
+                        {getSpeedLabel(speedWpm)}
                     </p>
                 </div>
             </div>
@@ -152,7 +142,7 @@ function ShareConfiguration({ sourceUrl, speedWpm }) {
                     <li>
                         Vitesse :{" "}
                         <strong>
-                            {speedWpm} MLM ({getSpeedLevelLabel(speedWpm)})
+                            {speedWpm} MLM ({getSpeedLabel(speedWpm)})
                         </strong>
                     </li>
                     <li>

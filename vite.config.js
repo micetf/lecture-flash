@@ -48,6 +48,7 @@ export default defineConfig({
             "@": "/src",
             "@components": "/src/components",
             "@hooks": "/src/hooks",
+            "@config": "/src/config",
         },
     },
 });

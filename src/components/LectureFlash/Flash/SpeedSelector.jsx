@@ -1,92 +1,43 @@
 /**
- * SpeedSelector - Composant de sélection de vitesse de lecture
- * VERSION 3.6.0 FINAL : Simplifié - Titre géré par StepContainer
+ * Speed selection component with test mode, custom speeds, and sharing
+ * VERSION 3.8.0 : Migration vers constants.js centralisé
  *
- * Modifications v3.6.0 :
- * - Suppression de la gestion du titre (responsabilité de StepContainer)
- * - States des modales gérés par le parent (LectureFlash)
- * - Focus sur la logique métier (grille vitesses, curseur, partage)
- * - Architecture cohérente et maintenable
+ * Modifications v3.8.0 :
+ * - Suppression SPEED_OPTIONS local (dupliqué)
+ * - Import SPEEDS depuis @config/constants
+ * - Import helpers (getSpeedLevel, getSpeedTooltip, getSpeedLabel)
+ * - Suppression getSpeedLevelLabel local (remplacé par getSpeedLevel)
+ * - Conservation getEduscolZone (spécifique au composant)
  *
  * @component
- * @param {Function} onSpeedChange - Callback appelé lors de la sélection de vitesse
- * @param {string} text - Texte à utiliser pour les tests de vitesse
- * @param {Object} speedConfig - Configuration de vitesse depuis URL (speed, locked)
- * @param {number} selectedSpeed - Vitesse pré-sélectionnée (mémorisation entre étapes)
- * @param {string} sourceUrl - URL source du texte (pour afficher le partage)
- * @param {boolean} showCustomModal - État de la modale curseur (géré par parent)
- * @param {Function} setShowCustomModal - Setter pour la modale curseur
- * @param {boolean} showShareModal - État de la modale partage (géré par parent)
- * @param {Function} setShowShareModal - Setter pour la modale partage
+ * @param {Object} props
+ * @param {Function} props.onSpeedChange - Callback speed selection
+ * @param {string} props.text - Text for speed testing
+ * @param {Object} props.speedConfig - Speed config from URL {speed, locked}
+ * @param {number} props.selectedSpeed - Initially selected speed
+ * @param {string} props.sourceUrl - CodiMD source URL (for sharing)
+ * @param {boolean} props.showCustomModal - Custom modal state (parent-managed)
+ * @param {Function} props.setShowCustomModal - Custom modal setter
+ * @param {boolean} props.showShareModal - Share modal state (parent-managed)
+ * @param {Function} props.setShowShareModal - Share modal setter
  */
 
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
-
-// ========================================
-// CONSTANTES
-// ========================================
-
-/**
- * Vitesses officielles recommandées (Eduscol cycles 2-3)
- * Lecture à voix haute (orale) : 30-110 MLM
- */
-const SPEED_OPTIONS = [
-    {
-        value: 30,
-        label: "Très lent",
-        level: "CP - début CE1",
-        description: "Pour CP et début CE1 (déchiffrage)",
-        colorClass: "bg-blue-500 hover:bg-blue-600",
-    },
-    {
-        value: 50,
-        label: "Lent",
-        level: "CE1",
-        description: "Pour CE1 (lecture mot à mot)",
-        colorClass: "bg-green-500 hover:bg-green-600",
-    },
-    {
-        value: 70,
-        label: "Moyen",
-        level: "CE2",
-        description: "Pour CE2 (lecture par groupes de mots)",
-        colorClass: "bg-yellow-500 hover:bg-yellow-600",
-    },
-    {
-        value: 90,
-        label: "Rapide",
-        level: "CM1-CM2",
-        description: "Pour CM1-CM2 (lecture fluide)",
-        colorClass: "bg-orange-500 hover:bg-orange-600",
-    },
-    {
-        value: 110,
-        label: "Très rapide",
-        level: "CM2 et +",
-        description: "Pour CM2 et + (lecture experte)",
-        colorClass: "bg-red-500 hover:bg-red-600",
-    },
-];
+import {
+    SPEEDS,
+    getSpeedLevel,
+    getSpeedTooltip,
+    getSpeedLabel,
+} from "../../../config/constants";
 
 /**
- * Obtient le label du niveau scolaire pour une vitesse donnée
- */
-const getSpeedLevelLabel = (speed) => {
-    const option = SPEED_OPTIONS.find((opt) => opt.value === speed);
-    if (option) return option.level;
-
-    // Pour vitesses personnalisées
-    if (speed <= 40) return "CP - début CE1";
-    if (speed <= 60) return "CE1";
-    if (speed <= 80) return "CE2";
-    if (speed <= 100) return "CM1-CM2";
-    return "CM2 et +";
-};
-
-/**
- * Obtient la zone Eduscol pour une vitesse donnée
+ * Obtient la zone Eduscol détaillée pour une vitesse donnée
+ * (Fonction spécifique au composant, pas dans constants.js)
+ *
+ * @param {number} speed - Vitesse en MLM
+ * @returns {string} Description zone Eduscol
  */
 const getEduscolZone = (speed) => {
     if (speed <= 40) return "CP - début CE1 (déchiffrage)";
@@ -94,6 +45,18 @@ const getEduscolZone = (speed) => {
     if (speed <= 80) return "CE2 (lecture par groupes)";
     if (speed <= 100) return "CM1-CM2 (lecture fluide)";
     return "CM2+ (lecture experte)";
+};
+
+/**
+ * Configuration des couleurs pour chaque vitesse prédéfinie
+ * (Map depuis SPEEDS pour ajouter les colorClass)
+ */
+const SPEED_COLORS = {
+    30: "bg-green-500 hover:bg-green-600",
+    50: "bg-blue-500 hover:bg-blue-600",
+    70: "bg-yellow-500 hover:bg-yellow-600",
+    90: "bg-orange-500 hover:bg-orange-600",
+    110: "bg-red-500 hover:bg-red-600",
 };
 
 function SpeedSelector({
@@ -153,8 +116,8 @@ function SpeedSelector({
         if (speedConfig?.speed) {
             setSelectedSpeed(speedConfig.speed);
             // Vérifier si c'est une vitesse personnalisée
-            const isPredefined = SPEED_OPTIONS.some(
-                (opt) => opt.value === speedConfig.speed
+            const isPredefined = SPEEDS.some(
+                (s) => s.value === speedConfig.speed
             );
             if (!isPredefined) {
                 setIsCustomSpeedSelected(true);
@@ -187,22 +150,24 @@ function SpeedSelector({
     };
 
     /**
-     * Test d'une vitesse (preview 10 secondes)
+     * Test d'une vitesse (démonstration)
      */
     const handleTest = (speed) => {
-        if (isTestActive) {
+        if (isTestActive && testSpeed === speed) {
+            // Arrêter le test
             setIsTestActive(false);
             setTestSpeed(null);
-            return;
+        } else {
+            // Lancer le test
+            setTestSpeed(speed);
+            setIsTestActive(true);
+
+            // Arrêt automatique après 10 secondes
+            setTimeout(() => {
+                setIsTestActive(false);
+                setTestSpeed(null);
+            }, 10000);
         }
-
-        setIsTestActive(true);
-        setTestSpeed(speed);
-
-        setTimeout(() => {
-            setIsTestActive(false);
-            setTestSpeed(null);
-        }, 10000);
     };
 
     // ========================================
@@ -210,48 +175,54 @@ function SpeedSelector({
     // ========================================
 
     /**
-     * Génération et copie du lien de partage
+     * Génération du lien de partage et copie dans le presse-papier
      */
     const handleGenerateShareLink = async () => {
         if (!sourceUrl || !selectedSpeed) return;
 
-        const baseUrl = `${window.location.origin}/index.html`;
         const params = new URLSearchParams({
             url: sourceUrl,
             speed: selectedSpeed,
+            locked: shareLocked ? "true" : "false",
         });
 
-        if (shareLocked) {
-            params.append("locked", "true");
-        }
-
+        const baseUrl = `${window.location.origin}/index.html`;
         const shareUrl = `${baseUrl}?${params.toString()}`;
 
         try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(shareUrl);
-            } else {
-                // Fallback pour navigateurs anciens
-                const textArea = document.createElement("textarea");
-                textArea.value = shareUrl;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textArea);
-            }
-
+            // Tentative avec l'API moderne
+            await navigator.clipboard.writeText(shareUrl);
             setShowShareSuccess(true);
             setTimeout(() => {
                 setShowShareSuccess(false);
             }, 3000);
         } catch (err) {
-            console.error("Erreur lors de la copie du lien:", err);
-            alert(
-                "Impossible de copier le lien automatiquement. Copiez-le manuellement : " +
-                    shareUrl
-            );
+            // Fallback pour navigateurs anciens
+            const textArea = document.createElement("textarea");
+            textArea.value = shareUrl;
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand("copy");
+                setShowShareSuccess(true);
+                setTimeout(() => {
+                    setShowShareSuccess(false);
+                }, 3000);
+            } catch (fallbackErr) {
+                console.error("Erreur copie clipboard:", fallbackErr);
+                alert(
+                    "Impossible de copier automatiquement. " +
+                        "Copiez-le manuellement : " +
+                        shareUrl
+                );
+            }
+
+            document.body.removeChild(textArea);
         }
     };
 
@@ -301,7 +272,7 @@ function SpeedSelector({
                     <p className="text-yellow-800 font-semibold">
                         ⭐ Vitesse recommandée pour cette activité :{" "}
                         {speedConfig.speed} MLM (
-                        {getSpeedLevelLabel(speedConfig.speed)})
+                        {getSpeedLevel(speedConfig.speed)})
                     </p>
                     <p className="text-sm text-yellow-700 mt-2">
                         💡 Votre enseignant a pré-sélectionné cette vitesse,
@@ -314,18 +285,17 @@ function SpeedSelector({
             {/* GRILLE des 5 vitesses prédéfinies */}
             {/* ======================================== */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {SPEED_OPTIONS.map((speedOption) => {
+                {SPEEDS.map((speed) => {
                     const isSelected =
-                        selectedSpeed === speedOption.value &&
-                        !isCustomSpeedSelected;
+                        selectedSpeed === speed.value && !isCustomSpeedSelected;
                     const isSuggested =
-                        speedConfig?.speed === speedOption.value &&
+                        speedConfig?.speed === speed.value &&
                         !speedConfig.locked;
 
                     return (
                         <Tooltip
-                            key={speedOption.value}
-                            content={`${speedOption.value} mots/min - ${speedOption.description}`}
+                            key={speed.value}
+                            content={speed.tooltip}
                             position="top"
                         >
                             <div
@@ -358,7 +328,7 @@ function SpeedSelector({
                                 {/* Vitesse */}
                                 <div className="text-center mb-3">
                                     <p className="text-4xl font-bold text-gray-900 mb-1">
-                                        {speedOption.value}
+                                        {speed.value}
                                     </p>
                                     <p className="text-sm text-gray-600 font-medium">
                                         mots/minute
@@ -368,34 +338,32 @@ function SpeedSelector({
                                 {/* Labels */}
                                 <div className="text-center mb-4">
                                     <p className="font-semibold text-gray-800 mb-1">
-                                        {speedOption.label}
+                                        {speed.label}
                                     </p>
                                     <p className="text-sm text-gray-600">
-                                        {speedOption.level}
+                                        {speed.level}
                                     </p>
                                 </div>
 
                                 {/* Boutons */}
                                 <div className="space-y-2">
                                     <button
-                                        onClick={() =>
-                                            handleTest(speedOption.value)
-                                        }
+                                        onClick={() => handleTest(speed.value)}
                                         className="w-full px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
                                     >
                                         🧪 Tester
                                     </button>
                                     <button
                                         onClick={() =>
-                                            handleSelect(speedOption.value)
+                                            handleSelect(speed.value)
                                         }
-                                        className={`w-full px-3 py-2 text-white text-sm rounded-lg transition font-bold ${speedOption.colorClass} ${
-                                            isSelected && "ring-4 ring-offset-2"
-                                        }`}
+                                        className={`w-full px-3 py-2 text-white text-sm rounded-lg transition font-bold ${
+                                            SPEED_COLORS[speed.value]
+                                        } ${isSelected && "ring-4 ring-offset-2"}`}
                                     >
                                         {isSelected
                                             ? "✓ Sélectionnée"
-                                            : "✓ Choisir"}
+                                            : "Choisir"}
                                     </button>
                                 </div>
                             </div>
@@ -404,11 +372,10 @@ function SpeedSelector({
                 })}
 
                 {/* ======================================== */}
-                {/* TUILE vitesse personnalisée (si sélectionnée) */}
+                {/* CARTE Vitesse personnalisée */}
                 {/* ======================================== */}
                 {isCustomSpeedSelected && (
-                    <div className="border-2 rounded-xl p-4 border-purple-500 bg-purple-50 shadow-lg">
-                        {/* Badge personnalisée */}
+                    <div className="border-2 border-purple-500 bg-purple-50 rounded-xl p-4 shadow-lg">
                         <div className="mb-2">
                             <span className="inline-block px-3 py-1 bg-purple-500 text-white font-semibold text-xs rounded-full">
                                 ✓ Sélectionnée
@@ -417,21 +384,21 @@ function SpeedSelector({
 
                         {/* Vitesse */}
                         <div className="text-center mb-3">
-                            <p className="text-4xl font-bold text-gray-900 mb-1">
+                            <p className="text-4xl font-bold text-purple-900 mb-1">
                                 {customSpeed}
                             </p>
-                            <p className="text-sm text-gray-600 font-medium">
+                            <p className="text-sm text-purple-700 font-medium">
                                 mots/minute
                             </p>
                         </div>
 
                         {/* Labels */}
                         <div className="text-center mb-4">
-                            <p className="font-semibold text-gray-800 mb-1">
+                            <p className="font-semibold text-purple-800 mb-1">
                                 Personnalisée
                             </p>
-                            <p className="text-sm text-gray-600">
-                                {getSpeedLevelLabel(customSpeed)}
+                            <p className="text-sm text-purple-600">
+                                {getSpeedLevel(customSpeed)}
                             </p>
                         </div>
 
@@ -467,6 +434,20 @@ function SpeedSelector({
                     </p>
                 )}
             </div>
+
+            {/* ======================================== */}
+            {/* BOUTON PARTAGE (si sourceUrl présent) */}
+            {/* ======================================== */}
+            {sourceUrl && selectedSpeed && (
+                <div className="border-t pt-6 mt-6">
+                    <button
+                        onClick={() => setShowShareModal(true)}
+                        className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                    >
+                        🔗 Partager ce texte avec vos élèves
+                    </button>
+                </div>
+            )}
 
             {/* ======================================== */}
             {/* MODALE Réglage personnalisé */}
@@ -510,42 +491,39 @@ function SpeedSelector({
                             </p>
                         </div>
 
-                        {/* Affichage vitesse actuelle */}
-                        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg text-center">
-                            <p className="text-xs text-gray-600 mb-1">
-                                Vitesse choisie
-                            </p>
-                            <p className="text-5xl font-bold text-purple-900 mb-2">
-                                {customSpeed}
-                            </p>
-                            <p className="text-sm text-gray-700 font-medium">
-                                mots par minute
-                            </p>
-                            <p className="text-xs text-gray-600 mt-2">
-                                {getEduscolZone(customSpeed)}
-                            </p>
-                        </div>
-
-                        {/* Curseur */}
+                        {/* Curseur de vitesse */}
                         <div className="mb-6">
+                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                Vitesse de lecture
+                            </label>
                             <input
                                 type="range"
-                                min="30"
-                                max="110"
+                                min="20"
+                                max="200"
                                 step="5"
                                 value={customSpeed}
                                 onChange={(e) =>
-                                    setCustomSpeed(parseInt(e.target.value, 10))
+                                    setCustomSpeed(Number(e.target.value))
                                 }
-                                className="w-full h-3 bg-gradient-to-r from-blue-400 via-yellow-400 to-red-400 rounded-lg appearance-none cursor-pointer slider"
+                                className="w-full h-3 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                             />
-                            <div className="flex justify-between text-xs text-gray-600 mt-2">
-                                <span>30</span>
-                                <span>50</span>
-                                <span>70</span>
-                                <span>90</span>
-                                <span>110</span>
+                            <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                <span>20 MLM</span>
+                                <span>200 MLM</span>
                             </div>
+                        </div>
+
+                        {/* Affichage vitesse sélectionnée */}
+                        <div className="mb-6 p-4 bg-purple-50 rounded-lg text-center">
+                            <p className="text-4xl font-bold text-purple-900 mb-2">
+                                {customSpeed}
+                            </p>
+                            <p className="text-sm text-purple-700 font-medium mb-2">
+                                mots par minute
+                            </p>
+                            <p className="text-xs text-purple-600">
+                                {getEduscolZone(customSpeed)}
+                            </p>
                         </div>
 
                         {/* Boutons d'action */}
@@ -599,71 +577,79 @@ function SpeedSelector({
                             </button>
                         </div>
 
-                        {/* Selected speed display */}
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg text-center">
-                            <p className="text-xs text-gray-600 mb-1">
+                        {/* Vitesse actuelle */}
+                        <div className="mb-4 p-3 bg-blue-50 rounded-lg text-center">
+                            <p className="text-sm text-blue-700 mb-1">
                                 Vitesse sélectionnée
                             </p>
                             <p className="text-2xl font-bold text-blue-900">
                                 {selectedSpeed} MLM
                             </p>
-                            <p className="text-xs text-gray-600">
-                                {getSpeedLevelLabel(selectedSpeed)}
+                            <p className="text-xs text-blue-600">
+                                {getSpeedLevel(selectedSpeed)}
                             </p>
                         </div>
 
-                        {/* Locked/unlocked choice */}
-                        <div className="mb-4 space-y-2">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="radio"
-                                    name="lockMode"
-                                    checked={!shareLocked}
-                                    onChange={() => setShareLocked(false)}
-                                    className="w-4 h-4"
-                                />
-                                <div className="text-sm">
-                                    <p className="font-semibold text-gray-800 group-hover:text-green-700 transition">
-                                        💡 Vitesse suggérée
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                        Les élèves peuvent la modifier
-                                    </p>
-                                </div>
-                            </label>
+                        {/* Choix du mode */}
+                        <div className="mb-4">
+                            <p className="text-sm font-semibold text-gray-700 mb-2">
+                                Mode de partage :
+                            </p>
+                            <div className="space-y-2">
+                                <label className="flex items-start gap-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input
+                                        type="radio"
+                                        checked={!shareLocked}
+                                        onChange={() => setShareLocked(false)}
+                                        className="mt-1"
+                                    />
+                                    <div>
+                                        <div className="font-semibold">
+                                            💡 Vitesse suggérée
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            L'élève peut modifier la vitesse
+                                        </div>
+                                    </div>
+                                </label>
 
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="radio"
-                                    name="lockMode"
-                                    checked={shareLocked}
-                                    onChange={() => setShareLocked(true)}
-                                    className="w-4 h-4"
-                                />
-                                <div className="text-sm">
-                                    <p className="font-semibold text-gray-800 group-hover:text-orange-700 transition">
-                                        🔒 Vitesse imposée
-                                    </p>
-                                    <p className="text-xs text-gray-600">
-                                        Les élèves ne peuvent pas la modifier
-                                    </p>
-                                </div>
-                            </label>
+                                <label className="flex items-start gap-2 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input
+                                        type="radio"
+                                        checked={shareLocked}
+                                        onChange={() => setShareLocked(true)}
+                                        className="mt-1"
+                                    />
+                                    <div>
+                                        <div className="font-semibold">
+                                            🔒 Vitesse imposée
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Lecture automatique sans
+                                            modification
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        {/* Generate button */}
+                        {/* Bouton génération */}
                         <button
                             onClick={handleGenerateShareLink}
-                            className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg"
+                            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold mb-3"
                         >
                             📋 Copier le lien
                         </button>
 
-                        {/* Success message */}
+                        {/* Message succès */}
                         {showShareSuccess && (
-                            <div className="mt-4 p-3 bg-green-100 border border-green-400 rounded-lg text-green-800 text-sm animate-fade-in">
-                                ✅ Lien copié ! Vous pouvez maintenant le coller
-                                dans votre ENT, Digipad, ou l'envoyer par email.
+                            <div className="p-3 bg-green-50 text-green-800 rounded-lg text-center text-sm">
+                                ✓ Lien copié dans le presse-papier !
+                                <br />
+                                <span className="text-xs">
+                                    Vous pouvez maintenant le coller dans votre
+                                    ENT, Digipad, ou l'envoyer par email.
+                                </span>
                             </div>
                         )}
 

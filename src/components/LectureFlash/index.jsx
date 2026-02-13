@@ -27,8 +27,8 @@ import StepContainer from "./StepContainer";
 import HelpModal from "../HelpModal.jsx";
 import FirstTimeMessage from "../FirstTimeMessage.jsx";
 import Tooltip from "../Tooltip.jsx";
-import initialState from "./initialState";
-import { mode } from "./parametres.js";
+import initialState from "../../config/initialState";
+import { STEP_LABELS, TOTAL_STEPS } from "../../config/constants";
 import { useMarkdownFromUrl } from "../../hooks/useMarkdownFromUrl";
 
 function LectureFlash() {
@@ -49,8 +49,8 @@ function LectureFlash() {
     const [isCodiMDTextUnmodified, setIsCodiMDTextUnmodified] = useState(false);
 
     // Labels et nombre total d'étapes
-    const stepLabels = ["Texte", "Vitesse", "Lecture"];
-    const totalSteps = 3;
+    const stepLabels = STEP_LABELS;
+    const totalSteps = TOTAL_STEPS;
 
     // ========================================
     // CODIMD LOADING HOOK
