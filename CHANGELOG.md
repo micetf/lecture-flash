@@ -6,14 +6,69 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [Non publié] - En cours
+
+### 🔜 En développement
+
+**Version cible** : 3.9.0 complète
+
+- Hook `useLocalStorage.js` (abstraction persistance)
+- Hook `useFullscreen.js` (gestion API Fullscreen)
+- Composant `FileUploadTab.jsx` (Sprint 8 - onglet Fichier)
+- Composant `CodiMDTab.jsx` (Sprint 9 - onglet CodiMD)
+- Refactorisation `TextInputManager.jsx` (Sprint 10 - orchestrateur)
+- Composant `DisplayOptions.jsx` (police + taille)
+- Composant `FullscreenButton.jsx` (bouton plein écran)
+- Suppression mode test vitesse (simplification UX)
+
+---
+
+## [3.9.1] - 2026-02-13
+
+### Fixed
+
+- **Correction bug mode lecture** :
+    - Bouton "Relire" réinitialise maintenant correctement l'animation
+    - Après lecture complète, le texte réapparaît et permet de recommencer
+    - Ajout effet React manquant pour réinitialiser `currentWordIndex` quand `isStarted = false`
+
+---
+
 ## [3.9.0] - 2026-02-13
 
 ### Added
 
-- Ajout `services/textProcessing.js` (Sprint 2)
-- Ajout `services/speedCalculations.js` (Sprint 4)
-- Ajout `services/urlGeneration.js` (Sprint 5)
-- **Ajout `utils/validation.js` (Sprint 6)** :
+**Services (Sprints 2, 4, 5, 6)** :
+
+- **`services/textProcessing.js`** :
+
+    - `countWords()` : comptage mots avec ignore lignes vides
+    - `purifyText()` : nettoyage texte avec préservation retours ligne
+    - `parseTextWithLineBreaks()` : analyse texte avec métadonnées structure (fin ligne/paragraphe)
+    - `countCharacters()` : comptage caractères hors espaces
+    - `extractPreview()` : extraction preview texte
+
+- **`services/speedCalculations.js`** :
+
+    - `calculateAnimationSpeed()` : calcul ms/caractère depuis MLM
+    - `getEduscolZone()` : détermination zone pédagogique Eduscol
+    - `estimateReadingTime()` : estimation temps lecture en secondes
+    - `formatReadingTime()` : formatage temps lisible ("2 min 30 s")
+    - `getNiveauScolaire()` : niveau scolaire court (ex: "CE2")
+    - `isValidSpeed()` : validation vitesse 20-200 MLM
+    - `roundToNearestFive()` : arrondi au multiple de 5
+
+- **`services/urlGeneration.js`** :
+    - `generateShareUrl()` : génération URL avec paramètres url/speed/locked
+    - `parseShareUrl()` : extraction configuration depuis URL
+    - `copyToClipboard()` : copie presse-papier avec fallback execCommand
+    - `isValidShareUrl()` : validation format URL partage
+    - `shortenUrl()` : raccourcissement URL pour affichage
+    - `extractDomain()` : extraction nom de domaine
+
+**Utils (Sprint 6)** :
+
+- **`utils/validation.js`** :
     - `isValidCodiMDUrl()` : validation URL CodiMD apps.education.fr
     - `validateTextFile()` : validation fichier .txt (extension, taille, type)
     - `isValidText()` : vérification texte non vide
@@ -24,87 +79,24 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - `validateWordCount()` : validation nombre de mots min/max
     - `sanitizeString()` : échappement caractères HTML
 
-### Changed
+**Components (Sprint 7)** :
 
-- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
-
-### Fixed
-
-- Filtrage titres H1 Markdown CodiMD (Sprint 1)
-- Conservation retours ligne et paragraphes (Sprint 2-3)
-- Correction bouton Relire et fin de lecture (v3.9.1)
-
-## [3.9.0] - 2026-02-13
-
-### Added
-
-- Ajout `services/textProcessing.js` (Sprint 2)
-- Ajout `services/speedCalculations.js` (Sprint 4)
-- **Ajout `services/urlGeneration.js` (Sprint 5)** :
-    - `generateShareUrl()` : génération URL avec paramètres url/speed/locked
-    - `parseShareUrl()` : extraction configuration depuis URL
-    - `copyToClipboard()` : copie presse-papier avec fallback execCommand
-    - `isValidShareUrl()` : validation format URL partage
-    - `shortenUrl()` : raccourcissement URL pour affichage
-    - `extractDomain()` : extraction nom de domaine
+- **`components/LectureFlash/Input/ManualInputTab.jsx`** :
+    - Onglet "Saisir" extrait de TextInputManager
+    - Textarea avec compteur temps réel (caractères + mots)
+    - Badge cloud conditionnel si texte CodiMD
+    - Export .txt avec nom horodaté
+    - Utilise `countWords()` depuis textProcessing service
+    - PropTypes strictes (text, onTextChange, sourceUrl, onReset)
 
 ### Changed
 
-- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
+- **`src/components/LectureFlash/Flash/Word.jsx` (Sprint 3)** :
 
-### Fixed
-
-- Filtrage titres H1 Markdown CodiMD (Sprint 1)
-- Conservation retours ligne et paragraphes (Sprint 2-3)
-- Correction bouton Relire et fin de lecture (v3.9.1)
-
-## [3.9.0] - 2026-02-13
-
-### Added
-
-- Ajout `services/textProcessing.js` (Sprint 2)
-- **Ajout `services/speedCalculations.js` (Sprint 4)** :
-    - `calculateAnimationSpeed()` : calcul ms/caractère depuis MLM
-    - `getEduscolZone()` : détermination zone pédagogique Eduscol
-    - `estimateReadingTime()` : estimation temps lecture en secondes
-    - `formatReadingTime()` : formatage temps lisible ("2 min 30 s")
-    - `getNiveauScolaire()` : niveau scolaire court
-    - `isValidSpeed()` : validation vitesse 20-200 MLM
-    - `roundToNearestFive()` : arrondi au multiple de 5
-
-### Changed
-
-- `Word.jsx` et `TextAnimation.jsx` : conservation retours ligne (Sprint 3)
-
-### Fixed
-
-- Filtrage titres H1 Markdown CodiMD (Sprint 1)
-- Conservation retours ligne et paragraphes (Sprint 2-3)
-- Correction bouton Relire et fin de lecture (v3.9.1)
-
-## [3.9.1] - 2026-02-13
-
-### Fixed
-
-- **Correction bug mode lecture** :
-    - Bouton "Relire" fonctionne maintenant correctement (réinitialisation complète)
-    - Après lecture complète, le texte réapparaît et permet de recommencer
-    - Ajout effet React manquant pour réinitialiser `currentWordIndex` quand `isStarted = false`
-
-## [3.9.0] - 2026-02-13
-
-### Added
-
-- Ajout `services/textProcessing.js` (Sprint 2)
-    - `countWords()`, `purifyText()`, `parseTextWithLineBreaks()`
-    - `countCharacters()`, `extractPreview()`
-
-### Changed
-
-- **`src/components/LectureFlash/Flash/Word.jsx` (v3.9.0)** :
     - Ajout props `finDeLigne` et `finDeParagraphe` pour gestion retours ligne
     - Affichage conditionnel `<br>` après le mot (simple ou double)
-- **`src/components/LectureFlash/Flash/TextAnimation.jsx` (v3.9.0)** :
+
+- **`src/components/LectureFlash/Flash/TextAnimation.jsx` (Sprint 3)** :
     - Import et utilisation `parseTextWithLineBreaks()` depuis `@services/textProcessing`
     - Purification texte préserve `\n` (vs suppression précédente)
     - Passage métadonnées structure (finDeLigne, finDeParagraphe) au composant Word
@@ -112,56 +104,24 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### Fixed
 
-- Correction filtrage titres H1 Markdown dans CodiMD (Sprint 1)
-- **Conservation retours ligne et paragraphes** (Sprint 2-3) :
+- **Filtrage titres H1 Markdown CodiMD (Sprint 1)** :
+
+    - Correction filtrage titres `#` dans documents CodiMD pour éviter perturbation affichage
+    - Ajout fonction `filtrerTitresMarkdown()` dans `useMarkdownFromUrl.js`
+    - Conservation sous-titres H2+ (`##`, `###`) pour respecter structure pédagogique
+
+- **Conservation retours ligne et paragraphes (Sprints 2-3)** :
     - Respect mise en page pédagogique (strophes, poèmes, dialogues)
     - Animation respecte sauts de ligne et paragraphes
+    - Comptage mots ignore lignes vides
 
-## [3.9.0] - 2026-02-13
+---
 
-### Added
+## [3.8.1] - 2026-02-13
 
-- Ajout `services/textProcessing.js` avec 5 fonctions de traitement de texte
-    - `countWords()` : comptage mots avec ignore lignes vides
-    - `purifyText()` : nettoyage texte avec préservation retours ligne
-    - `parseTextWithLineBreaks()` : analyse texte avec métadonnées structure (fin ligne/paragraphe)
-    - `countCharacters()` : comptage caractères hors espaces
-    - `extractPreview()` : extraction preview texte
+### Changed
 
-### Fixed
-
-- Correction filtrage titres H1 Markdown dans CodiMD (Sprint 1)
-
-## [3.9.0] - 2026-02-13
-
-### Fixed
-
-- Correction filtrage titres H1 Markdown (`#`) dans documents CodiMD pour éviter perturbation affichage Lecture Flash
-- Ajout fonction `filtrerTitresMarkdown()` dans `useMarkdownFromUrl.js`
-- Conservation sous-titres H2+ (`##`, `###`) pour respecter structure pédagogique
-
-## [3.8.0] - 2026-02-13
-
-### Refactoring : Centralisation des constantes
-
-**Motivation** : Éliminer les duplications de code et créer une source unique de vérité pour toutes les constantes de l'application (vitesses, modes, labels).
-
-#### Ajouté
-
-- **`src/config/` (nouveau dossier)** : Centralisation de toutes les constantes
-    - `constants.js` : Modes (INPUT/READING), vitesses MLM (30-110), labels, helpers
-    - `initialState.js` : État initial de l'application (déplacé depuis LectureFlash/)
-
-#### Modifié
-
-- **`src/components/LectureFlash/index.jsx` (v3.8.0)** :
-
-    - Import de `initialState` depuis `@config/initialState`
-    - Import de `STEP_LABELS`, `TOTAL_STEPS` depuis `@config/constants`
-    - Suppression import `parametres.js` (obsolète)
-
-- **`src/components/LectureFlash/Flash/SpeedSelector.jsx` (v3.8.1)** :
-
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
     - Import `SPEEDS` depuis `@config/constants` (remplace SPEED_OPTIONS local)
     - Import helpers : `getSpeedLevel`, `getSpeedTooltip`, `getSpeedLabel`
     - Suppression fonction locale `getSpeedLevelLabel` (dupliquée)
@@ -169,7 +129,29 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Conservation `getEduscolZone` (spécifique au composant)
     - Ajout map `SPEED_COLORS` pour les classes Tailwind
 
-- **`src/components/LectureFlash/ShareConfiguration.jsx` (v3.8.0)** :
+---
+
+## [3.8.0] - 2026-02-13
+
+### Refactoring : Centralisation des constantes
+
+**Motivation** : Éliminer les duplications de code et créer une source unique de vérité pour toutes les constantes de l'application (vitesses, modes, labels).
+
+### Added
+
+- **`src/config/` (nouveau dossier)** : Centralisation de toutes les constantes
+    - `constants.js` : Modes (INPUT/READING), vitesses MLM (30-110), labels, helpers
+    - `initialState.js` : État initial de l'application (déplacé depuis LectureFlash/)
+
+### Changed
+
+- **`src/components/LectureFlash/index.jsx`** :
+
+    - Import de `initialState` depuis `@config/initialState`
+    - Import de `STEP_LABELS`, `TOTAL_STEPS` depuis `@config/constants`
+    - Suppression import `parametres.js` (obsolète)
+
+- **`src/components/LectureFlash/ShareConfiguration.jsx`** :
 
     - Import `getSpeedLevel` depuis `@config/constants`
     - Suppression fonction locale `getSpeedLevelLabel`
@@ -177,11 +159,11 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 - **`vite.config.js`** :
     - Ajout alias `@config` : "/src/config"
 
-#### Supprimé
+### Removed
 
 - **`src/components/LectureFlash/parametres.js`** : Migré dans `constants.js`
 
-#### Gains techniques
+### Gains techniques
 
 - **Single source of truth** : Une seule définition des vitesses MLM
 - **Réutilisabilité** : Helpers disponibles partout via `@config/constants`
@@ -192,23 +174,21 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [3.7.0] - 2026-02-12
 
-### Correction : Chargement CodiMD + invalidation lien si modifié
+### Changed
 
-#### Modifié
-
-- **`src/components/LectureFlash/index.jsx` (v3.7.0)** :
+- **`src/components/LectureFlash/index.jsx`** :
 
     - Ajout state `isCodiMDTextUnmodified` pour tracker validité du lien
     - 2 effets séparés pour chargement CodiMD (avec/sans speedConfig)
     - Invalidation du lien CodiMD si texte modifié ou remplacé par l'utilisateur
     - Passage conditionnel de `sourceUrl` au TextInputManager
 
-- **`src/components/LectureFlash/Input/TextInputManager.jsx` (v3.7.0)** :
+- **`src/components/LectureFlash/Input/TextInputManager.jsx`** :
     - Ajout compteur de mots (en plus des caractères)
     - Utilise même algorithme que TextAnimation pour cohérence
     - Suppression bouton "Réinitialiser" dans badge cloud (redondant avec onReset)
 
-#### Corrigé
+### Fixed
 
 - Badge cloud ne s'affichait plus après modification du texte
 - Lien de partage restait actif même après modification du texte
@@ -219,9 +199,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### UX/UI : Workflow 3 étapes + Gestion centralisée des modales
 
-#### Modifié
+### Changed
 
-- **`src/components/LectureFlash/index.jsx` (v3.6.0)** :
+- **`src/components/LectureFlash/index.jsx`** :
 
     - locked=true : Skip direct vers étape 3, PAS d'auto-start, PAS de bouton "Changer vitesse"
     - locked=false : Skip vers étape 3, PAS d'auto-start, AVEC bouton "Changer vitesse"
@@ -229,19 +209,19 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Gestion centralisée des modales (showCustomModal, showShareModal)
     - Boutons d'action dans le header via `renderActions()`
 
-- **`src/components/LectureFlash/StepContainer.jsx` (v3.6.0)** :
+- **`src/components/LectureFlash/StepContainer.jsx`** :
 
     - Ajout prop `icon` (emoji à gauche du titre)
     - Ajout prop `renderActions` (boutons/actions à droite du titre)
     - Header enrichi avec flexbox (titre + actions)
 
-- **`src/components/LectureFlash/Flash/SpeedSelector.jsx` (v3.6.0)** :
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
     - Props `showCustomModal` et `setShowCustomModal` gérés par parent
     - Props `showShareModal` et `setShowShareModal` gérés par parent
     - Suppression gestion locale des modales
     - Conservation du rendu des modales (quand ouvertes)
 
-#### Améliorations UX
+### Améliorations UX
 
 - Actions contextuelles visibles dans le header de chaque étape
 - Boutons "⚙️ Réglage personnalisé" et "🔗 Partager" au bon endroit
@@ -258,10 +238,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 - **Tricot** : Réduction de la charge visuelle et cognitive
 - **Norman** : Affordance proportionnelle à l'usage (30% utilisateurs → 10% visibilité)
 
-#### Modifié
+### Changed
 
-- **`src/components/LectureFlash/Flash/SpeedSelector.jsx` (v3.5.0)** :
-
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
     - Refonte complète de l'interface de partage
     - **Avant** : Bloc vert 6 lignes (~40% de l'écran) toujours visible
     - **Après** : Bouton discret style lien (1 ligne, ~5% de visibilité)
@@ -269,21 +248,19 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Position : Sous les boutons vitesse, bordure supérieure pour séparation
     - Affichage : Seulement si `sourceUrl` ET `selectedSpeed` présents
 
-- **Modale de partage (nouvelle)** :
+### Added
+
+- **Modale de partage** :
     - Dimensions : max-width 384px (sm), compacte et centrée
     - Contenu : Badge vitesse + 2 radio buttons + Bouton copie + Message succès
     - Comportements : Fermeture Escape, clic overlay, bouton ×
     - Animation : fadeIn 150ms
     - Focus trap : ARIA compliant
+    - Gestion touche Escape pour fermeture
+    - ARIA : `role="dialog"`, `aria-labelledby`, `aria-modal="true"`
+    - Stop propagation : Évite fermeture accidentelle
 
-#### Ajouté
-
-- Gestion touche Escape pour fermeture modale
-- Animation fadeIn pour apparition douce
-- ARIA : `role="dialog"`, `aria-labelledby`, `aria-modal="true"`
-- Stop propagation : Évite fermeture accidentelle
-
-#### Gains
+### Gains
 
 - **-70% charge cognitive** : Partage visible uniquement quand pertinent
 - **+80% clarté hiérarchique** : Actions secondaires discrètes
@@ -297,7 +274,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 **Motivation pédagogique** : Réduction charge cognitive (André Tricot) en simplifiant de 4 à 3 étapes.
 
-#### Ajouté
+### Added
 
 - **Section partage intégrée à l'étape 2 "Vitesse"** :
     - Affichage conditionnel : visible uniquement si texte chargé depuis CodiMD
@@ -308,7 +285,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Récapitulatif visuel du lien généré
     - Fallback `document.execCommand` pour navigateurs anciens
 
-#### Modifié
+### Changed
 
 - **Architecture workflow** : Passage de 4 étapes à 3 étapes
 
@@ -316,7 +293,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Étape 2 : Vitesse + Partage (si CodiMD)
     - Étape 3 : Lecture
 
-- **`src/components/LectureFlash/Flash/SpeedSelector.jsx` (v3.4.0)** :
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
 
     - Nouvelle prop `sourceUrl` : détecte si texte chargé depuis CodiMD
     - Section partage intégrée avec états `shareLocked` et `showShareSuccess`
@@ -324,7 +301,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Interface radio buttons pour choix locked/unlocked
     - Maintien fonctionnalités : 5 vitesses + curseur + test
 
-- **`src/components/LectureFlash/index.jsx` (v3.4.0)** :
+- **`src/components/LectureFlash/index.jsx`** :
 
     - Suppression étape 3 dédiée au partage
     - Labels simplifiés : `["Texte", "Vitesse", "Lecture"]`
@@ -334,12 +311,12 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 - **`src/components/LectureFlash/StepIndicator.jsx`** :
     - Adaptation pour 3 étapes au lieu de 4
 
-#### Supprimé
+### Removed
 
 - **`src/components/LectureFlash/ShareConfiguration.jsx`** : Intégré dans SpeedSelector
 - Étape 3 "Partager" dédiée : Fusion avec étape 2
 
-#### Justification pédagogique
+### Justification pédagogique
 
 **Avant (4 étapes)** :
 
@@ -356,11 +333,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [3.3.1] - 2026-02-10
 
-### Correction : Animation fonctionnelle avec pause
+### Fixed
 
-#### Corrigé
-
-- **`src/components/LectureFlash/Flash/TextAnimation.jsx` (v3.3.1)** :
+- **`src/components/LectureFlash/Flash/TextAnimation.jsx`** :
     - Animation mot-à-mot complètement refactorisée
     - Gestion correcte de `isPaused` (arrêt immédiat sans délai)
     - Logique de progression : mots < current (cachés), current (animé), > current (visibles)
@@ -373,9 +348,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### UX : Partage simplifié sans re-sélection vitesse
 
-#### Modifié
+### Changed
 
-- **`src/components/LectureFlash/ShareConfiguration.jsx` (v3.3.0)** :
+- **`src/components/LectureFlash/ShareConfiguration.jsx`** :
     - Suppression du dropdown de re-sélection de vitesse
     - Affichage de la vitesse déjà choisie (lecture seule)
     - Interface épurée : vitesse + mode (suggérée/imposée) + copie
@@ -389,7 +364,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 **Motivation** : Remplacer le composant `Consignes` obsolète par un système progressif conforme aux principes d'André Tricot.
 
-#### Ajouté
+### Added
 
 - **`src/components/Tooltip.jsx`** :
 
@@ -433,34 +408,34 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     }
     ```
 
-#### Modifié
+### Changed
 
-- **`src/components/LectureFlash/Input/TextInputManager.jsx` (v2.2.0)** :
+- **`src/components/LectureFlash/Input/TextInputManager.jsx`** :
 
     - Tooltips sur les 3 onglets (Saisir, Fichier, CodiMD)
     - Descriptions contextuelles courtes (< 100 caractères)
 
-- **`src/components/LectureFlash/Flash/SpeedSelector.jsx` (v2.2.0)** :
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
 
     - Tooltips sur chaque vitesse (30-110 MLM)
     - Correspondances pédagogiques Eduscol
 
-- **`src/components/LectureFlash/Flash/Word.jsx` (v2.2.0)** :
+- **`src/components/LectureFlash/Flash/Word.jsx`** :
 
-    - CORRECTION : Ajout `componentDidMount()` pour animation premier mot
+    - Ajout `componentDidMount()` pour animation premier mot
     - Animation se déclenche correctement pour tous les mots
 
-- **`src/components/LectureFlash/Flash/TextAnimation.jsx` (v2.2.0)** :
-    - CORRECTION : Condition `index <= idMot` (vs `index === idMot`)
+- **`src/components/LectureFlash/Flash/TextAnimation.jsx`** :
+    - Condition `index <= idMot` (vs `index === idMot`)
     - Tous les mots reçoivent vitesse appropriée
     - Callback `onNext` seulement pour mot actuel
 
-#### Supprimé
+### Removed
 
 - **`src/components/LectureFlash/Input/Consignes/index.jsx`** : Obsolète
 - **`src/components/App.css`** : Vestige Bootstrap, styles déplacés vers flash.css
 
-#### Justification pédagogique (André Tricot)
+### Justification pédagogique (André Tricot)
 
 - **Charge cognitive minimale par défaut** : Interface épurée
 - **Guidage juste-à-temps** : Tooltips au moment de l'action
@@ -473,7 +448,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### Documentation : Fondements pédagogiques officiels
 
-#### Ajouté
+### Added
 
 - **Conformité programmes Eduscol** :
 
@@ -501,7 +476,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 **Motivation** : Modernisation stack technique pour performances et maintenabilité.
 
-#### Ajouté
+### Added
 
 - **Stack moderne** :
 
@@ -521,20 +496,20 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - `@components` : /src/components
     - `@hooks` : /src/hooks
 
-#### Modifié
+### Changed
 
 - **Tous les composants** : Migration Bootstrap → Tailwind CSS
 - **Structure projet** : Réorganisation modulaire
 - **Styling** : Classes utilitaires Tailwind uniquement
 
-#### Supprimé
+### Removed
 
 - Webpack (configuration complète)
 - Bootstrap (CSS + composants)
 - jQuery
 - 15 dépendances obsolètes
 
-#### Gains de performance
+### Gains de performance
 
 - **Build time** : 5s (vs 30s avant)
 - **HMR** : 200ms (vs 3s avant)
@@ -547,7 +522,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### Version initiale (architecture Webpack + Bootstrap)
 
-#### Ajouté
+### Added
 
 - Application web Lecture Flash complète
 - Mode SAISIE avec zone de texte
@@ -560,7 +535,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 - Conformité WCAG 2.1 AA
 - Animations CSS natives `@keyframes`
 
-#### Technical
+### Technical
 
 - React 18.2 avec hooks natifs
 - Webpack comme bundler
