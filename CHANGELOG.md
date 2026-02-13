@@ -21,6 +21,18 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.2] - 2026-02-13
+
+### Fixed
+
+- **Bouton Réessayer dans CodiMDTab après erreur chargement** :
+    - Ajout bouton "Réessayer" dans message d'erreur CodiMD
+    - Transmission prop `onReset` via TextInputManager
+    - Permet de réinitialiser l'erreur et retenter le chargement
+    - Amélioration UX en cas d'échec réseau
+
+---
+
 ## [3.9.1] - 2026-02-13
 
 ### Fixed

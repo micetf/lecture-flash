@@ -4,19 +4,25 @@
  * Permet à l'utilisateur de charger un document depuis codimd.apps.education.fr
  * avec validation d'URL et exemples d'utilisation
  *
- * VERSION 3.9.0 : Extraction depuis TextInputManager
+ * VERSION 3.9.1 : Ajout bouton Réessayer dans message d'erreur
  *
  * @component
  * @param {Object} props
  * @param {Function} props.onUrlSubmit - Callback appelé avec l'URL CodiMD
  * @param {boolean} [props.chargement=false] - État de chargement
  * @param {string} [props.erreur=null] - Message d'erreur éventuel
+ * @param {Function} [props.onReset=null] - Callback pour réinitialiser l'erreur
  */
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 
-function CodiMDTab({ onUrlSubmit, chargement = false, erreur = null }) {
+function CodiMDTab({
+    onUrlSubmit,
+    chargement = false,
+    erreur = null,
+    onReset = null,
+}) {
     const [urlCodimd, setUrlCodimd] = useState("");
     const [afficherAide, setAfficherAide] = useState(false);
 
@@ -37,6 +43,15 @@ function CodiMDTab({ onUrlSubmit, chargement = false, erreur = null }) {
      */
     const toggleAide = () => {
         setAfficherAide(!afficherAide);
+    };
+
+    /**
+     * Réinitialiser l'erreur pour permettre un nouvel essai
+     */
+    const handleReessayer = () => {
+        if (onReset) {
+            onReset();
+        }
     };
 
     return (
@@ -110,13 +125,23 @@ function CodiMDTab({ onUrlSubmit, chargement = false, erreur = null }) {
                 </button>
             </form>
 
-            {/* Message d'erreur */}
+            {/* Message d'erreur avec bouton Réessayer */}
             {erreur && (
                 <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
                     <p className="text-sm font-semibold text-red-800">
                         ⚠️ Erreur
                     </p>
                     <p className="text-xs text-red-700 mt-1">{erreur}</p>
+
+                    {/* Bouton Réessayer */}
+                    {onReset && (
+                        <button
+                            onClick={handleReessayer}
+                            className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium"
+                        >
+                            Réessayer
+                        </button>
+                    )}
                 </div>
             )}
         </div>
@@ -132,11 +157,15 @@ CodiMDTab.propTypes = {
 
     /** Message d'erreur à afficher (null si pas d'erreur) */
     erreur: PropTypes.string,
+
+    /** Callback pour réinitialiser l'erreur */
+    onReset: PropTypes.func,
 };
 
 CodiMDTab.defaultProps = {
     chargement: false,
     erreur: null,
+    onReset: null,
 };
 
 export default CodiMDTab;

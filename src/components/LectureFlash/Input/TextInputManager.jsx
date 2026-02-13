@@ -55,6 +55,7 @@ function TextInputManager({
     loading = false,
     error = null,
     sourceUrl = null,
+    onReset = null,
 }) {
     const [activeTab, setActiveTab] = useState(TAB_TYPES.MANUAL);
 
@@ -127,6 +128,7 @@ function TextInputManager({
                     onUrlSubmit={onUrlSubmit}
                     chargement={loading}
                     erreur={error}
+                    onReset={onReset}
                 />
             )}
         </div>
@@ -151,12 +153,16 @@ TextInputManager.propTypes = {
 
     /** URL source CodiMD (si chargé depuis cloud) */
     sourceUrl: PropTypes.string,
+
+    /** Callback réinitialisation erreur CodiMD */
+    onReset: PropTypes.func,
 };
 
 TextInputManager.defaultProps = {
     loading: false,
     error: null,
     sourceUrl: null,
+    onReset: null,
 };
 
 export default TextInputManager;
