@@ -21,6 +21,17 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.3] - 2026-02-13
+
+### Fixed
+
+- Bouton Réessayer dans CodiMDTab après erreur (correction 1)
+- **Hook useMarkdownFromUrl : ajout fonction reset manquante (correction 2)**
+    - Ajout fonction `reset()` pour réinitialiser les états du hook
+    - Corrige erreur "resetMarkdownHook is not a function"
+    - Permet réinitialisation complète après erreur de chargement
+- Correction bouton Relire et fin de lecture (précédent)
+
 ## [3.9.2] - 2026-02-13
 
 ### Fixed

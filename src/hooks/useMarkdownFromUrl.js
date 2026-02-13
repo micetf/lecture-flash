@@ -204,6 +204,19 @@ export function useMarkdownFromUrl() {
         }
     }, []);
 
+    /**
+     * Réinitialise tous les états du hook
+     * Utilisé pour le bouton "Réessayer"
+     */
+    const reset = () => {
+        setMarkdown("");
+        setLoading(false);
+        setError(null);
+        setSourceUrl("");
+        setSpeedConfig(null);
+        console.log("🔄 Hook useMarkdownFromUrl réinitialisé");
+    };
+
     return {
         markdown,
         loading,
@@ -212,6 +225,7 @@ export function useMarkdownFromUrl() {
         speedConfig,
         loadMarkdownFromUrl,
         isValidCodiMdUrl,
+        reset,
     };
 }
 
