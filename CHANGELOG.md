@@ -8,6 +8,21 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [3.9.0] - 2026-02-13
 
+### Added
+
+- Ajout `services/textProcessing.js` avec 5 fonctions de traitement de texte
+    - `countWords()` : comptage mots avec ignore lignes vides
+    - `purifyText()` : nettoyage texte avec préservation retours ligne
+    - `parseTextWithLineBreaks()` : analyse texte avec métadonnées structure (fin ligne/paragraphe)
+    - `countCharacters()` : comptage caractères hors espaces
+    - `extractPreview()` : extraction preview texte
+
+### Fixed
+
+- Correction filtrage titres H1 Markdown dans CodiMD (Sprint 1)
+
+## [3.9.0] - 2026-02-13
+
 ### Fixed
 
 - Correction filtrage titres H1 Markdown (`#`) dans documents CodiMD pour éviter perturbation affichage Lecture Flash
