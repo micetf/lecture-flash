@@ -436,20 +436,6 @@ function SpeedSelector({
             </div>
 
             {/* ======================================== */}
-            {/* BOUTON PARTAGE (si sourceUrl présent) */}
-            {/* ======================================== */}
-            {sourceUrl && selectedSpeed && (
-                <div className="border-t pt-6 mt-6">
-                    <button
-                        onClick={() => setShowShareModal(true)}
-                        className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
-                    >
-                        🔗 Partager ce texte avec vos élèves
-                    </button>
-                </div>
-            )}
-
-            {/* ======================================== */}
             {/* MODALE Réglage personnalisé */}
             {/* ======================================== */}
             {showCustomModal && (

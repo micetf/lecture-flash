@@ -21,6 +21,17 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.4] - 2026-02-13
+
+### Fixed
+
+- Bouton Réessayer dans CodiMDTab (corrections précédentes)
+- Hook useMarkdownFromUrl : fonction reset (corrections précédentes)
+- **Suppression lien de partage redondant dans SpeedSelector**
+    - Suppression bouton "Partager ce texte avec vos élèves" en bas à gauche
+    - Conserve uniquement le bouton "Partager" dans le header (en haut à droite)
+    - Élimine la redondance et l'incohérence de validation du texte modifié
+
 ## [3.9.3] - 2026-02-13
 
 ### Fixed
