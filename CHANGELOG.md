@@ -10,14 +10,14 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### 🔜 En développement
 
-**Version cible** : 3.9.0 complète
+**Version cible** : 3.10.0
 
-- Refactorisation `TextInputManager.jsx` (Sprint 10 - orchestrateur)
 - Hook `useLocalStorage.js` (abstraction persistance)
 - Hook `useFullscreen.js` (gestion API Fullscreen)
 - Composant `DisplayOptions.jsx` (police + taille)
 - Composant `FullscreenButton.jsx` (bouton plein écran)
 - Suppression mode test vitesse (simplification UX)
+- Intégration options affichage dans `TextAnimation.jsx`
 
 ---
 
@@ -77,7 +77,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - `validateWordCount()` : validation nombre de mots min/max
     - `sanitizeString()` : échappement caractères HTML
 
-**Components (Sprints 7, 8, 9)** :
+**Components - Sous-composants Input (Sprints 7, 8, 9)** :
 
 - **`components/LectureFlash/Input/ManualInputTab.jsx` (Sprint 7)** :
 
@@ -116,10 +116,20 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Affichage conditionnel `<br>` après le mot (simple ou double)
 
 - **`src/components/LectureFlash/Flash/TextAnimation.jsx` (Sprint 3)** :
+
     - Import et utilisation `parseTextWithLineBreaks()` depuis `@services/textProcessing`
     - Purification texte préserve `\n` (vs suppression précédente)
     - Passage métadonnées structure (finDeLigne, finDeParagraphe) au composant Word
     - Ajout classe `whitespace-pre-wrap` pour écran initial
+
+- **`src/components/LectureFlash/Input/TextInputManager.jsx` (Sprint 10)** :
+    - **Refactorisation complète en orchestrateur** (v3.9.0)
+    - Utilise ManualInputTab, FileUploadTab, CodiMDTab
+    - Réduction de 350 → 120 lignes (~66% de code en moins)
+    - Suppression logique métier (déléguée aux sous-composants)
+    - Conservation gestion onglets et props transmission
+    - Amélioration maintenabilité et testabilité
+    - Architecture composable et modulaire
 
 ### Fixed
 
@@ -133,6 +143,14 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - Respect mise en page pédagogique (strophes, poèmes, dialogues)
     - Animation respecte sauts de ligne et paragraphes
     - Comptage mots ignore lignes vides
+
+### Refactoring Gains (Sprints 7-10)
+
+- **Séparation des responsabilités** : 1 composant → 4 composants dédiés
+- **Réduction complexité** : 350 lignes → 120 lignes (orchestrateur)
+- **Réutilisabilité** : Chaque onglet indépendant et testable
+- **Maintenabilité** : Logique isolée par fonctionnalité
+- **Testabilité** : Composants unitaires faciles à tester
 
 ---
 

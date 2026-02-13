@@ -1,17 +1,21 @@
 /**
- * Gestionnaire unifié de saisie de texte
- * VERSION 3.7.0 : Ajout compteur mots + Suppression bouton Réinitialiser
+ * Gestionnaire unifié de saisie de texte - Orchestrateur
+ * VERSION 3.9.0 : Refactorisation avec sous-composants
  *
- * Modifications v3.7.0 :
- * - Ajout du nombre de mots au compteur (en plus des caractères)
- * - Suppression du bouton "Réinitialiser" dans le badge cloud (redondant)
+ * Modifications v3.9.0 :
+ * - Décomposition en 3 sous-composants (ManualInputTab, FileUploadTab, CodiMDTab)
+ * - TextInputManager devient un simple orchestrateur d'onglets
+ * - Logique métier déléguée aux sous-composants
  *
  * @component
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
+import ManualInputTab from "./ManualInputTab";
+import FileUploadTab from "./FileUploadTab";
+import CodiMDTab from "./CodiMDTab";
 
 const TAB_TYPES = {
     MANUAL: "manual",
@@ -44,23 +48,6 @@ const TABS_CONFIG = [
     },
 ];
 
-/**
- * Calcul du nombre de mots dans le texte
- * Utilise le même algorithme que TextAnimation pour cohérence
- *
- * @param {string} text - Le texte à analyser
- * @returns {number} Nombre de mots
- */
-const countWords = (text) => {
-    const cleanText = text
-        .trim()
-        .replace(/'/g, "'")
-        .replace(/ +/g, " ")
-        .replace(/\n+/g, " ");
-
-    return cleanText === "" ? 0 : cleanText.split(" ").length;
-};
-
 function TextInputManager({
     text,
     onTextChange,
@@ -68,81 +55,31 @@ function TextInputManager({
     loading = false,
     error = null,
     sourceUrl = null,
-    onReset = null,
-    speedConfig = null,
 }) {
     const [activeTab, setActiveTab] = useState(TAB_TYPES.MANUAL);
-    const [codimdUrl, setCodimdUrl] = useState("");
-    const [showCodimdHelp, setShowCodimdHelp] = useState(false);
-    const fileInputRef = useRef(null);
 
     /**
-     * Import d'un fichier .txt local
+     * Gestion du chargement de texte depuis un fichier
+     * Callback pour FileUploadTab
      */
-    const handleFileImport = (e) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const file = files[0];
-
-            if (file.type === "text/plain" || file.name.endsWith(".txt")) {
-                const reader = new FileReader();
-
-                reader.onload = (event) => {
-                    onTextChange(event.target.result);
-                    setActiveTab(TAB_TYPES.MANUAL);
-                };
-
-                reader.onerror = () => {
-                    alert("Erreur lors de la lecture du fichier.");
-                };
-
-                reader.readAsText(file, "UTF-8");
-            } else {
-                alert(
-                    "Format de fichier non valide. Veuillez sélectionner un fichier .txt"
-                );
-            }
-        }
-
-        e.target.value = "";
+    const handleTexteCharge = (texteCharge) => {
+        onTextChange(texteCharge);
+        // Retourner à l'onglet Saisir après chargement
+        setActiveTab(TAB_TYPES.MANUAL);
     };
 
     /**
-     * Export du texte en .txt
+     * Retour à l'onglet Saisir
+     * Callback pour les sous-composants
      */
-    const handleExport = () => {
-        if (!text.trim()) {
-            alert("Aucun texte à enregistrer.");
-            return;
-        }
-
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `lecture-flash-${Date.now()}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
-    /**
-     * Soumission de l'URL CodiMD
-     */
-    const handleCodimdSubmit = (e) => {
-        e.preventDefault();
-        if (codimdUrl.trim()) {
-            onUrlSubmit(codimdUrl.trim());
-            setCodimdUrl("");
-            setActiveTab(TAB_TYPES.MANUAL);
-        }
+    const handleRetourSaisie = () => {
+        setActiveTab(TAB_TYPES.MANUAL);
     };
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
             {/* ======================================== */}
-            {/* ONGLETS */}
+            {/* BARRE D'ONGLETS */}
             {/* ======================================== */}
             <div className="flex border-b border-gray-300 mb-6">
                 {TABS_CONFIG.map((tab) => (
@@ -164,198 +101,62 @@ function TextInputManager({
             </div>
 
             {/* ======================================== */}
-            {/* ONGLET : Saisir */}
+            {/* CONTENU DES ONGLETS */}
             {/* ======================================== */}
+
+            {/* Onglet Saisir */}
             {activeTab === TAB_TYPES.MANUAL && (
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                        Saisir ou coller du texte
-                    </h3>
-
-                    {/* Badge cloud - SANS bouton Réinitialiser */}
-                    {sourceUrl && (
-                        <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                            <div className="flex items-start">
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-blue-800 mb-1">
-                                        ☁️ Document chargé depuis CodiMD
-                                    </p>
-                                    <a
-                                        href={sourceUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
-                                    >
-                                        {sourceUrl}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Textarea */}
-                    <textarea
-                        value={text}
-                        onChange={(e) => onTextChange(e.target.value)}
-                        placeholder="Écrivez ou collez le texte ici..."
-                        rows={17}
-                        className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
-                    />
-
-                    {/* Compteur avec nombre de mots */}
-                    <div className="text-sm text-gray-600 mt-2">
-                        {text.length} caractères • {countWords(text)} mots
-                    </div>
-
-                    {/* Bouton Export */}
-                    <div className="flex gap-2 mt-4">
-                        <button
-                            onClick={handleExport}
-                            disabled={!text.trim()}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-                        >
-                            💾 Enregistrer (.txt)
-                        </button>
-                    </div>
-                </div>
+                <ManualInputTab
+                    texte={text}
+                    onTexteChange={onTextChange}
+                    urlSource={sourceUrl}
+                />
             )}
 
-            {/* ======================================== */}
-            {/* ONGLET : Fichier */}
-            {/* ======================================== */}
+            {/* Onglet Fichier */}
             {activeTab === TAB_TYPES.FILE && (
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                        Importer un fichier .txt
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                        Sélectionnez un fichier .txt depuis votre ordinateur.
-                        <br />
-                        Le texte sera automatiquement chargé dans l'onglet
-                        "Saisir".
-                    </p>
-
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileImport}
-                        accept=".txt"
-                        className="hidden"
-                    />
-
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-                    >
-                        📁 Choisir un fichier
-                    </button>
-
-                    <div className="mt-4 p-3 bg-gray-50 border border-gray-300 rounded-lg">
-                        <p className="text-sm text-gray-700">
-                            <strong>Formats acceptés :</strong> .txt uniquement
-                        </p>
-                    </div>
-                </div>
+                <FileUploadTab
+                    onTexteCharge={handleTexteCharge}
+                    onRetourSaisie={handleRetourSaisie}
+                />
             )}
 
-            {/* ======================================== */}
-            {/* ONGLET : CodiMD */}
-            {/* ======================================== */}
+            {/* Onglet CodiMD */}
             {activeTab === TAB_TYPES.CODIMD && (
-                <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                        Charger un document CodiMD
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                        Collez l'URL d'un document partagé depuis{" "}
-                        <strong>codimd.apps.education.fr</strong>.
-                        <button
-                            onClick={() => setShowCodimdHelp(!showCodimdHelp)}
-                            className="ml-2 text-blue-600 hover:text-blue-800 underline text-sm"
-                        >
-                            {showCodimdHelp ? "Masquer" : "Voir"} des exemples
-                        </button>
-                    </p>
-
-                    {showCodimdHelp && (
-                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                            <p className="font-semibold mb-2">
-                                Exemples d'URL valides :
-                            </p>
-                            <ul className="list-disc list-inside space-y-1 text-gray-700">
-                                <li>
-                                    <code className="bg-white px-1 py-0.5 rounded">
-                                        https://codimd.apps.education.fr/s/w1D5hjCIC
-                                    </code>
-                                </li>
-                                <li>
-                                    <code className="bg-white px-1 py-0.5 rounded">
-                                        https://codimd.apps.education.fr/s/EVZXBuz6e
-                                    </code>
-                                </li>
-                            </ul>
-                            <p className="mt-3 text-gray-600">
-                                CodiMD est le service de rédaction collaborative
-                                Markdown officiel de l'Éducation nationale
-                                (RGPD, hébergement France).
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Formulaire */}
-                    <form onSubmit={handleCodimdSubmit}>
-                        <input
-                            type="url"
-                            value={codimdUrl}
-                            onChange={(e) => setCodimdUrl(e.target.value)}
-                            placeholder="https://codimd.apps.education.fr/..."
-                            className="w-full px-4 py-3 mb-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
-                            disabled={loading}
-                            required
-                        />
-
-                        <button
-                            type="submit"
-                            disabled={loading || !codimdUrl.trim()}
-                            className={`w-full px-6 py-4 rounded-lg font-semibold transition ${
-                                loading
-                                    ? "bg-gray-400 text-gray-700 cursor-wait"
-                                    : "bg-blue-600 text-white hover:bg-blue-700"
-                            }`}
-                        >
-                            {loading
-                                ? "⏳ Chargement..."
-                                : "☁️ Charger le texte"}
-                        </button>
-                    </form>
-
-                    {/* Message d'erreur */}
-                    {error && (
-                        <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-                            <p className="text-sm font-semibold text-red-800">
-                                ⚠️ Erreur
-                            </p>
-                            <p className="text-xs text-red-700 mt-1">{error}</p>
-                        </div>
-                    )}
-                </div>
+                <CodiMDTab
+                    onUrlSubmit={onUrlSubmit}
+                    chargement={loading}
+                    erreur={error}
+                />
             )}
         </div>
     );
 }
 
 TextInputManager.propTypes = {
+    /** Texte actuel */
     text: PropTypes.string.isRequired,
+
+    /** Callback modification texte */
     onTextChange: PropTypes.func.isRequired,
+
+    /** Callback soumission URL CodiMD */
     onUrlSubmit: PropTypes.func.isRequired,
+
+    /** État de chargement CodiMD */
     loading: PropTypes.bool,
+
+    /** Message d'erreur CodiMD */
     error: PropTypes.string,
+
+    /** URL source CodiMD (si chargé depuis cloud) */
     sourceUrl: PropTypes.string,
-    onReset: PropTypes.func,
-    speedConfig: PropTypes.shape({
-        speed: PropTypes.number,
-        locked: PropTypes.bool,
-    }),
+};
+
+TextInputManager.defaultProps = {
+    loading: false,
+    error: null,
+    sourceUrl: null,
 };
 
 export default TextInputManager;
