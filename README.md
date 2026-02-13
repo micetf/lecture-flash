@@ -2,7 +2,7 @@
 
 Application web éducative pour l'entraînement à la fluence de lecture destinée aux élèves de l'école primaire (CP à CM2).
 
-**Version** : 3.8.0  
+**Version** : 3.9.0  
 **Auteur** : Frédéric MISERY - Conseiller Pédagogique de Circonscription Numérique  
 **Site web** : [https://micetf.fr](https://micetf.fr)  
 **Email** : webmaster@micetf.fr  
@@ -47,7 +47,11 @@ Développer la **fluence de lecture** grâce à la technique du texte qui s'effa
 
 **Vitesse personnalisée** : Curseur 20-200 MLM avec aperçu en temps réel
 
-**Mode test** : Prévisualisation de la vitesse pendant 10 secondes
+**🆕 Options d'affichage** (v3.9.0) :
+
+- Choix de police (défaut, OpenDyslexic, Arial, Comic Sans MS)
+- Ajustement taille (100-200%)
+- _Utile pour TBI/TNI et élèves à besoins particuliers_
 
 ### 🔗 Partage (Conditionnel si CodiMD)
 
@@ -61,11 +65,13 @@ Développer la **fluence de lecture** grâce à la technique du texte qui s'effa
 ### 📖 Mode Lecture (Étape 3)
 
 **Animation** : Disparition progressive mot par mot
+
 **Contrôles** :
 
 - ⏸️ Pause / Reprendre
 - 🔄 Relire depuis le début
 - ← Retour (si vitesse non imposée)
+- 🆕 ⛶ Plein écran (v3.9.0)
 
 **Indicateur** : Barre de progression visuelle
 
@@ -106,12 +112,23 @@ lecture-flash/
 ├── src/
 │   ├── index.jsx                    # Point d'entrée
 │   │
-│   ├── config/                      # ✨ Configuration centralisée
+│   ├── config/                      # Configuration centralisée
 │   │   ├── constants.js             # Modes, vitesses, helpers
 │   │   └── initialState.js          # État initial
 │   │
+│   ├── services/                    # 🆕 v3.9.0 - Logique métier pure
+│   │   ├── textProcessing.js       # Comptage, purification texte
+│   │   ├── speedCalculations.js    # Calculs MLM, temps lecture
+│   │   └── urlGeneration.js        # Génération liens partage
+│   │
+│   ├── utils/                       # 🆕 v3.9.0 - Utilitaires
+│   │   ├── validation.js           # Validation URL, fichiers
+│   │   └── formatters.js           # Formatage dates, durées
+│   │
 │   ├── hooks/                       # Hooks personnalisés
-│   │   └── useMarkdownFromUrl.js   # Chargement CodiMD
+│   │   ├── useMarkdownFromUrl.js  # Chargement CodiMD
+│   │   ├── useLocalStorage.js     # 🆕 v3.9.0
+│   │   └── useFullscreen.js       # 🆕 v3.9.0
 │   │
 │   ├── components/
 │   │   ├── App.jsx                  # Composant racine
@@ -126,25 +143,28 @@ lecture-flash/
 │   │   │
 │   │   └── LectureFlash/            # Composant principal
 │   │       ├── index.jsx            # Workflow 3 étapes
-│   │       ├── initialState.js      # État initial
-│   │       ├── parametres.js        # Modes (INPUT/READING)
 │   │       ├── StepIndicator.jsx   # Indicateur progression
 │   │       ├── StepContainer.jsx   # Wrapper étapes
 │   │       ├── ShareConfiguration.jsx  # Configuration partage
 │   │       │
 │   │       ├── TextInput/           # Gestion texte (3 onglets)
-│   │       │   └── TextInputManager.jsx
+│   │       │   ├── TextInputManager.jsx     # Orchestrateur
+│   │       │   ├── ManualInputTab.jsx       # 🆕 v3.9.0
+│   │       │   ├── FileUploadTab.jsx        # 🆕 v3.9.0
+│   │       │   └── CodiMDTab.jsx            # 🆕 v3.9.0
 │   │       │
 │   │       └── Flash/               # Lecture animée
-│   │           ├── TextAnimation.jsx
-│   │           ├── SpeedSelector.jsx
-│   │           └── Word.jsx
+│   │           ├── SpeedSelector.jsx        # Sélection vitesse
+│   │           ├── TextAnimation.jsx        # Animation mot-à-mot
+│   │           └── Word.jsx                 # Animation mot
 │   │
 │   └── styles/
 │       ├── index.css                # Tailwind + fadeIn
 │       └── flash.css                # Animation masquage
 │
 └── docs/                            # Documentation
+    ├── ARCHITECTURE.md              # 🆕 v3.9.0 - Guide architecture
+    ├── DECISIONS.md                 # 🆕 v3.9.0 - ADR
     ├── INTEGRATION_GUIDE.md
     ├── JUSTIFICATION_PEDAGOGIQUE_AIDE.md
     └── MIGRATION_V2.2.0_SUMMARY.md
@@ -268,6 +288,100 @@ pnpm preview
 
 ---
 
+## 🗺️ Roadmap
+
+### Version 3.9.0 (En cours - Q1 2026)
+
+**Améliorations UX** :
+
+- ✨ Mode plein écran (étape lecture)
+- ✨ Personnalisation police et taille (accessibilité)
+- 🐛 Gestion titres Markdown (CodiMD)
+- 🐛 Conservation retours à la ligne
+- 🧹 Simplification interface (suppression test vitesse)
+
+**Refactorisation (Phase 1-2)** :
+
+- 🔧 Extraction logique métier → `services/` (textProcessing, speedCalculations, urlGeneration)
+- 🔧 Création utilitaires → `utils/` (validation, formatters)
+- 🔧 Décomposition `TextInputManager` → 3 sous-composants onglets
+- 🔧 Création hooks → `useLocalStorage`, `useFullscreen`
+- 📊 Tests unitaires services (Jest)
+
+### Version 3.10.0 (Q2 2026)
+
+**Refactorisation (Phase 3-4)** :
+
+- 🔧 Décomposition `SpeedSelector` → 5 sous-composants (SpeedCard, CustomSpeedModal, ShareModal, DisplayOptions)
+- 🔧 Extraction hook `useTextAnimation` (logique animation pure)
+- 🔧 Décomposition `TextAnimation` → 4 sous-composants (AnimatedText, ReadingControls, FullscreenButton)
+- 📊 Tests composants isolés
+
+**Objectif** : Composants < 200 lignes, responsabilités claires (SRP)
+
+### Version 4.0 (Q3 2026)
+
+**Refactorisation (Phase 5-6)** :
+
+- 🔧 Bibliothèque composants communs → `common/` (Button, Modal, Tabs, Slider, ProgressBar, Toast)
+- 🔧 Context API si nécessaire (gestion état global)
+- 🎨 Design system cohérent (variants, tailles standardisées)
+
+**Fonctionnalités envisagées** :
+
+- 🔍 Statistiques lecture (vitesse réelle, taux relecture)
+- 📊 Historique progression élève (localStorage)
+- 🎨 Thèmes visuels (mode sombre, contraste élevé)
+- 🌐 Internationalisation (i18n - anglais, espagnol)
+
+**Fonctionnalités écartées** :
+
+- ❌ Coloration syllabes (Lire-Couleur) : Complexité technique élevée, cohérence pédagogique douteuse
+
+_Les propositions de fonctionnalités sont les bienvenues via [GitHub Issues](https://github.com/micetf/lecture-flash/issues) avec tag `enhancement`._
+
+---
+
+## 🏗️ Architecture et Bonnes Pratiques
+
+### Principes de Développement
+
+**Respect des standards** :
+
+- ✅ **Single Responsibility Principle** : 1 composant = 1 responsabilité
+- ✅ **Separation of Concerns** : Logique métier (services) séparée de la présentation (composants)
+- ✅ **DRY** : Code mutualisé dans services et utils
+- ✅ **Composants < 200 lignes** : Facilite lecture et maintenance
+
+**Contraintes techniques** :
+
+- ❌ Pas de TypeScript (JavaScript pur + PropTypes)
+- ❌ Pas de state management externe (Context React uniquement si nécessaire)
+- ✅ JSDoc française complète obligatoire
+- ✅ Tests unitaires services (Jest)
+
+### Structure Cible (v4.0)
+
+```
+src/
+├── services/          # Logique métier pure (fonctions testables)
+├── utils/             # Utilitaires réutilisables
+├── hooks/             # Hooks personnalisés React
+├── context/           # Context API (si nécessaire)
+├── components/
+│   ├── common/        # Composants génériques (Button, Modal, etc.)
+│   └── LectureFlash/  # Composants métier décomposés
+```
+
+**Bénéfices** :
+
+- 🧪 **Testabilité** : Services purs isolables, tests unitaires facilités
+- 🔄 **Réutilisabilité** : Composants communs utilisables dans autres projets
+- 📈 **Évolutivité** : Ajout fonctionnalités simplifié, migration TS possible
+- 🛠️ **Maintenabilité** : Code clair, responsabilités évidentes, onboarding rapide
+
+---
+
 ## 🧪 Tests et Qualité
 
 ### Tests Fonctionnels
@@ -311,7 +425,9 @@ pnpm preview
       "@": "/src",
       "@components": "/src/components",
       "@hooks": "/src/hooks",
-      "@config": "/src/config"  // ✨ Nouveau
+      "@config": "/src/config",
+      "@services": "/src/services",  // 🆕 v3.9.0
+      "@utils": "/src/utils"          // 🆕 v3.9.0
     }
   }
 }
@@ -344,16 +460,33 @@ Les contributions sont les bienvenues ! Merci de :
 
 ### Standards
 
-- **JSDoc** : Documenter toutes les fonctions
-- **PropTypes** : Valider toutes les props
+- **JSDoc** : Documenter toutes les fonctions (services, utils)
+- **PropTypes** : Valider toutes les props (composants)
 - **Noms en français** : Variables et commentaires
-- **Composants < 300 lignes** : Principe de responsabilité unique
+- **Composants < 200 lignes** : Principe de responsabilité unique
+- **Tests** : Unitaires pour services, manuels pour composants
+
+### Convention Commits
+
+**Format** : `type(scope): description`
+
+**Types** : `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+
+**Exemples** :
+
+```bash
+git commit -m "feat(speed-selector): ajout options police et taille"
+git commit -m "fix(text-input): correction comptage mots avec lignes vides"
+git commit -m "refactor(services): extraction calculs vitesse"
+```
 
 ---
 
 ## 📚 Documentation Complémentaire
 
 - **SRS.md** : Spécification complète des exigences
+- **ARCHITECTURE.md** : Guide architecture et bonnes pratiques (🆕 v3.9.0)
+- **DECISIONS.md** : Historique décisions architecturales - ADR (🆕 v3.9.0)
 - **CHANGELOG.md** : Historique des versions
 - **docs/INTEGRATION_GUIDE.md** : Guide d'intégration TextInputManager
 - **docs/JUSTIFICATION_PEDAGOGIQUE_AIDE.md** : Fondements pédagogiques du système d'aide
@@ -372,7 +505,7 @@ Les contributions sont les bienvenues ! Merci de :
 
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-**Copyright** © 2024 Frédéric MISERY
+**Copyright** © 2024-2026 Frédéric MISERY
 
 ---
 
@@ -385,6 +518,6 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 ---
 
-**Dernière mise à jour** : Février 2026  
-**Version** : 3.8.0  
-**Status** : ✅ Production
+**Dernière mise à jour** : 13 février 2026  
+**Version** : 3.9.0  
+**Status** : 🚀 En développement actif

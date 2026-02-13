@@ -2,10 +2,10 @@
 
 # Lecture Flash - Application Éducative de Fluence
 
-**Version** : 3.8.0  
+**Version** : 3.9.0  
 **Date** : 13 février 2026  
 **Auteur** : Frédéric MISERY - Conseiller Pédagogique de Circonscription Numérique  
-**Status** : ✅ Production
+**Status** : 🚀 En développement actif
 
 ---
 
@@ -20,6 +20,7 @@
 7. [Tests](#7-tests)
 8. [Références](#8-références)
 9. [Glossaire](#9-glossaire)
+10. [Roadmap et Décisions en Attente](#10-roadmap-et-décisions-en-attente)
 
 ---
 
@@ -125,7 +126,7 @@ Application web monopage (SPA) responsive fonctionnant :
 
     - 5 vitesses prédéfinies (30-110 MLM)
     - Vitesse personnalisée (20-200 MLM)
-    - Mode test (prévisualisation 10s)
+    - Options affichage (police, taille) - v3.9.0
     - Tooltips pédagogiques
 
 3. **Partage** (Conditionnel si CodiMD)
@@ -137,8 +138,9 @@ Application web monopage (SPA) responsive fonctionnant :
 4. **Lecture animée** (Étape 3)
 
     - Disparition progressive mot-à-mot
-    - Contrôles : Pause/Reprendre/Relire
+    - Contrôles : Pause/Reprendre/Relire/Retour
     - Barre de progression visuelle
+    - Mode plein écran - v3.9.0
     - Retour conditionnel (sauf si imposé)
 
 5. **Système d'aide intégré**
@@ -151,9 +153,10 @@ Application web monopage (SPA) responsive fonctionnant :
 #### Scénario 1 : Enseignant prépare un exercice TBI
 
 1. Saisir un texte adapté au niveau
-2. Tester différentes vitesses (30-70 MLM)
-3. Projeter sur TBI
-4. Lancer la lecture collective
+2. Choisir vitesse appropriée (30-110 MLM)
+3. Ajuster options affichage si nécessaire (TBI)
+4. Projeter sur TBI
+5. Lancer la lecture collective en plein écran
 
 #### Scénario 2 : Élève en autonomie
 
@@ -198,7 +201,7 @@ Application web monopage (SPA) responsive fonctionnant :
 - ✅ Support copier-coller (Ctrl+C/V)
 - ✅ Pas de limite de caractères
 
-**Implémentation** : `TextInputManager.jsx` onglet "Saisir"
+**Implémentation** : `TextInputManager.jsx` onglet "Saisir" ou `ManualInputTab.jsx` (v3.9.0)
 
 #### 3.1.2 Import Fichier Local
 
@@ -212,7 +215,7 @@ Application web monopage (SPA) responsive fonctionnant :
 - ✅ Chargement automatique dans onglet "Saisir"
 - ✅ Message d'erreur si format invalide
 
-**Implémentation** : `TextInputManager.jsx` onglet "Fichier"
+**Implémentation** : `TextInputManager.jsx` onglet "Fichier" ou `FileUploadTab.jsx` (v3.9.0)
 
 #### 3.1.3 Chargement CodiMD
 
@@ -222,6 +225,7 @@ Application web monopage (SPA) responsive fonctionnant :
 
 - ✅ Validation format URL (https://codimd.apps.education.fr/s/...)
 - ✅ Conversion Markdown → texte brut
+- ✅ Filtrage automatique titres `#` (v3.9.0)
 - ✅ Hook personnalisé `useMarkdownFromUrl`
 - ✅ Gestion états : loading, error, success
 - ✅ Badge indicateur "☁️ Texte chargé depuis le cloud"
@@ -230,7 +234,7 @@ Application web monopage (SPA) responsive fonctionnant :
 
 **Implémentation** :
 
-- `TextInputManager.jsx` onglet "CodiMD"
+- `TextInputManager.jsx` onglet "CodiMD" ou `CodiMDTab.jsx` (v3.9.0)
 - `hooks/useMarkdownFromUrl.js`
 
 #### 3.1.4 Export .txt
@@ -244,7 +248,7 @@ Application web monopage (SPA) responsive fonctionnant :
 - ✅ Encodage UTF-8
 - ✅ Bouton désactivé si texte vide
 
-**Implémentation** : `TextInputManager.jsx` onglet "Saisir"
+**Implémentation** : `TextInputManager.jsx` onglet "Saisir" ou `ManualInputTab.jsx` (v3.9.0)
 
 ### 3.2 Configuration de Vitesse (REQ-FUNC-002)
 
@@ -261,7 +265,6 @@ Application web monopage (SPA) responsive fonctionnant :
 - ✅ Tooltips pédagogiques au survol
 - ✅ Badge "⭐ Suggérée" si lien partagé (locked=false)
 - ✅ Badge "✓ Sélectionnée" si choix utilisateur
-- ✅ Bouton "🧪 Tester" par vitesse
 - ✅ Bouton "Choisir" avec couleur distinctive
 
 **Vitesses** :
@@ -315,25 +318,31 @@ SPEEDS = [
 - ✅ Input range 20-200 MLM (pas de 5)
 - ✅ Affichage valeur courante en gros (4xl)
 - ✅ Zone Eduscol calculée dynamiquement (getEduscolZone)
-- ✅ Boutons "🧪 Tester" et "✓ Choisir"
+- ✅ Boutons "✓ Choisir"
 - ✅ Modale centrée (max-width: 384px)
 - ✅ Message pédagogique (repères Eduscol)
 
-**Implémentation** : `SpeedSelector.jsx` + modale custom
+**Implémentation** : `SpeedSelector.jsx` + modale custom ou `CustomSpeedModal.jsx` (v3.10.0)
 
 #### 3.2.3 Mode Test
 
-**Description** : Prévisualisation vitesse pendant 10 secondes.
+**⚠️ DÉPRÉCIÉ - Supprimé en v3.9.0**
 
-**Critères d'acceptation** :
+**Justification suppression** : Le workflow de navigation Étape 2 → Étape 3 → Retour est plus efficace pour le public enseignant disposant des repères Eduscol. La prévisualisation 10 secondes sur 5 mots n'est pas représentative du texte complet.
 
-- ✅ Affichage des 5 premiers mots du texte
-- ✅ Animation pulse (simulate reading)
-- ✅ Durée : 10 secondes
-- ✅ Bouton "⏸ Arrêter le test" pour sortir avant
-- ✅ Retour automatique à la sélection après 10s
+**Remplacement fonctionnel** : Bouton "← Changer vitesse" à l'étape 3 (déjà implémenté).
 
-**Implémentation** : `SpeedSelector.jsx` (state isTestActive)
+~~Description : Prévisualisation vitesse pendant 10 secondes.~~
+
+~~**Critères d'acceptation** :~~
+
+- ~~✅ Affichage des 5 premiers mots du texte~~
+- ~~✅ Animation pulse (simulate reading)~~
+- ~~✅ Durée : 10 secondes~~
+- ~~✅ Bouton "⏸ Arrêter le test" pour sortir avant~~
+- ~~✅ Retour automatique à la sélection après 10s~~
+
+~~**Implémentation** : `SpeedSelector.jsx` (state isTestActive)~~
 
 ### 3.3 Partage (REQ-FUNC-003)
 
@@ -373,7 +382,8 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 **Implémentation** :
 
 - Bouton : `LectureFlash/index.jsx` (renderActions)
-- Modale : `SpeedSelector.jsx` (showShareModal)
+- Modale : `SpeedSelector.jsx` (showShareModal) ou `ShareModal.jsx` (v3.10.0)
+- Service : `services/urlGeneration.js` (v3.9.0)
 
 ### 3.4 Lecture Animée (REQ-FUNC-004)
 
@@ -386,6 +396,7 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 **Critères d'acceptation** :
 
 - ✅ Purification du texte (espaces, caractères spéciaux)
+- ✅ Conservation retours ligne `\n` (v3.9.0)
 - ✅ Calcul vitesse : `((nbreMots / vitesse) * 60000) / nbreCaracteres`
 - ✅ Animation CSS `@keyframes masquer` dans flash.css
 - ✅ Espaces insécables avant/après ponctuation
@@ -396,9 +407,10 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 
 **Implémentation** :
 
-- `TextAnimation.jsx` (logique)
+- `TextAnimation.jsx` (logique) ou `useTextAnimation.js` (v3.10.0)
 - `Word.jsx` (animation individuelle)
 - `flash.css` (keyframes)
+- `services/textProcessing.js` (v3.9.0)
 
 #### 3.4.2 Barre de Progression
 
@@ -412,11 +424,11 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 - ✅ Transition CSS fluide (300ms)
 - ✅ ARIA : `role="progressbar"` avec valuenow/min/max
 
-**Implémentation** : `TextAnimation.jsx`
+**Implémentation** : `TextAnimation.jsx` ou composant `ProgressBar.jsx` dédié (v3.10.0)
 
 #### 3.4.3 Contrôles de Lecture
 
-**Description** : Boutons Pause/Reprendre/Relire/Retour.
+**Description** : Boutons Pause/Reprendre/Relire/Retour/Plein écran.
 
 **Critères d'acceptation** :
 
@@ -425,6 +437,10 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 - ✅ **Retour** : Retour étape 2 (← Changer vitesse)
     - Affiché uniquement si `!speedConfig.locked`
     - Masqué si vitesse imposée
+- ✅ **Plein écran** : Toggle fullscreen (⛶) - v3.9.0
+    - API Fullscreen native
+    - Fallback gracieux si non supporté
+    - Sortie via Escape ou bouton manuel
 
 **États** :
 
@@ -434,8 +450,9 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 
 **Implémentation** :
 
-- Contrôles : `LectureFlash/index.jsx`
+- Contrôles : `LectureFlash/index.jsx` ou `ReadingControls.jsx` (v3.10.0)
 - Animation : `TextAnimation.jsx` (respecte isPaused)
+- Plein écran : `hooks/useFullscreen.js` (v3.9.0)
 
 ### 3.5 Système d'Aide (REQ-FUNC-005)
 
@@ -454,7 +471,7 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 - ✅ Animation fadeIn (150ms)
 - ✅ Ne se réaffiche JAMAIS après fermeture
 
-**Implémentation** : `FirstTimeMessage.jsx`
+**Implémentation** : `FirstTimeMessage.jsx` + `hooks/useLocalStorage.js` (v3.9.0)
 
 #### 3.5.2 Tooltips Contextuels
 
@@ -473,8 +490,9 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 **Usages** :
 
 - Onglets (Saisir, Fichier, CodiMD)
-- Vitesses (30-110 MLM)
+- Vitesses (30-110 MLM) avec mention "Vous pourrez ajuster après le lancement"
 - Bouton aide (?)
+- Options affichage (v3.9.0)
 
 **Implémentation** : `Tooltip.jsx`
 
@@ -489,12 +507,139 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 - ✅ Contenu scrollable
 - ✅ 3 étapes détaillées avec exemples
 - ✅ Tableau vitesses MLM + correspondances Eduscol
+- ✅ Mention nouvelles fonctionnalités (plein écran, options affichage) - v3.9.0
 - ✅ Attribution @petitejulie89
 - ✅ Fermeture : Escape, clic overlay, bouton ×, bouton "J'ai compris"
 - ✅ ARIA : `role="dialog"`, focus trap, scroll lock body
 - ✅ Accessibilité WCAG 2.1 AA
 
 **Implémentation** : `HelpModal.jsx`
+
+### 3.6 Personnalisation Affichage (REQ-FUNC-006)
+
+**Priorité** : Moyenne  
+**Version** : 3.9.0
+
+#### Description
+
+Options typographiques pour améliorer accessibilité et adapter affichage (TBI/TNI, élèves à besoins particuliers).
+
+#### Critères d'acceptation
+
+**Section optionnelle** :
+
+- ✅ Collapsed par défaut (préserve simplicité interface)
+- ✅ Positionnée étape 2 (configuration avant lecture)
+- ✅ Tooltip explicatif : "Pour adapter au TBI ou élèves à besoins particuliers"
+
+**Sélection police** :
+
+- ✅ Options : Défaut (sans serif), OpenDyslexic, Arial, Comic Sans MS
+- ✅ Application immédiate étape 3
+- ✅ Persistance localStorage
+
+**Ajustement taille** :
+
+- ✅ Curseur 100-200% (pas de 10%)
+- ✅ Affichage valeur courante
+- ✅ Application immédiate étape 3
+- ✅ Persistance localStorage
+
+**Implémentation** :
+
+- Composant : `SpeedSelector.jsx` (section collapsed) ou `DisplayOptions.jsx` (v3.10.0)
+- Props transmission : `TextAnimation.jsx`
+- Persistance : `hooks/useLocalStorage.js`
+- Key localStorage : `lecture-flash-font-settings`
+
+### 3.7 Gestion Markdown CodiMD (REQ-FUNC-007)
+
+**Priorité** : Haute (correction bug)  
+**Version** : 3.9.0
+
+#### Description
+
+Filtrage automatique des titres Markdown lors chargement CodiMD.
+
+#### Problème
+
+Les documents CodiMD incluent des titres balisés `#` qui perturbent l'affichage dans Lecture Flash.
+
+#### Critères d'acceptation
+
+- ✅ Filtrage automatique lignes commençant par `# ` (H1 uniquement)
+- ✅ Conservation sous-titres `##` si présents (optionnel)
+- ✅ Transparent pour utilisateur (pas d'option)
+- ✅ Compatible conversion Markdown → texte brut existante
+
+**Implémentation** :
+
+- Hook : `hooks/useMarkdownFromUrl.js`
+- Filtre : `.filter(line => !line.trim().startsWith('# '))`
+
+### 3.8 Conservation Retours Ligne (REQ-FUNC-008)
+
+**Priorité** : Haute (correction bug)  
+**Version** : 3.9.0
+
+#### Description
+
+Préservation des sauts de ligne pour respecter mise en page pédagogique (strophes, paragraphes, listes).
+
+#### Critères d'acceptation
+
+- ✅ Conservation `\n` comme séparateurs sémantiques
+- ✅ Affichage visuel paragraphes (margin-bottom ou `<br>`)
+- ✅ Algorithme comptage mots ignore lignes vides
+- ✅ Compatibilité import .txt et CodiMD
+- ✅ Animation mot-à-mot respecte sauts paragraphe
+
+**Implémentation** :
+
+- Purification : `TextAnimation.jsx` ou `services/textProcessing.js`
+- Affichage : `Word.jsx` (détection fin ligne)
+- Service : `services/textProcessing.parseTextWithLineBreaks()` (v3.9.0)
+
+### 3.9 Mode Plein Écran (REQ-FUNC-009)
+
+**Priorité** : Haute  
+**Version** : 3.9.0
+
+#### Description
+
+Mode immersif pour étape lecture éliminant distractions visuelles.
+
+#### Critères d'acceptation
+
+**Bouton plein écran** :
+
+- ✅ Icône "⛶" dans contrôles étape 3
+- ✅ Toggle manuel (activation/désactivation)
+- ✅ API Fullscreen native (`requestFullscreen`/`exitFullscreen`)
+- ✅ Détection support API (`document.fullscreenEnabled`)
+
+**Sortie plein écran** :
+
+- ✅ Touche Escape (natif navigateur)
+- ✅ Bouton manuel "⛿ Quitter plein écran"
+- ✅ Détection changement état (`fullscreenchange` event)
+
+**Fallback** :
+
+- ✅ Message discret si API non supportée (Safari iOS)
+- ✅ Bouton désactivé ou masqué si indisponible
+
+**UI/UX** :
+
+- ✅ Toast discret lors activation/désactivation
+- ✅ Gestion responsive (portrait/paysage)
+- ✅ Conservation état lecture (pause, progression)
+
+**Implémentation** :
+
+- Hook : `hooks/useFullscreen.js`
+- Composant : `TextAnimation.jsx` ou `FullscreenButton.jsx` (v3.10.0)
+- Events : `fullscreenchange`, `fullscreenerror`
 
 ---
 
@@ -527,6 +672,7 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 - ✅ Contraste > 3:1 (texte large)
 - ✅ Lecteur d'écran compatible (annonces appropriées)
 - ✅ Responsive 320px → 2560px
+- ✅ Redimensionnement texte jusqu'à 200% (v3.9.0)
 
 **Test avec** :
 
@@ -538,12 +684,12 @@ https://lectureflash.fr/?url={sourceUrl}&speed={speedWpm}&locked={true|false}
 
 **Navigateurs supportés** :
 
-| Navigateur | Version minimale |
-| ---------- | ---------------- |
-| Chrome     | 90+              |
-| Firefox    | 88+              |
-| Safari     | 14+              |
-| Edge       | 90+              |
+| Navigateur | Version minimale | Notes v3.9.0                  |
+| ---------- | ---------------- | ----------------------------- |
+| Chrome     | 90+              | ✅ Fullscreen API supportée   |
+| Firefox    | 88+              | ✅ Fullscreen API supportée   |
+| Safari     | 14+              | ⚠️ Fullscreen API limitée iOS |
+| Edge       | 90+              | ✅ Fullscreen API supportée   |
 
 **Appareils** :
 
@@ -580,8 +726,8 @@ MonComposant.propTypes = {
 
 **Règles** :
 
-- ✅ Composants < 300 lignes (principe responsabilité unique)
-- ✅ Pas de code dupliqué
+- ✅ Composants < 200 lignes (principe responsabilité unique) - v3.9.0
+- ✅ Pas de code dupliqué (services mutualisés) - v3.9.0
 - ✅ Noms de variables explicites en français
 - ✅ Pas de console.log en production
 - ✅ Hooks dans l'ordre (useState, useEffect, useRef)
@@ -621,12 +767,23 @@ lecture-flash/
 └── src/
     ├── index.jsx                    # Point d'entrée React
     │
-    ├── config/                      # ✨ Configuration centralisée
+    ├── config/                      # Configuration centralisée
     │   ├── constants.js             # Modes, vitesses, helpers
     │   └── initialState.js          # État initial
     │
+    ├── services/                    # 🆕 v3.9.0 - Logique métier pure
+    │   ├── textProcessing.js       # Purification, comptage, parsing
+    │   ├── speedCalculations.js    # Calculs MLM, temps lecture
+    │   └── urlGeneration.js        # Génération liens partage
+    │
+    ├── utils/                       # 🆕 v3.9.0 - Utilitaires
+    │   ├── validation.js           # Validation URL, fichiers
+    │   └── formatters.js           # Formatage dates, durées
+    │
     ├── hooks/                       # Hooks personnalisés
-    │   └── useMarkdownFromUrl.js   # Chargement CodiMD
+    │   ├── useMarkdownFromUrl.js  # Chargement CodiMD
+    │   ├── useLocalStorage.js     # 🆕 v3.9.0 - Abstraction localStorage
+    │   └── useFullscreen.js       # 🆕 v3.9.0 - Gestion fullscreen API
     │
     ├── components/
     │   ├── App.jsx                  # Composant racine
@@ -646,10 +803,13 @@ lecture-flash/
     │       ├── ShareConfiguration.jsx  # Config partage (legacy)
     │       │
     │       ├── TextInput/           # Gestion texte
-    │       │   └── TextInputManager.jsx  # 3 onglets
+    │       │   ├── TextInputManager.jsx     # Orchestrateur onglets
+    │       │   ├── ManualInputTab.jsx       # 🆕 v3.9.0 - Onglet "Saisir"
+    │       │   ├── FileUploadTab.jsx        # 🆕 v3.9.0 - Onglet "Fichier"
+    │       │   └── CodiMDTab.jsx            # 🆕 v3.9.0 - Onglet "CodiMD"
     │       │
     │       └── Flash/               # Lecture animée
-    │           ├── TextAnimation.jsx    # Orchestrateur
+    │           ├── TextAnimation.jsx    # Orchestrateur animation
     │           ├── SpeedSelector.jsx    # Sélection vitesse
     │           └── Word.jsx             # Animation mot
     │
@@ -679,7 +839,9 @@ export default defineConfig({
             "@": "/src",
             "@components": "/src/components",
             "@hooks": "/src/hooks",
-            "@config": "/src/config", // ✨ v3.8.0
+            "@config": "/src/config",
+            "@services": "/src/services", // 🆕 v3.9.0
+            "@utils": "/src/utils", // 🆕 v3.9.0
         },
     },
 });
@@ -711,13 +873,19 @@ User Input (Étape 1: Texte)
     ↓
 TextInputManager → setAppState({ text })
     ↓
-User Input (Étape 2: Vitesse)
+services/textProcessing.js (comptage, validation)  // 🆕 v3.9.0
     ↓
-SpeedSelector → setAppState({ speedWpm })
+User Input (Étape 2: Vitesse + Options affichage)
+    ↓
+SpeedSelector → setAppState({ speedWpm, font, fontSize })
+    ↓
+services/speedCalculations.js (calculs)  // 🆕 v3.9.0
     ↓
 User Action (Étape 3: Lancer)
     ↓
-TextAnimation (props: text, speedWpm, isPaused)
+TextAnimation (props: text, speedWpm, isPaused, font, fontSize)
+    ↓
+services/textProcessing.js (purification, parsing)  // 🆕 v3.9.0
     ↓
 Word (props: word, speed, onNext)
     ↓
@@ -731,11 +899,12 @@ Animation CSS (@keyframes masquer)
 ### 6.1 Contraintes Techniques
 
 - ❌ **Pas de TypeScript** : JavaScript pur uniquement
-- ❌ **Pas de state management externe** : Redux, Zustand, etc.
+- ❌ **Pas de state management externe** : Redux, Zustand, etc. (Context React si nécessaire v4.0)
 - ❌ **Pas de CSS-in-JS** : Tailwind uniquement
 - ❌ **Pas de librairies tierces** : Animation, carousel, etc.
 - ✅ **React natif** : useState, useEffect, useReducer, useRef
 - ✅ **PropTypes** : Validation obligatoire
+- ✅ **Services métier** : Séparation logique/présentation (v3.9.0)
 
 ### 6.2 Contraintes Pédagogiques
 
@@ -769,17 +938,21 @@ Animation CSS (@keyframes masquer)
 - [ ] Badge disparaît si texte modifié
 - [ ] Validation URL CodiMD
 - [ ] Messages d'erreur appropriés
+- [ ] Retours ligne préservés (v3.9.0)
+- [ ] Titres Markdown filtrés (v3.9.0)
 
 **Checklist Étape 2 (Vitesse)** :
 
 - [ ] 5 vitesses affichées avec labels corrects
 - [ ] Tooltips s'affichent au survol
-- [ ] Bouton "Tester" lance prévisualisation 10s
+- [ ] Tooltips mentionnent possibilité ajustement (v3.9.0)
 - [ ] Bouton "Choisir" sélectionne la vitesse
 - [ ] Badge "Sélectionnée" s'affiche
 - [ ] Curseur personnalisé 20-200 MLM fonctionne
 - [ ] Zone Eduscol calculée dynamiquement
 - [ ] Partage affiché si sourceUrl présent
+- [ ] Options affichage (police/taille) fonctionnent (v3.9.0)
+- [ ] Persistance localStorage options (v3.9.0)
 
 **Checklist Partage** :
 
@@ -794,12 +967,28 @@ Animation CSS (@keyframes masquer)
 **Checklist Étape 3 (Lecture)** :
 
 - [ ] Animation mot-à-mot fonctionne
+- [ ] Paragraphes respectés (v3.9.0)
 - [ ] Barre de progression s'incrémente
 - [ ] Bouton Pause/Reprendre fonctionne
 - [ ] Bouton Relire restart correctement
 - [ ] Bouton Retour (si !locked) fonctionne
+- [ ] Bouton Plein écran fonctionne (v3.9.0)
+- [ ] Sortie plein écran via Escape (v3.9.0)
+- [ ] Fallback plein écran si API non supportée (v3.9.0)
+- [ ] Options affichage appliquées (police/taille) (v3.9.0)
 - [ ] Callback onComplete appelé à la fin
 - [ ] Vitesse imposée : pas de bouton Retour
+
+**Checklist v3.9.0 (nouvelles fonctionnalités)** :
+
+- [ ] Mode plein écran fonctionne (API Fullscreen)
+- [ ] Sortie plein écran via Escape
+- [ ] Sélecteur police applique changement
+- [ ] Curseur taille 100-200% fonctionne
+- [ ] Persistance localStorage police/taille
+- [ ] Titres Markdown filtrés automatiquement (CodiMD)
+- [ ] Retours ligne préservés (paragraphes visibles)
+- [ ] Tooltips vitesses renforcés (mention ajustement possible)
 
 ### 7.2 Tests d'Accessibilité
 
@@ -807,6 +996,7 @@ Animation CSS (@keyframes masquer)
 
 - [ ] Tab parcourt tous les éléments
 - [ ] Escape ferme les modales
+- [ ] Escape sort du plein écran (v3.9.0)
 - [ ] Enter active les boutons
 - [ ] Focus visible (outline bleu)
 
@@ -822,6 +1012,7 @@ Animation CSS (@keyframes masquer)
 - [ ] Annonce étape active
 - [ ] Annonce changements d'étape
 - [ ] Messages succès annoncés (live region)
+- [ ] Annonce entrée/sortie plein écran (v3.9.0)
 
 ### 7.3 Tests de Performance
 
@@ -837,15 +1028,16 @@ Animation CSS (@keyframes masquer)
 - [ ] 60 FPS constant
 - [ ] Pas de saccades
 - [ ] Responsive sur tous appareils
+- [ ] Performance maintenue en plein écran (v3.9.0)
 
 ### 7.4 Tests de Compatibilité
 
 **Navigateurs** :
 
-- [ ] Chrome (Windows/macOS)
-- [ ] Firefox (Windows/macOS)
-- [ ] Safari (macOS/iOS)
-- [ ] Edge (Windows)
+- [ ] Chrome (Windows/macOS) - Fullscreen API
+- [ ] Firefox (Windows/macOS) - Fullscreen API
+- [ ] Safari (macOS/iOS) - Fullscreen API limitée iOS
+- [ ] Edge (Windows) - Fullscreen API
 
 **Appareils** :
 
@@ -853,6 +1045,20 @@ Animation CSS (@keyframes masquer)
 - [ ] Tablette 768x1024
 - [ ] Mobile 375x667
 - [ ] TBI 1920x1080 (projection)
+
+### 7.5 Tests Unitaires (v3.9.0)
+
+**Services** :
+
+- [ ] `textProcessing.countWords()` - Comptage correct
+- [ ] `textProcessing.purifyText()` - Purification espaces/caractères
+- [ ] `textProcessing.parseTextWithLineBreaks()` - Conservation `\n`
+- [ ] `speedCalculations.calculateAnimationSpeed()` - Calcul MLM
+- [ ] `speedCalculations.getEduscolZone()` - Zones correctes
+- [ ] `speedCalculations.estimateReadingTime()` - Temps estimé
+- [ ] `urlGeneration.generateShareUrl()` - Format URL correct
+- [ ] `validation.isValidCodiMDUrl()` - Validation URL
+- [ ] `validation.validateTextFile()` - Validation fichier
 
 ---
 
@@ -888,6 +1094,7 @@ Animation CSS (@keyframes masquer)
 - [Vite Documentation](https://vitejs.dev/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/)
 - [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/)
+- [MDN Fullscreen API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
 
 ---
 
@@ -917,9 +1124,520 @@ Animation CSS (@keyframes masquer)
 
 **RGPD** : Règlement Général sur la Protection des Données
 
+**SRP** : Single Responsibility Principle - 1 composant = 1 responsabilité (v3.9.0)
+
+**ADR** : Architecture Decision Record - Documentation décisions architecturales (v3.9.0)
+
+---
+
+## 10. Roadmap et Décisions en Attente
+
+### 10.1 Version 3.9.0 (En cours de spécification - Q1 2026)
+
+#### Décisions Validées
+
+**REQ-FUNC-006 : Mode Plein Écran (Étape 3)**
+
+**Priorité** : Haute  
+**Justification** : Renforce l'immersion et élimine les distractions visuelles, conforme au principe de charge cognitive minimale (Tricot).
+
+**Critères d'acceptation** :
+
+- Bouton "⛶ Plein écran" dans contrôles étape 3
+- API Fullscreen native (requestFullscreen/exitFullscreen)
+- Toggle manuel + détection automatique Escape
+- Message toast discret lors activation/désactivation
+- Fallback gracieux si API non supportée (Safari iOS)
+- Responsive TBI/TNI/tablette
+
+**Implémentation** : `TextAnimation.jsx` ou `FullscreenButton.jsx` (v3.10.0) + `hooks/useFullscreen.js`
+
+---
+
+**REQ-FUNC-007 : Personnalisation Affichage (Police et Taille)**
+
+**Priorité** : Moyenne  
+**Justification** : Accessibilité étendue pour élèves à besoins particuliers + adaptation TBI/TNI. Conforme WCAG 2.1 AA critère 1.4.4.
+
+**Critères d'acceptation** :
+
+- Section optionnelle collapsed dans SpeedSelector (étape 2)
+- Sélecteur police : Défaut, OpenDyslexic, Arial, Comic Sans MS
+- Curseur taille : 100-200% (pas de 10%)
+- Tooltip : "Pour adapter au TBI ou élèves à besoins particuliers"
+- Persistance localStorage (`lecture-flash-font-settings`)
+- Application immédiate étape 3 via props
+
+**Implémentation** : `SpeedSelector.jsx` ou `DisplayOptions.jsx` (v3.10.0) + props vers `TextAnimation.jsx` + `hooks/useLocalStorage.js`
+
+---
+
+**REQ-FUNC-008 : Gestion Titres Markdown CodiMD**
+
+**Priorité** : Haute (correction bug)  
+**Problème** : Les titres balisés `#` dans documents CodiMD perturbent affichage Lecture Flash.
+
+**Critères d'acceptation** :
+
+- Filtrage automatique lignes commençant par `# ` (titre H1 uniquement)
+- Conservation sous-titres `##` si pertinence pédagogique (optionnel)
+- Transparent pour utilisateur (pas d'option)
+- Compatible avec conversion Markdown → texte brut existante
+
+**Implémentation** : `hooks/useMarkdownFromUrl.js`
+
+```javascript
+// Dans la fonction de conversion Markdown
+.filter(line => !line.trim().startsWith('# '))  // Supprimer titre H1 uniquement
+```
+
+---
+
+**REQ-FUNC-009 : Conservation Retours Ligne**
+
+**Priorité** : Haute (correction bug)  
+**Problème** : Les sauts de ligne doivent être préservés pour respecter mise en page pédagogique (strophes, paragraphes).
+
+**Critères d'acceptation** :
+
+- Conserver `\n` comme séparateurs sémantiques
+- Affichage visuel paragraphes (margin-bottom ou `<br>`)
+- Algorithme comptage ignore lignes vides
+- Compatibilité import .txt et CodiMD
+- Animation mot-à-mot respecte sauts paragraphe
+
+**Implémentation** :
+
+- `services/textProcessing.js` (fonction purification + `parseTextWithLineBreaks()`)
+- `Word.jsx` (détection fin de ligne)
+
+---
+
+**REQ-FUNC-010 : Suppression Mode Test Vitesse**
+
+**Priorité** : Moyenne (simplification UX)  
+**Justification** :
+
+- Public cible = enseignants disposant des repères Eduscol
+- Workflow Étape 2 → 3 → Retour plus efficace que test 10s
+- Prévisualisation sur 5 mots non représentative du texte complet
+- Suppression = 5 boutons "🧪 Tester" éliminés (charge cognitive réduite)
+
+**Critères d'acceptation** :
+
+- Retirer boutons "🧪 Tester" des 5 cartes vitesse
+- Conserver uniquement boutons "Choisir"
+- Supprimer state `isTestActive`, logique timer, fonction `handleTest()`
+- Renforcer tooltips pour compenser : "Recommandé pour CE1 - Vous pourrez ajuster après le lancement"
+
+**Implémentation** : `SpeedSelector.jsx`
+
+**Note** : Le bouton "← Changer vitesse" existant (étape 3) remplace fonctionnellement le test.
+
+---
+
+**REQ-REFACTO-001 : Extraction Services et Utils (Phase 1)**
+
+**Priorité** : Haute (dette technique)  
+**Estimation** : 8h
+
+**Objectifs** :
+
+- Créer `services/textProcessing.js` (countWords, purifyText, parseTextWithLineBreaks)
+- Créer `services/speedCalculations.js` (calculateAnimationSpeed, getEduscolZone, estimateReadingTime)
+- Créer `services/urlGeneration.js` (generateShareUrl)
+- Créer `utils/validation.js` (isValidCodiMDUrl, validateTextFile)
+- Créer `utils/formatters.js` (formatDuration, formatDate)
+
+**Bénéfices** :
+
+- Logique métier testable unitairement (Jest)
+- Code mutualisé (suppression duplication)
+- Composants allégés (< 200 lignes)
+
+**Implémentation** :
+
+- Extraction fonctions pures depuis composants
+- Remplacement appels dans composants existants
+- Tests unitaires Jest
+- Mise à jour imports (alias `@services`, `@utils`)
+
+---
+
+**REQ-REFACTO-002 : Décomposition TextInputManager (Phase 2)**
+
+**Priorité** : Haute (dette technique)  
+**Estimation** : 6h
+
+**Objectifs** :
+
+- Décomposer `TextInputManager.jsx` (350 lignes) → 4 fichiers
+- Créer `ManualInputTab.jsx` (onglet "Saisir")
+- Créer `FileUploadTab.jsx` (onglet "Fichier")
+- Créer `CodiMDTab.jsx` (onglet "CodiMD")
+- `TextInputManager.jsx` devient orchestrateur uniquement
+
+**Bénéfices** :
+
+- Composants < 100 lignes (lisibilité)
+- Responsabilité claire par onglet
+- Tests composants isolés
+
+**Implémentation** :
+
+- Extraction logique onglets
+- Props bien définies + PropTypes
+- Tests fonctionnels par onglet
+
+---
+
+#### Décisions Différées ou Abandonnées
+
+**REQ-NON-IMPL-001 : Coloration Syllabes (Lire-Couleur)**
+
+**Statut** : ❌ Non implémenté (différé v4.0 ou abandonné)
+
+**Raisons** :
+
+1. **Complexité technique élevée** :
+
+    - Algorithme syllabation française complexe (exceptions nombreuses)
+    - Pas de bibliothèque JavaScript fiable (Hyphen.js = 200+ Ko)
+    - Refonte architecture animation (mot → caractère)
+    - Impact performance (multiplication animations CSS)
+
+2. **Cohérence pédagogique douteuse** :
+
+    - Coloration renforce décodage syllabique
+    - Lecture Flash vise automatisation/reconnaissance globale (fluence)
+    - Référence Julie Meunier : disparition mot-à-mot sans segmentation
+    - Risque surcharge cognitive (couleur + vitesse + disparition)
+
+3. **Alternative existante** :
+    - Enseignants disposent de Lire-Couleur (LibreOffice/Word) pour préparation
+    - Lecture Flash = entraînement vitesse, pas outil de décodage
+
+**Évolution possible** : Si implémentation future, créer mode distinct "Décodage syllabique" vs "Fluence" actuel, dans version majeure v4.0 après validation terrain.
+
+---
+
+### 10.2 Version 3.10.0 (Q2 2026)
+
+**REQ-REFACTO-003 : Décomposition SpeedSelector (Phase 3)**
+
+**Priorité** : Moyenne  
+**Estimation** : 10h
+
+**Objectifs** :
+
+- Décomposer `SpeedSelector.jsx` (400 lignes) → 5 fichiers
+- Créer `SpeedSelector/index.jsx` (orchestrateur)
+- Créer `SpeedCard.jsx` (carte vitesse individuelle)
+- Créer `CustomSpeedModal.jsx` (modale vitesse personnalisée)
+- Créer `ShareModal.jsx` (modale partage)
+- Créer `DisplayOptions.jsx` (options police/taille)
+
+**Implémentation** : Dossier `Flash/SpeedSelector/`
+
+---
+
+**REQ-REFACTO-004 : Décomposition TextAnimation (Phase 4)**
+
+**Priorité** : Moyenne  
+**Estimation** : 8h
+
+**Objectifs** :
+
+- Créer hook `useTextAnimation.js` (logique animation pure)
+- Décomposer `TextAnimation.jsx` → 4 fichiers
+- Créer `AnimatedText.jsx` (affichage texte)
+- Créer `ReadingControls.jsx` (boutons pause/relire/retour)
+- Créer `FullscreenButton.jsx` (bouton plein écran)
+- `Word.jsx` conservé
+
+**Implémentation** : Dossier `Flash/TextAnimation/` + `hooks/useTextAnimation.js`
+
+---
+
+### 10.3 Version 4.0 (Q3 2026)
+
+**REQ-REFACTO-005 : Composants Communs (Phase 5)**
+
+**Priorité** : Basse  
+**Estimation** : 12h
+
+**Objectifs** :
+
+- Créer bibliothèque composants génériques `components/common/`
+- `Button.jsx` (variants primary/secondary/danger)
+- `Modal.jsx` (base pour toutes modales)
+- `Tabs.jsx` (système onglets générique)
+- `Slider.jsx` (curseur générique)
+- `ProgressBar.jsx` (barre progression générique)
+- `Toast.jsx` (notifications)
+
+**Bénéfices** :
+
+- Design system cohérent
+- Réutilisabilité inter-projets
+- Maintenance centralisée
+
+---
+
+**REQ-REFACTO-006 : Context API (Phase 6)**
+
+**Priorité** : Basse  
+**Estimation** : 4h  
+**Condition** : Si props drilling > 3 niveaux
+
+**Objectifs** :
+
+- Évaluer nécessité Context API
+- Créer `context/AppContext.jsx` si nécessaire
+- Migration progressive état global
+
+**Alternative** : Conserver props drilling si < 3 niveaux (simplicité)
+
+---
+
+**Fonctionnalités Envisagées v4.0**
+
+- 🔍 **Statistiques lecture** : Vitesse réelle mesurée, taux relecture
+- 📊 **Historique progression** : Stockage localStorage, graphiques évolution
+- 🎨 **Thèmes visuels** : Mode sombre, contraste élevé
+- 🌐 **Internationalisation** : i18n (anglais, espagnol)
+- 📱 **PWA complète** : Installation, notifications, offline avancé
+
+---
+
+### 10.4 Priorisation Développement
+
+| Feature                               | Version cible | Priorité   | Effort dev      | Impact utilisateur      |
+| ------------------------------------- | ------------- | ---------- | --------------- | ----------------------- |
+| Gestion titres Markdown               | 3.9.0         | 🔴 Haute   | 🟢 Faible (2h)  | Correction bug          |
+| Conservation retours ligne            | 3.9.0         | 🔴 Haute   | 🟢 Faible (4h)  | Correction bug          |
+| Mode plein écran                      | 3.9.0         | 🔴 Haute   | 🟡 Moyen (6h)   | Immersion renforcée     |
+| Suppression test vitesse              | 3.9.0         | 🟡 Moyenne | 🟢 Faible (2h)  | Simplification UX       |
+| Police + taille                       | 3.9.0         | 🟡 Moyenne | 🟡 Moyen (8h)   | Accessibilité étendue   |
+| Extraction services (Phase 1)         | 3.9.0         | 🔴 Haute   | 🟡 Moyen (8h)   | Dette technique         |
+| Décomposition TextInput (Phase 2)     | 3.9.0         | 🔴 Haute   | 🟡 Moyen (6h)   | Dette technique         |
+| Décomposition SpeedSelector (Phase 3) | 3.10.0        | 🟡 Moyenne | 🟡 Moyen (10h)  | Maintenabilité          |
+| Décomposition TextAnimation (Phase 4) | 3.10.0        | 🟡 Moyenne | 🟡 Moyen (8h)   | Maintenabilité          |
+| Composants communs (Phase 5)          | 4.0           | 🟢 Basse   | 🔴 Élevé (12h)  | Design system           |
+| Context API (Phase 6)                 | 4.0           | 🟢 Basse   | 🟢 Faible (4h)  | État global             |
+| Coloration syllabes                   | 4.0 (?)       | 🟢 Basse   | 🔴 Élevé (30h+) | Marginal/contradictoire |
+
+**Estimation totale v3.9.0** : ~36h (fonctionnalités + Phase 1-2)  
+**Estimation totale v3.10.0** : ~18h (Phase 3-4)  
+**Estimation totale v4.0** : ~16h (Phase 5-6) + fonctionnalités envisagées
+
+---
+
+### 10.5 Refactorisation Architecture (Détails)
+
+#### Contexte
+
+L'application a évolué organiquement depuis v1.0. Plusieurs composants ont dépassé 200 lignes et cumulent plusieurs responsabilités (violation principe SRP - Single Responsibility Principle). L'architecture actuelle présente des opportunités d'amélioration pour :
+
+- Faciliter la maintenance et l'évolution
+- Améliorer la testabilité
+- Respecter les bonnes pratiques React moderne
+- Clarifier la séparation des responsabilités (logique métier vs présentation)
+
+#### Problèmes Identifiés
+
+**1. Composants trop volumineux**
+
+| Composant                | Lignes actuelles | Responsabilités multiples                                                          |
+| ------------------------ | ---------------- | ---------------------------------------------------------------------------------- |
+| `SpeedSelector.jsx`      | ~400 lignes      | Sélection vitesse + Test vitesse + Partage + Modale personnalisée + Gestion état   |
+| `TextInputManager.jsx`   | ~350 lignes      | 3 onglets + Import fichier + Chargement CodiMD + Export + Validation               |
+| `LectureFlash/index.jsx` | ~300 lignes      | Orchestration workflow + Gestion état global + Rendu conditionnel étapes + Actions |
+| `TextAnimation.jsx`      | ~250 lignes      | Animation + Contrôles + Barre progression + Gestion pause + Calculs vitesse        |
+
+**2. Logique métier mélangée à la présentation**
+
+Exemples :
+
+- Calcul vitesse animation dans `TextAnimation.jsx` (devrait être dans services)
+- Validation URL CodiMD dans `TextInputManager.jsx` (devrait être dans utils)
+- Génération lien partage dans `SpeedSelector.jsx` (devrait être dans services)
+- Algorithme comptage mots dupliqué (`TextInputManager` + `TextAnimation`)
+
+**3. State management dispersé**
+
+- État global dans `LectureFlash/index.jsx`
+- État local dans chaque sous-composant
+- Props drilling sur 3-4 niveaux
+- Pas de contexte React pour état partagé
+
+**4. Absence de couche services**
+
+Toute la logique métier est dans les composants :
+
+- Conversion Markdown → texte brut
+- Génération URLs partage
+- Persistance localStorage (FirstTimeMessage uniquement)
+- Calculs mathématiques (vitesse, progression)
+
+#### Objectifs de Refactorisation
+
+**Principes directeurs** :
+
+- ✅ **Single Responsibility Principle** : 1 composant = 1 responsabilité
+- ✅ **Separation of Concerns** : Logique métier séparée de la présentation
+- ✅ **DRY (Don't Repeat Yourself)** : Mutualiser code dupliqué
+- ✅ **Composants < 200 lignes** : Facilite lecture et maintenance
+- ✅ **Testabilité** : Fonctions pures isolables
+
+**Conformité avec contraintes projet** :
+
+- ❌ Pas de TypeScript (JavaScript pur maintenu)
+- ❌ Pas de Redux/Zustand (React Context uniquement si nécessaire)
+- ✅ PropTypes obligatoires
+- ✅ JSDoc français complète
+
+#### Architecture Cible (v4.0)
+
+```
+src/
+├── config/
+│   ├── constants.js              # Existant - conservé
+│   └── initialState.js           # Existant - conservé
+│
+├── hooks/                        # Hooks personnalisés
+│   ├── useMarkdownFromUrl.js    # Existant - conservé
+│   ├── useLocalStorage.js       # 🆕 v3.9.0 - Abstraction localStorage
+│   ├── useFullscreen.js         # 🆕 v3.9.0 - Gestion fullscreen API
+│   └── useTextAnimation.js      # 🆕 v3.10.0 - Logique animation (extraite de TextAnimation.jsx)
+│
+├── services/                     # 🆕 v3.9.0 - Logique métier pure
+│   ├── textProcessing.js        # Purification, comptage mots, validation
+│   ├── speedCalculations.js     # Calculs MLM, temps lecture, zone Eduscol
+│   └── urlGeneration.js         # Génération liens partage
+│
+├── utils/                        # 🆕 v3.9.0 - Utilitaires réutilisables
+│   ├── validation.js            # Validation URL CodiMD, fichiers .txt
+│   └── formatters.js            # Formatage dates, nombres, durées
+│
+├── context/                      # 🆕 v4.0 - Context React (si nécessaire)
+│   └── AppContext.jsx           # État global partagé (alternative props drilling)
+│
+├── components/
+│   ├── App.jsx                  # Racine - conservée
+│   │
+│   ├── common/                  # 🆕 v4.0 - Composants réutilisables
+│   │   ├── Button.jsx           # Bouton générique avec variants
+│   │   ├── Modal.jsx            # Modale générique (base HelpModal)
+│   │   ├── Tabs.jsx             # Système onglets générique
+│   │   ├── Slider.jsx           # Curseur générique (vitesse, taille)
+│   │   ├── ProgressBar.jsx      # Barre progression générique
+│   │   └── Toast.jsx            # Notifications toast
+│   │
+│   ├── Tooltip.jsx              # Existant - conservé (Portal OK)
+│   ├── HelpModal.jsx            # Refactorisé avec Modal.jsx générique (v4.0)
+│   ├── FirstTimeMessage.jsx     # Refactorisé avec useLocalStorage (v3.9.0)
+│   │
+│   ├── Navbar/                  # Existant - conservé
+│   │
+│   └── LectureFlash/
+│       ├── index.jsx            # ⚡ Allégé (orchestration uniquement)
+│       ├── StepIndicator.jsx   # Conservé
+│       ├── StepContainer.jsx   # Conservé
+│       │
+│       ├── TextInput/
+│       │   ├── TextInputManager.jsx         # ⚡ Refactorisé v3.9.0
+│       │   ├── ManualInputTab.jsx           # 🆕 v3.9.0 - Extraction onglet "Saisir"
+│       │   ├── FileUploadTab.jsx            # 🆕 v3.9.0 - Extraction onglet "Fichier"
+│       │   └── CodiMDTab.jsx                # 🆕 v3.9.0 - Extraction onglet "CodiMD"
+│       │
+│       └── Flash/
+│           ├── SpeedSelector/               # 🆕 v3.10.0 - Décomposition
+│           │   ├── index.jsx                # Orchestrateur sélection
+│           │   ├── SpeedCard.jsx            # Carte vitesse individuelle
+│           │   ├── CustomSpeedModal.jsx     # Modale vitesse personnalisée
+│           │   ├── ShareModal.jsx           # Modale partage (extraction)
+│           │   └── DisplayOptions.jsx       # 🆕 v3.9.0 - Options police/taille
+│           │
+│           ├── TextAnimation/               # 🆕 v3.10.0 - Décomposition
+│           │   ├── index.jsx                # Orchestrateur animation
+│           │   ├── AnimatedText.jsx         # Affichage texte animé
+│           │   ├── Word.jsx                 # Conservé (animation mot)
+│           │   ├── ReadingControls.jsx      # 🆕 Boutons pause/relire/retour
+│           │   └── FullscreenButton.jsx     # 🆕 v3.9.0 - Bouton plein écran
+│           │
+│           └── ProgressBar.jsx              # Extraction (utilise common/ProgressBar v4.0)
+│
+└── styles/
+    ├── index.css                # Existant - conservé
+    └── flash.css                # Existant - conservé
+```
+
+#### Bénéfices Attendus
+
+**Maintenabilité** :
+
+- ✅ Composants < 200 lignes (lecture facilitée)
+- ✅ Responsabilités claires (SRP respecté)
+- ✅ Localisation rapide des bugs
+
+**Testabilité** :
+
+- ✅ Fonctions pures testables unitairement (services)
+- ✅ Composants isolés testables individuellement
+- ✅ Mocking facilité (dépendances injectées)
+
+**Réutilisabilité** :
+
+- ✅ Composants communs utilisables dans autres projets
+- ✅ Services métier indépendants du framework
+- ✅ Hooks personnalisés partageables
+
+**Performance** :
+
+- ✅ Re-renders optimisés (composants plus petits)
+- ✅ Lazy loading possible (code splitting)
+- ✅ Memoization ciblée (React.memo sur composants feuilles)
+
+**Évolutivité** :
+
+- ✅ Ajout fonctionnalités facilité (composants modulaires)
+- ✅ Remplacement composants sans impact cascade
+- ✅ Migration progressive vers TypeScript possible (si besoin futur)
+
+#### Risques et Atténuations
+
+| Risque                     | Probabilité | Impact | Atténuation                                                                   |
+| -------------------------- | ----------- | ------ | ----------------------------------------------------------------------------- |
+| Régression fonctionnelle   | Moyenne     | Élevé  | Tests exhaustifs après chaque phase, validation manuelle                      |
+| Complexité accrue initiale | Élevée      | Moyen  | Migration progressive, documentation JSDoc, exemples                          |
+| Sur-ingénierie             | Faible      | Moyen  | Respect YAGNI (You Ain't Gonna Need It), refacto uniquement si bénéfice clair |
+| Temps dépassé              | Moyenne     | Moyen  | Découpage phases, priorisation Phase 1-2 en v3.9.0                            |
+
 ---
 
 ## Changelog du Document
+
+### v3.9.0 (13 février 2026)
+
+**Ajouts majeurs** :
+
+- Section 10 complète : Roadmap et décisions en attente
+- REQ-FUNC-006 à 010 : Nouvelles fonctionnalités v3.9.0
+- REQ-REFACTO-001 à 006 : Plan refactorisation progressive
+- REQ-NON-IMPL-001 : Décision coloration syllabes
+- Section 10.5 : Détails architecture cible
+- Mise à jour structure fichiers (services/, utils/, hooks enrichis)
+- Alias Vite @services et @utils
+- Tests unitaires services (section 7.5)
+- Dépréciation mode test vitesse (section 3.2.3)
+
+**Modifications** :
+
+- Architecture technique enrichie (services, utils, hooks)
+- Flux de données intégrant services
+- Checklist tests étendue (v3.9.0)
+- Contraintes techniques (services métier)
 
 ### v3.8.0 (13 février 2026)
 
@@ -953,7 +1671,16 @@ Animation CSS (@keyframes masquer)
 
 ---
 
-**Version du document** : 3.8.0  
+**Version du document** : 3.9.0  
 **Date de dernière modification** : 13 février 2026  
-**Statut** : ✅ Production  
+**Statut** : 🚀 En développement actif  
 **Auteur** : Frédéric MISERY - CPC Numérique
+
+---
+
+**Documentation complémentaire** :
+
+- `ARCHITECTURE.md` : Guide architecture et bonnes pratiques
+- `DECISIONS.md` : Historique décisions architecturales (ADR-001 à ADR-005)
+- `README.md` : Vue d'ensemble projet et roadmap
+- `CHANGELOG.md` : Historique versions détaillé
