@@ -14,7 +14,6 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 - Hook `useLocalStorage.js` (abstraction persistance)
 - Hook `useFullscreen.js` (gestion API Fullscreen)
-- Composant `FileUploadTab.jsx` (Sprint 8 - onglet Fichier)
 - Composant `CodiMDTab.jsx` (Sprint 9 - onglet CodiMD)
 - Refactorisation `TextInputManager.jsx` (Sprint 10 - orchestrateur)
 - Composant `DisplayOptions.jsx` (police + taille)
@@ -79,15 +78,25 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
     - `validateWordCount()` : validation nombre de mots min/max
     - `sanitizeString()` : échappement caractères HTML
 
-**Components (Sprint 7)** :
+**Components (Sprints 7, 8)** :
 
-- **`components/LectureFlash/Input/ManualInputTab.jsx`** :
+- **`components/LectureFlash/Input/ManualInputTab.jsx` (Sprint 7)** :
+
     - Onglet "Saisir" extrait de TextInputManager
     - Textarea avec compteur temps réel (caractères + mots)
     - Badge cloud conditionnel si texte CodiMD
     - Export .txt avec nom horodaté
     - Utilise `countWords()` depuis textProcessing service
     - PropTypes strictes (text, onTextChange, sourceUrl, onReset)
+
+- **`components/LectureFlash/Input/FileUploadTab.jsx` (Sprint 8)** :
+    - Onglet "Fichier" extrait de TextInputManager
+    - Import fichier .txt avec validation (extension, taille, encodage)
+    - Utilise `validateTextFile()` depuis validation service
+    - Lecture UTF-8 avec FileReader
+    - Gestion erreurs avec messages utilisateur
+    - Retour automatique onglet "Saisir" après chargement
+    - PropTypes strictes (onFileLoad, onTabChange)
 
 ### Changed
 
