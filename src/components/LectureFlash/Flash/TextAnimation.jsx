@@ -1,21 +1,27 @@
 /**
  * Text Animation component for reading mode
- * VERSION 3.3.1 : CORRECTION - Animation fonctionnelle avec pause
+ * VERSION 3.9.1 : CORRECTION bug Relire + fin de lecture
  *
  * @component
  * @param {Object} props
  * @param {string} props.text - Texte à afficher
  * @param {number} props.speedWpm - Vitesse en mots par minute
+ * @param {boolean} [props.isStarted] - État démarrage lecture
  * @param {boolean} [props.isPaused] - État pause (géré par le parent)
- * @param {function} props.onSwitchMode - Callback pour revenir en mode saisie
+ * @param {function} [props.onComplete] - Callback appelé à la fin de l'animation
  */
 
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Word from "./Word";
+import {
+    parseTextWithLineBreaks,
+    countWords,
+    countCharacters,
+} from "@services/textProcessing";
 
 // ========================================
-// CONSTANTS (EXACTEMENT comme l'original qui fonctionne)
+// CONSTANTS
 // ========================================
 const NON_BREAKING_SPACE = "\u00a0";
 const NON_BREAKING_HYPHEN = "\u2011";
@@ -37,58 +43,60 @@ function TextAnimation({
     const [currentWordIndex, setCurrentWordIndex] = useState(undefined);
 
     // ========================================
-    // TEXT PROCESSING (EXACTEMENT comme l'original)
+    // TEXT PROCESSING - PRÉSERVATION DES RETOURS LIGNE
     // ========================================
     const purifiedText = text
         .trim()
         .replace(/'/g, "'")
-        .replace(/ +/g, " ")
-        .replace(/\n+/g, " ")
+        .split("\n")
+        .map((ligne) => ligne.trim().replace(/ +/g, " "))
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
         .replace(specialsAfterIn, "$1")
         .replace(specialsBeforeIn, "$1");
 
-    const words = purifiedText.split(" ");
-    const wordsCount = words.length;
-    const charactersCount = purifiedText.length;
+    const motsAvecMetadonnees = parseTextWithLineBreaks(purifiedText);
+    const wordsCount = motsAvecMetadonnees.length;
+    const charactersCount = countCharacters(purifiedText);
 
     // ========================================
-    // SPEED CALCULATION (EXACTEMENT comme l'original)
+    // SPEED CALCULATION
     // ========================================
     const charSpeed = Math.floor(
         ((wordsCount / speedWpm) * 60000) / charactersCount
     );
 
     // ========================================
-    // EFFECT: Start animation when isStarted becomes true
+    // ANIMATION CONTROL
     // ========================================
+
+    // EFFECT 1: Start animation when isStarted becomes true
     useEffect(() => {
         if (isStarted && currentWordIndex === undefined) {
             setCurrentWordIndex(0);
         }
     }, [isStarted, currentWordIndex]);
 
-    // ========================================
-    // EFFECT: Reset when isStarted becomes false
-    // ========================================
+    // EFFECT 2: Reset when isStarted becomes false
+    // 🔧 CORRECTION : Permet au bouton Relire de fonctionner
     useEffect(() => {
         if (!isStarted && currentWordIndex !== undefined) {
             setCurrentWordIndex(undefined);
         }
     }, [isStarted, currentWordIndex]);
 
+    // EFFECT 3: Call onComplete when animation finishes
+    useEffect(() => {
+        if (currentWordIndex !== undefined && currentWordIndex >= wordsCount) {
+            onComplete?.();
+        }
+    }, [currentWordIndex, wordsCount, onComplete]);
+
     // ========================================
     // HANDLERS
     // ========================================
-    const handleNextWord = () => {
-        if (isPaused) {
-            return;
-        }
-
-        if (currentWordIndex === wordsCount - 1) {
-            setTimeout(() => {
-                onComplete();
-            }, 500);
-        } else {
+    const handleNext = () => {
+        if (!isPaused) {
             setCurrentWordIndex((prev) => (prev !== undefined ? prev + 1 : 0));
         }
     };
@@ -105,7 +113,9 @@ function TextAnimation({
         return (
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
-                    <p className="text-2xl leading-relaxed">{purifiedText}</p>
+                    <p className="text-2xl leading-relaxed whitespace-pre-wrap">
+                        {purifiedText}
+                    </p>
                 </div>
             </div>
         );
@@ -132,8 +142,10 @@ function TextAnimation({
             {/* Text display */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6 mt-4">
                 <p className="text-2xl leading-relaxed">
-                    {words.map((word, index) => {
-                        const cleanWord = word
+                    {motsAvecMetadonnees.map((motData, index) => {
+                        const { mot, finDeLigne, finDeParagraphe } = motData;
+
+                        const cleanWord = mot
                             .replace(
                                 specialsAfterOut,
                                 `${NON_BREAKING_SPACE}$1`
@@ -144,20 +156,28 @@ function TextAnimation({
                             )
                             .replace(/-/g, NON_BREAKING_HYPHEN);
 
-                        // ✅ CORRECTION : Completed words (hide them)
+                        // Mots déjà lus (cachés)
                         if (index < currentWordIndex) {
                             return (
-                                <span key={index} className="mot">
-                                    <span style={{ visibility: "hidden" }}>
-                                        {cleanWord}
+                                <React.Fragment key={index}>
+                                    <span className="mot">
+                                        <span style={{ visibility: "hidden" }}>
+                                            {cleanWord}
+                                        </span>
+                                        <span> </span>
                                     </span>
-                                    <span> </span>
-                                </span>
+                                    {finDeLigne && !finDeParagraphe && <br />}
+                                    {finDeParagraphe && (
+                                        <>
+                                            <br />
+                                            <br />
+                                        </>
+                                    )}
+                                </React.Fragment>
                             );
                         }
 
-                        // ✅ CORRECTION : Current and future words
-                        // Le mot actuel reçoit une vitesse, les futurs 0
+                        // Mot actuel et mots futurs
                         const wordSpeed =
                             index === currentWordIndex && !isPaused
                                 ? charSpeed
@@ -170,9 +190,11 @@ function TextAnimation({
                                 speed={wordSpeed}
                                 onNext={
                                     index === currentWordIndex
-                                        ? handleNextWord
+                                        ? handleNext
                                         : () => {}
                                 }
+                                finDeLigne={finDeLigne}
+                                finDeParagraphe={finDeParagraphe}
                             />
                         );
                     })}
@@ -185,9 +207,15 @@ function TextAnimation({
 TextAnimation.propTypes = {
     text: PropTypes.string.isRequired,
     speedWpm: PropTypes.number.isRequired,
-    isStarted: PropTypes.bool.isRequired,
+    isStarted: PropTypes.bool,
     isPaused: PropTypes.bool,
-    onComplete: PropTypes.func.isRequired,
+    onComplete: PropTypes.func,
+};
+
+TextAnimation.defaultProps = {
+    isStarted: false,
+    isPaused: false,
+    onComplete: () => {},
 };
 
 export default TextAnimation;

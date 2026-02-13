@@ -1,12 +1,14 @@
 /**
  * Word component for progressive disappearing animation
- * Fixed version with componentDidMount
+ * VERSION 3.9.0 : Ajout support retours ligne et paragraphes
  *
  * @component
  * @param {Object} props
- * @param {string} props.word - Word to display
- * @param {number} props.speed - Animation speed (ms per character)
- * @param {Function} props.onNext - Callback called after the animation
+ * @param {string} props.word - Mot à afficher
+ * @param {number} props.speed - Vitesse d'animation (ms par caractère)
+ * @param {Function} props.onNext - Callback appelé après l'animation
+ * @param {boolean} [props.finDeLigne=false] - Indique si c'est la fin d'une ligne
+ * @param {boolean} [props.finDeParagraphe=false] - Indique si c'est la fin d'un paragraphe
  */
 
 import React from "react";
@@ -69,13 +71,24 @@ class Word extends React.Component {
     }
 
     render() {
-        const { word } = this.props;
+        const { word, finDeLigne, finDeParagraphe } = this.props;
 
         return (
-            <span className="mot">
-                <span ref={this.wordSpanRef}>{word}</span>
-                <span ref={this.spaceSpanRef}> </span>
-            </span>
+            <>
+                <span className="mot">
+                    <span ref={this.wordSpanRef}>{word}</span>
+                    <span ref={this.spaceSpanRef}> </span>
+                </span>
+                {/* Retour ligne simple si fin de ligne */}
+                {finDeLigne && !finDeParagraphe && <br />}
+                {/* Double retour ligne si fin de paragraphe */}
+                {finDeParagraphe && (
+                    <>
+                        <br />
+                        <br />
+                    </>
+                )}
+            </>
         );
     }
 }
@@ -84,6 +97,13 @@ Word.propTypes = {
     word: PropTypes.string.isRequired,
     speed: PropTypes.number.isRequired,
     onNext: PropTypes.func.isRequired,
+    finDeLigne: PropTypes.bool,
+    finDeParagraphe: PropTypes.bool,
+};
+
+Word.defaultProps = {
+    finDeLigne: false,
+    finDeParagraphe: false,
 };
 
 export default Word;

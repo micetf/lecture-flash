@@ -6,6 +6,41 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.1] - 2026-02-13
+
+### Fixed
+
+- **Correction bug mode lecture** :
+    - Bouton "Relire" fonctionne maintenant correctement (réinitialisation complète)
+    - Après lecture complète, le texte réapparaît et permet de recommencer
+    - Ajout effet React manquant pour réinitialiser `currentWordIndex` quand `isStarted = false`
+
+## [3.9.0] - 2026-02-13
+
+### Added
+
+- Ajout `services/textProcessing.js` (Sprint 2)
+    - `countWords()`, `purifyText()`, `parseTextWithLineBreaks()`
+    - `countCharacters()`, `extractPreview()`
+
+### Changed
+
+- **`src/components/LectureFlash/Flash/Word.jsx` (v3.9.0)** :
+    - Ajout props `finDeLigne` et `finDeParagraphe` pour gestion retours ligne
+    - Affichage conditionnel `<br>` après le mot (simple ou double)
+- **`src/components/LectureFlash/Flash/TextAnimation.jsx` (v3.9.0)** :
+    - Import et utilisation `parseTextWithLineBreaks()` depuis `@services/textProcessing`
+    - Purification texte préserve `\n` (vs suppression précédente)
+    - Passage métadonnées structure (finDeLigne, finDeParagraphe) au composant Word
+    - Ajout classe `whitespace-pre-wrap` pour écran initial
+
+### Fixed
+
+- Correction filtrage titres H1 Markdown dans CodiMD (Sprint 1)
+- **Conservation retours ligne et paragraphes** (Sprint 2-3) :
+    - Respect mise en page pédagogique (strophes, poèmes, dialogues)
+    - Animation respecte sauts de ligne et paragraphes
+
 ## [3.9.0] - 2026-02-13
 
 ### Added

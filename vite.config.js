@@ -46,8 +46,10 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": "/src",
-            "@components": "/src/components",
+            "@services": "/src/services",
+            "@utils": "/src/utils",
             "@hooks": "/src/hooks",
+            "@components": "/src/components",
             "@config": "/src/config",
         },
     },
