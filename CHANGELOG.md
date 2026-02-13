@@ -6,6 +6,14 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.0] - 2026-02-13
+
+### Fixed
+
+- Correction filtrage titres H1 Markdown (`#`) dans documents CodiMD pour éviter perturbation affichage Lecture Flash
+- Ajout fonction `filtrerTitresMarkdown()` dans `useMarkdownFromUrl.js`
+- Conservation sous-titres H2+ (`##`, `###`) pour respecter structure pédagogique
+
 ## [3.8.0] - 2026-02-13
 
 ### Refactoring : Centralisation des constantes

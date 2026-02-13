@@ -2,7 +2,7 @@
  * Hook personnalisé pour charger et gérer des fichiers Markdown depuis CodiMD
  * Compatible uniquement avec codimd.apps.education.fr
  *
- * VERSION 3.0.0 : Restriction CodiMD only
+ * VERSION 3.9.0 : Ajout filtrage titres H1 Markdown
  *
  * @module useMarkdownFromUrl
  * @returns {Object} État et fonctions de gestion du fichier Markdown
@@ -72,6 +72,36 @@ export function useMarkdownFromUrl() {
     };
 
     /**
+     * Filtre les titres H1 Markdown d'un texte
+     * Supprime les lignes commençant par '# ' (titre H1 uniquement)
+     * Conserve les sous-titres H2, H3, etc. (##, ###)
+     *
+     * @param {string} text - Texte Markdown brut
+     * @returns {string} Texte sans les titres H1
+     *
+     * @example
+     * const text = "# Titre Principal\n## Sous-titre\nContenu";
+     * const filtered = filtrerTitresMarkdown(text);
+     * // Retourne : "## Sous-titre\nContenu"
+     */
+    const filtrerTitresMarkdown = (text) => {
+        if (!text) return "";
+
+        return text
+            .split("\n")
+            .filter((line) => {
+                const trimmedLine = line.trim();
+                // Supprimer uniquement les titres H1 (# suivi d'un espace)
+                // Conserver H2+ (##, ###, etc.)
+                return (
+                    !trimmedLine.startsWith("# ") ||
+                    trimmedLine.startsWith("## ")
+                );
+            })
+            .join("\n");
+    };
+
+    /**
      * Charge le contenu Markdown depuis une URL CodiMD
      * @param {string} url - URL du document CodiMD
      */
@@ -120,9 +150,14 @@ export function useMarkdownFromUrl() {
                 throw new Error("Le fichier est vide");
             }
 
-            setMarkdown(text);
+            // 🆕 v3.9.0 : Filtrage des titres H1 Markdown
+            const texteSansTitres = filtrerTitresMarkdown(text);
+
+            setMarkdown(texteSansTitres);
             setError(null);
-            console.log("✅ Document CodiMD chargé avec succès");
+            console.log(
+                "✅ Document CodiMD chargé avec succès (titres H1 filtrés)"
+            );
         } catch (err) {
             console.error("❌ Erreur lors du chargement du fichier:", err);
             setError(
@@ -135,72 +170,39 @@ export function useMarkdownFromUrl() {
     };
 
     /**
-     * Récupère les paramètres depuis l'URL de la page
-     * Scénario Digipad : ?url=ENCODED_CODIMD_URL&speed=180&locked=true
-     *
-     * @returns {Object} { url: string|null, speedConfig: { speed: number, locked: boolean }|null }
-     */
-    const getParamsFromUrl = () => {
-        const params = new URLSearchParams(window.location.search);
-        const url =
-            params.get("url") || params.get("fichier") || params.get("md");
-        const speedParam = params.get("speed");
-        const lockedParam = params.get("locked");
-
-        let speedConfig = null;
-
-        if (speedParam) {
-            const speed = parseInt(speedParam, 10);
-            if (!isNaN(speed) && speed >= 30 && speed <= 300) {
-                speedConfig = {
-                    speed: speed,
-                    locked: lockedParam === "true" || lockedParam === "1",
-                };
-            } else {
-                console.warn(
-                    `Paramètre speed invalide : ${speedParam}. Ignoré.`
-                );
-            }
-        }
-
-        return { url, speedConfig };
-    };
-
-    /**
-     * Charge automatiquement le fichier si une URL est présente dans les paramètres
-     * Permet le scénario "lien depuis Digipad"
+     * Extrait la configuration de vitesse depuis les paramètres URL
+     * Format attendu : ?speed=70&locked=true
      */
     useEffect(() => {
-        const { url, speedConfig: config } = getParamsFromUrl();
+        const params = new URLSearchParams(window.location.search);
+        const speed = params.get("speed");
+        const locked = params.get("locked");
 
-        if (url) {
-            console.log(
-                "🔗 URL détectée dans les paramètres, chargement auto..."
-            );
-            loadMarkdownFromUrl(url);
-        }
-
-        if (config) {
-            setSpeedConfig(config);
-            console.log(
-                `⚙️ Configuration vitesse: ${config.speed} MLM (${
-                    config.locked ? "verrouillée" : "suggérée"
-                })`
-            );
+        if (speed) {
+            setSpeedConfig({
+                speed: parseInt(speed, 10),
+                locked: locked === "true",
+            });
+            console.log("⚙️ Configuration vitesse détectée:", {
+                speed,
+                locked,
+            });
         }
     }, []);
 
     /**
-     * Réinitialise l'état
+     * Charge automatiquement le texte si une URL est passée en paramètre
+     * Format : ?url=https://codimd.apps.education.fr/s/xxxxx
      */
-    const reset = () => {
-        setMarkdown("");
-        setError(null);
-        setSourceUrl("");
-        setLoading(false);
-        setSpeedConfig(null);
-        console.log("🔄 Hook réinitialisé");
-    };
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlParam = params.get("url");
+
+        if (urlParam) {
+            console.log("🔗 URL détectée dans les paramètres:", urlParam);
+            loadMarkdownFromUrl(urlParam);
+        }
+    }, []);
 
     return {
         markdown,
@@ -209,9 +211,8 @@ export function useMarkdownFromUrl() {
         sourceUrl,
         speedConfig,
         loadMarkdownFromUrl,
-        getParamsFromUrl,
-        reset,
-        normalizeCloudUrl,
         isValidCodiMdUrl,
     };
 }
+
+export default useMarkdownFromUrl;
