@@ -21,6 +21,43 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.15] - 2026-02-14
+
+### Fixed
+
+- **Options affichage appliquées dès étape 3** (Sprint 19) :
+    - **Problème** : À l'étape 3 (avant clic "Lancer lecture"), le texte s'affichait avec police/taille par défaut
+    - **Correction** : Options (police, taille) appliquées IMMÉDIATEMENT à l'écran d'attente
+    - **Impact UX** : Cohérence visuelle entre étape 2 et étape 3
+    - Utilisateur voit SON texte avec SES réglages avant même de lancer l'animation
+
+### Changed
+
+- **`components/LectureFlash/Flash/TextAnimation.jsx`** :
+    - Déplacement calcul `stylesDynamiques` AVANT les renders
+    - Ligne 135 : Ajout `style={stylesDynamiques}` au render "BEFORE START"
+    - Police et taille maintenant appliquées dans TOUS les états (attente + lecture)
+
+### UX Before/After
+
+**Avant v3.9.15** :
+
+1. Étape 2 : Réglage OpenDyslexic + 150%
+2. Clic "Suivant : Lancer la lecture"
+3. **Étape 3 : Texte affiché en police par défaut (système) + taille normale** ❌
+4. Clic "Lancer la lecture"
+5. Texte MAINTENANT affiché avec OpenDyslexic + 150% ✅
+
+**Après v3.9.15** :
+
+1. Étape 2 : Réglage OpenDyslexic + 150%
+2. Clic "Suivant : Lancer la lecture"
+3. **Étape 3 : Texte DÉJÀ affiché avec OpenDyslexic + 150%** ✅
+4. Clic "Lancer la lecture"
+5. Texte identique (cohérence totale)
+
+**Gain** : Feedback visuel immédiat, confiance utilisateur, pas de surprise au lancement
+
 ## [3.9.14] - 2026-02-14
 
 ### Fixed

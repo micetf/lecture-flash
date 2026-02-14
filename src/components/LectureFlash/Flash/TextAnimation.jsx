@@ -1,17 +1,18 @@
 /**
  * Text Animation component for reading mode
- * VERSION 3.9.14 : CORRECTION BUG vitesse + refactoring styles
+ * VERSION 3.9.15 : Application options affichage dès étape 3 (avant lecture)
+ *
+ * Corrections v3.9.15 (Sprint 19 - VRAI) :
+ * - 🔧 CORRIGÉ : Options affichage (police/taille) appliquées dès étape 3
+ *   - Avant : Options appliquées seulement APRÈS clic "Lancer lecture"
+ *   - Après : Options appliquées IMMÉDIATEMENT à l'écran d'attente
+ *   - stylesDynamiques calculé AVANT les renders (pas après)
+ *   - style={stylesDynamiques} appliqué au render "BEFORE START"
+ * - Impact UX : Cohérence visuelle immédiate entre étape 2 et étape 3
  *
  * Corrections v3.9.14 (Sprint 18 BIS) :
- * - 🔧 CORRIGÉ : Bug vitesse Word (charSpeed * length → charSpeed)
- *   - Word.jsx gère lui-même la multiplication par word.length
- *   - Passer charSpeed * length causait une double multiplication
- * - 🔧 REFACTORING : Import FONT_FAMILIES depuis @config/constants
- *   - Élimination définition locale dupliquée
- *   - Source unique de vérité
- * - 🔧 REFACTORING : Utilisation helper getTextStyles()
- *   - Calcul styles centralisé dans @utils/textStyles
- *   - Cohérence garantie avec DisplayOptions
+ * - Bug vitesse Word (charSpeed * length → charSpeed)
+ * - Refactoring imports (FONT_FAMILIES, getTextStyles)
  *
  * Corrections v3.9.13 (Sprint 18) :
  * - Largeur conteneur max-w-4xl → max-w-6xl (2 occurrences)
@@ -125,28 +126,31 @@ function TextAnimation({
             : 0;
 
     // ========================================
-    // RENDER: BEFORE START (écran initial)
+    // DYNAMIC STYLES CALCULATION
+    // 🔧 Sprint 19 : Calculé AVANT les renders pour application dès étape 3
+    // ========================================
+    const stylesDynamiques = getTextStyles(
+        optionsAffichage?.police,
+        optionsAffichage?.taille
+    );
+
+    // ========================================
+    // RENDER: BEFORE START (écran initial - étape 3 avant lecture)
     // ========================================
     if (currentWordIndex === undefined) {
         return (
             <div className="max-w-6xl mx-auto">
-                {/* 🔧 CORRIGÉ : max-w-4xl → max-w-6xl */}
                 <div className="bg-white rounded-lg border-2 border-gray-300 p-6">
-                    <p className="text-3xl leading-relaxed whitespace-pre-wrap">
+                    <p
+                        className="text-3xl leading-relaxed whitespace-pre-wrap"
+                        style={stylesDynamiques}
+                    >
                         {purifiedText}
                     </p>
                 </div>
             </div>
         );
     }
-
-    // ========================================
-    // DYNAMIC STYLES CALCULATION
-    // ========================================
-    const stylesDynamiques = getTextStyles(
-        optionsAffichage?.police,
-        optionsAffichage?.taille
-    );
 
     // ========================================
     // RENDER: DURING READING
