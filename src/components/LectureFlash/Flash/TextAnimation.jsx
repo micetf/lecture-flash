@@ -34,10 +34,11 @@ const specialsAfterOut = /(;|:|!|\?|»)/g;
  * Map des polices vers les font-family CSS
  */
 const FONT_FAMILIES = {
-    default: "system-ui, -apple-system, sans-serif",
-    opendyslexic: "'OpenDyslexic', sans-serif",
-    arial: "Arial, sans-serif",
-    "comic-sans": "'Comic Sans MS', cursive",
+    default:
+        'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    opendyslexic: '"OpenDyslexic", sans-serif',
+    arial: "Arial, Helvetica, sans-serif",
+    "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
 };
 function TextAnimation({
     text,
@@ -134,7 +135,7 @@ function TextAnimation({
     // 🆕 Calcul des styles dynamiques
     const stylesDynamiques = {
         fontFamily: FONT_FAMILIES[optionsAffichage?.police || "default"],
-        fontSize: `${optionsAffichage?.taille || 100}%`,
+        fontSize: `${((optionsAffichage?.taille || 100) / 100) * 3}rem`, // Base 3rem * pourcentage
     };
     // ========================================
     // RENDER: DURING READING
@@ -157,7 +158,7 @@ function TextAnimation({
             {/* Text display */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6 mt-4">
                 <p
-                    className="text-2xl leading-relaxed"
+                    className="text-3xl leading-relaxed"
                     style={stylesDynamiques}
                 >
                     {motsAvecMetadonnees.map((motData, index) => {

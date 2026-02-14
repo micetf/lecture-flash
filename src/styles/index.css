@@ -12,9 +12,18 @@
 
 /**
  * Import de la police OpenDyslexic pour accessibilité
- * Source: CDN open-source
+ * Source: Open-Dyslexic GitHub
  */
-@import url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css");
+@font-face {
+    font-family: "OpenDyslexic";
+    src:
+        url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2")
+            format("woff2"),
+        url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff")
+            format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
 
 /**
  * Styles de base personnalisés

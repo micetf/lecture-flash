@@ -36,6 +36,16 @@ const OPTIONS_POLICE = [
 ];
 
 /**
+ * Map des polices vers les font-family CSS
+ */
+const FONT_FAMILIES = {
+    default:
+        'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    opendyslexic: '"OpenDyslexic", sans-serif',
+    arial: "Arial, Helvetica, sans-serif",
+    "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
+};
+/**
  * Valeurs par défaut des options
  */
 const OPTIONS_PAR_DEFAUT = {
@@ -205,6 +215,22 @@ function DisplayOptions({ onOptionsChange }) {
                         </div>
                     </div>
 
+                    {/* Aperçu en temps réel */}
+                    <div className="mt-6 p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
+                        <p className="text-xs text-gray-600 mb-2 font-medium">
+                            📋 Aperçu :
+                        </p>
+                        <p
+                            className="text-center leading-relaxed"
+                            style={{
+                                fontFamily: FONT_FAMILIES[options.police],
+                                fontSize: `${options.taille}%`,
+                            }}
+                        >
+                            Le texte s'affichera avec cette police et cette
+                            taille pendant la lecture.
+                        </p>
+                    </div>
                     {/* Message informatif */}
                     <p className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded p-3">
                         💡 Ces paramètres seront appliqués lors de la lecture et

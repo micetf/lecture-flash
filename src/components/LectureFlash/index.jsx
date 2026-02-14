@@ -36,6 +36,7 @@ import FullscreenButton from "./Flash/FullscreenButton";
 import initialState from "../../config/initialState";
 import { STEP_LABELS, TOTAL_STEPS } from "../../config/constants";
 import { useMarkdownFromUrl } from "../../hooks/useMarkdownFromUrl";
+import useFullscreen from "../../hooks/useFullscreen";
 
 function LectureFlash() {
     // ========================================
@@ -88,6 +89,8 @@ function LectureFlash() {
         loadMarkdownFromUrl,
         reset,
     } = useMarkdownFromUrl();
+
+    const { sortirPleinEcran, estPleinEcran } = useFullscreen();
 
     /**
      * Effet 1 : Chargement automatique si URL présente SANS speedConfig
@@ -171,6 +174,11 @@ function LectureFlash() {
      * Navigation vers l'étape précédente
      */
     const handleBack = () => {
+        // Sortir du plein écran si actif
+        if (estPleinEcran) {
+            sortirPleinEcran();
+        }
+
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
         }
@@ -180,6 +188,11 @@ function LectureFlash() {
      * Retour à l'étape précédente depuis la lecture
      */
     const handleBackToPreviousStep = () => {
+        // Sortir du plein écran si actif
+        if (estPleinEcran) {
+            sortirPleinEcran();
+        }
+
         setHasStartedReading(false);
         setIsPaused(false);
         setCurrentStep(2);
@@ -253,7 +266,7 @@ function LectureFlash() {
                     stepLabels={STEP_LABELS}
                 />
 
-                <div className="max-w-4xl mx-auto">
+                <div className="max-w-6xl mx-auto">
                     {/* Bouton de lancement */}
                     {!hasStartedReading && (
                         <div className="text-center mb-6">

@@ -21,6 +21,39 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.12] - 2026-02-14
+
+### Fixed
+
+- **Corrections bugs et améliorations UX/UI (Sprint 18 - Correctif)** :
+    - **Chemin CSS corrigé** : `src/styles/index.css` (au lieu de `src/index.css`)
+    - **Police OpenDyslexic** : Import corrigé via `@font-face` WOFF2/WOFF
+    - **Map polices** : Correction guillemets et fallbacks (Comic Sans MS, OpenDyslexic)
+    - **Calcul taille** : Formule corrigée pour application réelle du pourcentage
+    - **Aperçu options** : Ajout prévisualisation temps réel dans `DisplayOptions.jsx`
+    - **Plein écran** : Sortie automatique lors navigation entre étapes
+    - **Largeur lecture** : Augmentation max-w-4xl → max-w-6xl (meilleure lisibilité TBI/TNI)
+    - **Taille texte** : Augmentation text-2xl → text-3xl (base 3rem au lieu de 2.5rem)
+
+### Changed
+
+- **`components/LectureFlash/Flash/DisplayOptions.jsx`** :
+
+    - Ajout map `FONT_FAMILIES` (cohérence avec TextAnimation)
+    - Ajout section aperçu en temps réel avec styles appliqués
+    - Amélioration feedback visuel avant lecture
+
+- **`components/LectureFlash/Flash/TextAnimation.jsx`** :
+
+    - Correction map `FONT_FAMILIES` (guillemets, noms exacts)
+    - Correction formule calcul fontSize (pourcentage réel appliqué)
+    - Augmentation taille base text-2xl → text-3xl
+
+- **`components/LectureFlash/index.jsx`** :
+    - Import et utilisation hook `useFullscreen`
+    - Sortie plein écran dans `handleBackToPreviousStep` et `handleBack`
+    - Largeur étape 3 augmentée (max-w-4xl → max-w-6xl)
+
 ## [3.9.11] - 2026-02-14
 
 ### Added
