@@ -21,6 +21,23 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.11] - 2026-02-14
+
+### Added
+
+- **`components/LectureFlash/index.jsx` (Sprint 17)** :
+    - Intégration `FullscreenButton` dans contrôles de lecture (étape 3)
+    - Bouton plein écran positionné à côté de Pause et Relire
+    - Mode immersif accessible pendant la lecture
+    - **🎉 PHASE 4 TERMINÉE : Toutes les fonctionnalités v3.9.0 implémentées**
+
+### Changed
+
+- **Contrôles de lecture (étape 3)** :
+    - Ajout bouton plein écran dans la barre de contrôles
+    - 3 boutons disponibles : Pause/Reprendre, Relire, Plein écran
+    - Affichage conditionnel (seulement si lecture commencée)
+
 ## [3.9.10] - 2026-02-14
 
 ### Added

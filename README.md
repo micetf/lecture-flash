@@ -292,23 +292,23 @@ pnpm preview
 
 ## 🗺️ Roadmap
 
-### Version 3.9.0 (En cours - Q1 2026)
+### Version 3.9.0 (✅ TERMINÉE - 14 février 2026)
 
 **Améliorations UX** :
 
-- ✨ Mode plein écran (étape lecture)
-- ✨ Personnalisation police et taille (accessibilité)
-- 🐛 Gestion titres Markdown (CodiMD)
-- 🐛 Conservation retours à la ligne
-- 🧹 Simplification interface (suppression test vitesse)
+- ✅ Mode plein écran (étape lecture)
+- ✅ Personnalisation police et taille (accessibilité)
+- ✅ Gestion titres Markdown (CodiMD)
+- ✅ Conservation retours à la ligne
+- ✅ Simplification interface (suppression test vitesse)
 
-**Refactorisation (Phase 1-2)** :
+**Refactorisation (Phase 1-4)** :
 
-- 🔧 Extraction logique métier → `services/` (textProcessing, speedCalculations, urlGeneration)
-- 🔧 Création utilitaires → `utils/` (validation, formatters)
-- 🔧 Décomposition `TextInputManager` → 3 sous-composants onglets
-- 🔧 Création hooks → `useLocalStorage`, `useFullscreen`
-- 📊 Tests unitaires services (Jest)
+- ✅ Extraction logique métier → `services/` (textProcessing, speedCalculations, urlGeneration)
+- ✅ Création utilitaires → `utils/` (validation, formatters)
+- ✅ Décomposition `TextInputManager` → 3 sous-composants onglets
+- ✅ Création hooks → `useLocalStorage`, `useFullscreen`
+- ✅ Nouveaux composants → `DisplayOptions`, `FullscreenButton`
 
 ### Version 3.10.0 (Q2 2026)
 

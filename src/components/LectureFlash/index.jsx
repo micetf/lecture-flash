@@ -1,6 +1,11 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION 3.7.0 : Correction chargement CodiMD + invalidation lien si modifié
+ * VERSION 3.9.10 : Intégration complète options affichage + plein écran
+ *
+ * Modifications v3.9.10 (Sprint 16-17) :
+ * - Ajout state optionsAffichage (police, taille)
+ * - Transmission options vers TextAnimation
+ * - Intégration FullscreenButton dans contrôles lecture
  *
  * Modifications v3.7.0 :
  * - Ajout state isCodiMDTextUnmodified pour tracker validité du lien
@@ -27,6 +32,7 @@ import StepContainer from "./StepContainer";
 import HelpModal from "../HelpModal.jsx";
 import FirstTimeMessage from "../FirstTimeMessage.jsx";
 import Tooltip from "../Tooltip.jsx";
+import FullscreenButton from "./Flash/FullscreenButton";
 import initialState from "../../config/initialState";
 import { STEP_LABELS, TOTAL_STEPS } from "../../config/constants";
 import { useMarkdownFromUrl } from "../../hooks/useMarkdownFromUrl";
@@ -45,173 +51,156 @@ function LectureFlash() {
     const [showCustomModal, setShowCustomModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
 
-    // État pour tracker si le texte actuel est toujours celui de CodiMD
+    // État pour tracker si le texte actuel vient de CodiMD sans modification
     const [isCodiMDTextUnmodified, setIsCodiMDTextUnmodified] = useState(false);
 
-    // État pour les options d'affichage
+    // Options d'affichage (police et taille)
     const [optionsAffichage, setOptionsAffichage] = useState({
         police: "default",
         taille: 100,
     });
 
-    // Labels et nombre total d'étapes
-    const stepLabels = STEP_LABELS;
-    const totalSteps = TOTAL_STEPS;
+    // ========================================
+    // URL PARAMS & CODIMD LOADING
+    // ========================================
 
-    // ========================================
-    // CODIMD LOADING HOOK
-    // ========================================
+    // Extraction des paramètres URL
+    const params = new URLSearchParams(window.location.search);
+    const urlParam = params.get("url");
+    const speedParam = params.get("speed");
+    const lockedParam = params.get("locked");
+
+    // Configuration vitesse si présente dans URL
+    const speedConfig =
+        speedParam && lockedParam
+            ? {
+                  speed: parseInt(speedParam),
+                  locked: lockedParam === "true",
+              }
+            : null;
+
+    // Hook de chargement CodiMD
     const {
-        markdown,
+        text: markdownText,
         loading,
         error,
         sourceUrl,
-        speedConfig,
         loadMarkdownFromUrl,
-        reset: resetMarkdownHook,
+        reset,
     } = useMarkdownFromUrl();
 
-    // ========================================
-    // EFFECTS: URL Parameters Handling
-    // ========================================
-
     /**
-     * CAS 1 : CodiMD AVEC speedConfig (lien partagé par enseignant)
-     * v3.7.0 : Ajout setIsCodiMDTextUnmodified(true)
+     * Effet 1 : Chargement automatique si URL présente SANS speedConfig
+     * (Scénario : enseignant prépare un texte pour lui-même)
      */
     useEffect(() => {
-        if (markdown && speedConfig) {
-            // Charger le texte + vitesse
-            setAppState((prev) => ({
-                ...prev,
-                text: markdown,
-                speedWpm: speedConfig.speed,
-            }));
-
-            // Aller directement à l'étape 3 (lecture)
-            setCurrentStep(3);
-
-            // Marquer le texte comme provenant de CodiMD
-            setIsCodiMDTextUnmodified(true);
-
-            console.log(
-                "✅ Texte CodiMD chargé avec speedConfig:",
-                speedConfig
-            );
+        if (urlParam && !speedConfig) {
+            loadMarkdownFromUrl(urlParam);
         }
-    }, [markdown, speedConfig]);
+    }, [urlParam, speedConfig]);
 
     /**
-     * CAS 2 : CodiMD SANS speedConfig (chargement manuel)
-     * v3.7.0 : Nouvel effet pour gérer le cas sans speedConfig
+     * Effet 2 : Chargement automatique + passage étape 3 si speedConfig présent
+     * (Scénario : élève clique sur lien partagé avec vitesse configurée)
      */
     useEffect(() => {
-        if (markdown && !speedConfig) {
-            // Charger juste le texte, rester à l'étape 1
-            setAppState((prev) => ({
-                ...prev,
-                text: markdown,
-            }));
-
-            // Marquer le texte comme provenant de CodiMD
-            setIsCodiMDTextUnmodified(true);
-
-            console.log("✅ Texte CodiMD chargé dans le champ de saisie");
+        if (urlParam && speedConfig) {
+            loadMarkdownFromUrl(urlParam);
         }
-    }, [markdown, speedConfig]);
+    }, [urlParam, speedConfig]);
+
+    /**
+     * Effet 3 : Application du texte CodiMD chargé
+     */
+    useEffect(() => {
+        if (markdownText) {
+            setAppState((prev) => ({ ...prev, text: markdownText }));
+            setIsCodiMDTextUnmodified(true);
+            setCurrentStep(2);
+
+            // Si speedConfig présent, appliquer la vitesse et passer étape 3
+            if (speedConfig) {
+                setAppState((prev) => ({
+                    ...prev,
+                    speedWpm: speedConfig.speed,
+                }));
+                setCurrentStep(3);
+            }
+        }
+    }, [markdownText, speedConfig]);
 
     // ========================================
-    // HANDLERS: Navigation
+    // HANDLERS
     // ========================================
 
     /**
-     * Passage à l'étape suivante
+     * Gère le changement de texte (saisie manuelle)
      */
-    const handleNextStep = () => {
-        setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+    const handleTextChange = (newText) => {
+        setAppState({ ...appState, text: newText });
+        // Invalider le lien CodiMD si le texte est modifié
+        if (isCodiMDTextUnmodified && newText !== markdownText) {
+            setIsCodiMDTextUnmodified(false);
+        }
     };
 
     /**
-     * Retour à l'étape précédente
+     * Gère le changement de vitesse
+     */
+    const handleSpeedChange = (speed) => {
+        setAppState({ ...appState, speedWpm: speed });
+    };
+
+    /**
+     * Gère les changements d'options d'affichage (police, taille)
+     */
+    const handleDisplayOptionsChange = (options) => {
+        setOptionsAffichage(options);
+    };
+
+    /**
+     * Navigation vers l'étape suivante
+     */
+    const handleNextStep = () => {
+        if (currentStep < TOTAL_STEPS) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
+
+    /**
+     * Navigation vers l'étape précédente
      */
     const handleBack = () => {
-        setCurrentStep((prev) => Math.max(prev - 1, 1));
+        if (currentStep > 1) {
+            setCurrentStep(currentStep - 1);
+        }
     };
 
     /**
      * Retour à l'étape précédente depuis la lecture
-     * Conditionnel : masqué si locked=true
      */
     const handleBackToPreviousStep = () => {
-        if (speedConfig?.locked) {
-            return;
-        }
+        setHasStartedReading(false);
+        setIsPaused(false);
         setCurrentStep(2);
+    };
+
+    /**
+     * Gère la fin de l'animation
+     */
+    const handleAnimationComplete = () => {
         setHasStartedReading(false);
-        setIsPaused(false);
-    };
-
-    /**
-     * Réinitialisation complète
-     * v3.7.0 : Ajout setIsCodiMDTextUnmodified(false)
-     */
-    const reset = () => {
-        setAppState(initialState);
-        setCurrentStep(1);
-        setHasStartedReading(false);
-        setIsPaused(false);
-        setIsCodiMDTextUnmodified(false);
-        resetMarkdownHook();
-        window.history.pushState({}, "", window.location.pathname);
-    };
-
-    // ========================================
-    // HANDLERS: Text & Speed
-    // ========================================
-
-    /**
-     * Mise à jour du texte
-     * v3.7.0 : Invalidation du lien CodiMD si le texte est modifié
-     */
-    const handleTextChange = (newText) => {
-        setAppState((prev) => ({ ...prev, text: newText }));
-
-        // Si on a un texte CodiMD et qu'il est modifié
-        if (isCodiMDTextUnmodified && markdown && newText !== markdown) {
-            setIsCodiMDTextUnmodified(false);
-            console.log("⚠️ Texte modifié, le lien CodiMD n'est plus valide");
-        }
-    };
-
-    /**
-     * Mise à jour de la vitesse
-     */
-    const handleSpeedChange = (speed) => {
-        setAppState((prev) => ({ ...prev, speedWpm: speed }));
-    };
-
-    // ========================================
-    // HANDLERS: Reading Controls
-    // ========================================
-
-    /**
-     * Démarrage de la lecture
-     * v3.6.0 : Appelé explicitement par le bouton "Démarrer"
-     */
-    const handleStartReading = () => {
-        setHasStartedReading(true);
-        setIsPaused(false);
     };
 
     /**
      * Pause/Reprise de la lecture
      */
-    const handleTogglePause = () => {
-        setIsPaused((prev) => !prev);
+    const handlePauseResume = () => {
+        setIsPaused(!isPaused);
     };
 
     /**
-     * Relancer la lecture depuis le début
+     * Relecture depuis le début
      */
     const handleReplay = () => {
         setHasStartedReading(false);
@@ -221,138 +210,70 @@ function LectureFlash() {
         }, 100);
     };
 
-    /**
-     * Fin de l'animation
-     */
-    const handleAnimationComplete = () => {
-        setHasStartedReading(false);
-        setIsPaused(false);
-    };
-
-    // Handler pour options d'affichage
-    /**
-     * Gère les changements d'options d'affichage (police, taille)
-     */
-    const handleDisplayOptionsChange = (options) => {
-        setOptionsAffichage(options);
-    };
-
-    // ========================================
-    // RENDER: Loading State
-    // ========================================
-
-    if (loading) {
-        return (
-            <div className="container mx-auto p-4">
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
-                        <p className="text-xl text-gray-700 font-medium">
-                            Chargement du document...
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // ========================================
-    // RENDER: Error State
-    // ========================================
-
-    if (error) {
-        return (
-            <div className="container mx-auto p-4">
-                <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg">
-                    <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                            <svg
-                                className="h-6 w-6 text-red-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <h3 className="text-lg font-semibold text-red-800">
-                                Erreur de chargement
-                            </h3>
-                            <p className="text-red-700 mt-2">{error}</p>
-                            <button
-                                onClick={reset}
-                                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                            >
-                                Réessayer
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     // ========================================
     // RENDER: Reading Mode (Step 3)
     // ========================================
 
     if (currentStep === 3) {
+        // Auto-démarrage uniquement si speedConfig.locked
+        // MAIS PAS d'auto-start même si locked (décision UX v3.6.0)
+        // L'utilisateur doit cliquer sur "Lancer la lecture"
+
         return (
             <div className="container mx-auto p-4 relative">
-                <div className="max-w-6xl mx-auto">
-                    {/* Bouton aide en haut à droite */}
-                    <div className="absolute top-0 right-0 z-10">
-                        <Tooltip
-                            content="Afficher l'aide complète"
-                            position="bottom"
+                {/* Help button */}
+                <div className="absolute top-0 right-0 z-10">
+                    <Tooltip
+                        content="Afficher l'aide complète"
+                        position="bottom"
+                    >
+                        <button
+                            onClick={() => setShowHelp(true)}
+                            className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
+                            aria-label="Aide"
                         >
-                            <button
-                                onClick={() => setShowHelp(true)}
-                                className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
-                                aria-label="Aide"
-                            >
-                                ?
-                            </button>
-                        </Tooltip>
-                    </div>
+                            ?
+                        </button>
+                    </Tooltip>
+                </div>
 
-                    <HelpModal
-                        isOpen={showHelp}
-                        onClose={() => setShowHelp(false)}
-                    />
+                {/* Help modal */}
+                <HelpModal
+                    isOpen={showHelp}
+                    onClose={() => setShowHelp(false)}
+                />
 
-                    {/* Titre de l'étape */}
-                    <div className="mb-6">
-                        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                            <span className="text-4xl">📖</span>
-                            Mode Lecture
-                        </h2>
-                    </div>
+                {/* First time message */}
+                <FirstTimeMessage />
 
-                    {/* Bouton démarrer (avant le début) */}
+                {/* Step indicator */}
+                <StepIndicator
+                    currentStep={currentStep}
+                    totalSteps={TOTAL_STEPS}
+                    stepLabels={STEP_LABELS}
+                />
+
+                <div className="max-w-4xl mx-auto">
+                    {/* Bouton de lancement */}
                     {!hasStartedReading && (
-                        <div className="flex justify-center mb-6">
+                        <div className="text-center mb-6">
                             <button
-                                onClick={handleStartReading}
-                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl focus:outline-none focus:ring-4 focus:ring-green-300"
-                                aria-label="Démarrer la lecture"
+                                onClick={() => setHasStartedReading(true)}
+                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl shadow-lg hover:shadow-xl"
                             >
-                                ▶️ Démarrer la lecture
+                                ▶️ Lancer la lecture
                             </button>
+                            <p className="text-gray-600 mt-4">
+                                Vitesse configurée : {appState.speedWpm} MLM
+                            </p>
                         </div>
                     )}
 
-                    {/* Contrôles pendant la lecture */}
+                    {/* Contrôles de lecture */}
                     {hasStartedReading && (
                         <div className="flex justify-center gap-3 mb-6">
                             <button
-                                onClick={handleTogglePause}
+                                onClick={handlePauseResume}
                                 className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300"
                                 aria-label={
                                     isPaused
@@ -369,6 +290,8 @@ function LectureFlash() {
                             >
                                 🔄 Relire
                             </button>
+                            {/* Bouton plein écran */}
+                            <FullscreenButton />
                         </div>
                     )}
 
@@ -426,8 +349,8 @@ function LectureFlash() {
             {/* Step indicator */}
             <StepIndicator
                 currentStep={currentStep}
-                totalSteps={totalSteps}
-                stepLabels={stepLabels}
+                totalSteps={TOTAL_STEPS}
+                stepLabels={STEP_LABELS}
             />
 
             {/* ======================================== */}
