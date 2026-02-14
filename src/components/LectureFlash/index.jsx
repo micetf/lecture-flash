@@ -68,6 +68,8 @@ function LectureFlash() {
     const urlParam = params.get("url");
     const speedParam = params.get("speed");
     const lockedParam = params.get("locked");
+    const policeParam = params.get("police");
+    const tailleParam = params.get("taille");
 
     // Configuration vitesse si présente dans URL
     const speedConfig =
@@ -133,9 +135,15 @@ function LectureFlash() {
                     speedWpm: speedConfig.speed,
                 }));
                 setCurrentStep(3);
+                if (policeParam && tailleParam) {
+                    setOptionsAffichage({
+                        police: policeParam,
+                        taille: parseInt(tailleParam, 10),
+                    });
+                }
             }
         }
-    }, [markdownText, speedConfig]);
+    }, [markdownText, speedConfig, policeParam, tailleParam]);
 
     // ========================================
     // HANDLERS
@@ -438,6 +446,7 @@ function LectureFlash() {
                     setShowShareModal={setShowShareModal}
                     sourceUrl={sourceUrl}
                     onDisplayOptionsChange={handleDisplayOptionsChange}
+                    optionsAffichage={optionsAffichage}
                 />
 
                 {/* Navigation */}

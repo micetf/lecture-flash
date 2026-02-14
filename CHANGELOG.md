@@ -21,6 +21,77 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.10.1] - 2026-02-14
+
+### Added
+
+- **Paramètres d'affichage dans le lien de partage** :
+    - Les liens de partage incluent maintenant la police et la taille du texte
+    - Format URL : `?url=...&speed=...&locked=...&police=...&taille=...`
+    - Permet aux élèves d'accéder directement au texte avec les options d'affichage préréglées par l'enseignant
+    - Options transmises :
+        - `police` : default, opendyslexic, arial, comic-sans
+        - `taille` : 100-200% (pourcentage)
+    - Application automatique des paramètres lors du chargement via URL partagée
+
+### Changed
+
+- **`src/components/LectureFlash/ShareConfiguration.jsx`** :
+
+    - Ajout prop `optionsAffichage` {police, taille}
+    - Paramètres police et taille ajoutés dans la génération d'URL (ligne 19-25)
+    - Récapitulatif enrichi avec affichage police et taille sélectionnées (ligne 148-153)
+    - PropTypes mis à jour avec nouvelle prop obligatoire (ligne 156)
+
+- **`src/components/LectureFlash/index.jsx`** :
+
+    - Extraction paramètres `police` et `taille` depuis URL (ligne 73-76)
+    - Application automatique des options d'affichage lors chargement CodiMD avec speedConfig (ligne 115-136)
+    - Transmission `optionsAffichage` vers SpeedSelector (ligne 446)
+    - Effet `useEffect` enrichi pour gérer policeParam et tailleParam
+
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
+    - Ajout prop `optionsAffichage` dans signature du composant (ligne 44-55)
+    - Fonction `handleGenerateShareLink` enrichie avec police et taille (ligne 158-164)
+    - Message d'aide mis à jour : mention options d'affichage dans le lien (ligne 592-595)
+    - PropTypes mis à jour avec `optionsAffichage` obligatoire (ligne 620-636)
+    - (Optionnel) Récapitulatif visuel de la configuration avant partage
+
+### Technical Details
+
+**Flux de données** :
+
+1. Étape 2 : L'enseignant configure police + taille dans DisplayOptions
+2. État `optionsAffichage` maintenu dans LectureFlash/index.jsx
+3. Transmission vers SpeedSelector via props
+4. Génération URL avec tous les paramètres (url, speed, locked, police, taille)
+5. Élève charge l'URL → Extraction paramètres → Application automatique
+
+**Exemple de lien généré** :
+https://micetf.fr/lecture-flash/index.html?url=https%3A%2F%2Fcodimd.apps.education.fr%2Fs%2Fexemple&speed=70&locked=true&police=opendyslexic&taille=150
+
+**Compatibilité** :
+
+- Rétrocompatible : liens sans police/taille utilisent valeurs par défaut
+- Validation côté client des valeurs police et taille
+- Fallback gracieux si paramètres invalides
+
+### UX Improvements
+
+- **Cohérence enseignant-élève** : L'élève voit exactement la même configuration que l'enseignant
+- **Gain de temps** : Plus besoin pour l'élève de reconfigurer police et taille
+- **Accessibilité renforcée** : Options d'affichage préréglées pour élèves à besoins particuliers
+- **Partage pédagogique complet** : Un lien = texte + vitesse + affichage optimisé
+
+### Tests de validation
+
+- ✅ Lien avec police default + taille 100% → Application correcte
+- ✅ Lien avec police opendyslexic + taille 150% → Application correcte
+- ✅ Lien avec police comic-sans + taille 200% → Application correcte
+- ✅ Modification texte après chargement → Invalidation lien (comportement préservé)
+- ✅ Lien sans paramètres police/taille → Valeurs par défaut (rétrocompatibilité)
+- ✅ Paramètres invalides → Fallback vers valeurs par défaut
+
 ## [3.10.0] - 2026-02-14
 
 ### Added

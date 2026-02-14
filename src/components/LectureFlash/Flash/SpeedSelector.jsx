@@ -51,6 +51,7 @@ function SpeedSelector({
     showShareModal,
     setShowShareModal,
     onDisplayOptionsChange,
+    optionsAffichage,
 }) {
     // ========================================
     // HELPERS
@@ -159,6 +160,8 @@ function SpeedSelector({
             url: sourceUrl,
             speed: selectedSpeed,
             locked: shareLocked ? "true" : "false",
+            police: optionsAffichage.police,
+            taille: optionsAffichage.taille,
         });
 
         const baseUrl = `${window.location.origin}/index.html`;
@@ -469,6 +472,26 @@ function SpeedSelector({
                                 </svg>
                             </button>
                         </div>
+                        {/* Récapitulatif de la configuration */}
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm font-semibold text-blue-900 mb-2">
+                                📋 Configuration à partager :
+                            </p>
+                            <ul className="text-xs text-blue-800 space-y-1">
+                                <li>
+                                    • Vitesse :{" "}
+                                    <strong>{selectedSpeed} MLM</strong>
+                                </li>
+                                <li>
+                                    • Police :{" "}
+                                    <strong>{optionsAffichage.police}</strong>
+                                </li>
+                                <li>
+                                    • Taille :{" "}
+                                    <strong>{optionsAffichage.taille}%</strong>
+                                </li>
+                            </ul>
+                        </div>
 
                         {/* Options de partage */}
                         <div className="space-y-4 mb-6">
@@ -543,7 +566,8 @@ function SpeedSelector({
 
                         {/* Help text */}
                         <p className="text-xs text-gray-500 text-center mt-4">
-                            Le lien contiendra le texte et la vitesse configurée
+                            Le lien contiendra le texte, la vitesse configurée,
+                            ainsi que les options d'affichage (police et taille)
                         </p>
                     </div>
                 </div>
@@ -585,6 +609,10 @@ SpeedSelector.propTypes = {
     setShowShareModal: PropTypes.func.isRequired,
     /** Callback pour changements d'options d'affichage (police, thème) */
     onDisplayOptionsChange: PropTypes.func.isRequired,
+    optionsAffichage: PropTypes.shape({
+        police: PropTypes.string.isRequired,
+        taille: PropTypes.number.isRequired,
+    }).isRequired,
 };
 
 export default SpeedSelector;

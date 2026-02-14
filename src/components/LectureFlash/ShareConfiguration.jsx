@@ -13,7 +13,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { getSpeedLevel } from "../../config/constants";
 
-function ShareConfiguration({ sourceUrl, speedWpm }) {
+function ShareConfiguration({ sourceUrl, speedWpm, optionsAffichage }) {
     const [isSpeedLocked, setIsSpeedLocked] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -22,6 +22,8 @@ function ShareConfiguration({ sourceUrl, speedWpm }) {
             url: sourceUrl,
             speed: speedWpm, // ← Uses the already selected speed
             locked: isSpeedLocked ? "true" : "false",
+            police: optionsAffichage.police,
+            taille: optionsAffichage.taille,
         });
 
         const baseUrl = `${window.location.origin}/index.html`;
@@ -151,6 +153,12 @@ function ShareConfiguration({ sourceUrl, speedWpm }) {
                             ? "🔒 Imposée (auto-démarrage)"
                             : "💡 Suggérée (modifiable)"}
                     </li>
+                    <li>
+                        Police : <strong>{optionsAffichage.police}</strong>
+                    </li>
+                    <li>
+                        Taille : <strong>{optionsAffichage.taille}%</strong>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -160,6 +168,10 @@ function ShareConfiguration({ sourceUrl, speedWpm }) {
 ShareConfiguration.propTypes = {
     sourceUrl: PropTypes.string.isRequired,
     speedWpm: PropTypes.number.isRequired,
+    optionsAffichage: PropTypes.shape({
+        police: PropTypes.string.isRequired,
+        taille: PropTypes.number.isRequired,
+    }).isRequired,
 };
 
 export default ShareConfiguration;
