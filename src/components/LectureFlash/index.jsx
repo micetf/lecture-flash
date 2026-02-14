@@ -232,14 +232,12 @@ function LectureFlash() {
     };
 
     /**
-     * Relecture depuis le début
+     * Arrêt de la lecture (retour à l'état initial)
      */
-    const handleReplay = () => {
+    const handleStop = () => {
         setHasStartedReading(false);
         setIsPaused(false);
-        setTimeout(() => {
-            setHasStartedReading(true);
-        }, 100);
+        // Pas de redémarrage automatique → utilisateur doit recliquer "Lancer la lecture"
     };
 
     // ========================================
@@ -304,11 +302,11 @@ function LectureFlash() {
                                 {isPaused ? "▶️ Reprendre" : "⏸️ Pause"}
                             </button>
                             <button
-                                onClick={handleReplay}
-                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold focus:outline-none focus:ring-4 focus:ring-blue-300"
-                                aria-label="Relire depuis le début"
+                                onClick={handleStop}
+                                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold focus:outline-none focus:ring-4 focus:ring-red-300"
+                                aria-label="Arrêter la lecture"
                             >
-                                🔄 Relire
+                                ⏹️ Arrêter
                             </button>
                         </div>
                     )}
