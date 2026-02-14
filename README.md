@@ -134,6 +134,7 @@ lecture-flash/
 │   │   ├── App.jsx                  # Composant racine
 │   │   ├── Tooltip.jsx              # Tooltip avec React Portal
 │   │   ├── HelpModal.jsx            # Guide complet
+│   │   ├── HelpButton.jsx           # 🆕 v3.10.0 - Bouton aide global
 │   │   ├── FirstTimeMessage.jsx    # Message première visite
 │   │   │
 │   │   ├── Navbar/                  # Barre de navigation

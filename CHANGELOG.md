@@ -21,6 +21,34 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.10.0] - 2026-02-14
+
+### Added
+
+- **`src/components/HelpButton.jsx`** :
+    - Composant bouton d'aide global ("?")
+    - Tooltip intégré : "Afficher l'aide complète"
+    - Accessibilité WCAG 2.1 AA (ARIA, navigation clavier, focus visible)
+    - Design cohérent avec FullscreenButton
+    - Architecture : Composant UI transversal en racine components/
+    - JSDoc complète en français + PropTypes
+
+### Changed
+
+- **`src/components/LectureFlash/index.jsx`** :
+    - Harmonisation boutons utilitaires (étape 3)
+    - Suppression div "align-middle" inutile
+    - Remplacement bouton aide inline par composant HelpButton
+    - Ajout classe "items-center" pour alignement vertical cohérent
+    - Architecture propre : FullscreenButton + HelpButton au même niveau
+
+### Improved
+
+- **Architecture composants UI** :
+    - Séparation claire : UI transversaux (racine) vs lecture (Flash/)
+    - Cohérence avec HelpModal, FirstTimeMessage, Tooltip
+    - Préparation v4.0 (bibliothèque common/ components)
+
 ## [3.9.18] - 2026-02-14
 
 ### Fixed

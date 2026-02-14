@@ -23,9 +23,10 @@ import SpeedSelector from "./Flash/SpeedSelector";
 import TextInputManager from "./Input/TextInputManager";
 import StepIndicator from "./StepIndicator";
 import StepContainer from "./StepContainer";
-import HelpModal from "../HelpModal.jsx";
-import FirstTimeMessage from "../FirstTimeMessage.jsx";
-import Tooltip from "../Tooltip.jsx";
+import HelpModal from "../HelpModal";
+import FirstTimeMessage from "../FirstTimeMessage";
+import Tooltip from "../Tooltip";
+import HelpButton from "../HelpButton";
 import FullscreenButton from "./Flash/FullscreenButton";
 import initialState from "../../config/initialState";
 import { STEP_LABELS, TOTAL_STEPS } from "../../config/constants";
@@ -240,25 +241,10 @@ function LectureFlash() {
         return (
             <div className="container mx-auto p-4 relative">
                 {/* Boutons utilitaires en haut à droite */}
-                <div className="absolute top-0 right-0 z-10 flex gap-2">
-                    {/* ✅ Bouton Plein écran toujours accessible */}
-                    <div className="align-middle">
-                        <FullscreenButton />
+                <div className="absolute top-0 right-0 z-10 flex gap-2 items-center">
+                    <FullscreenButton />
 
-                        {/* Bouton Aide */}
-                        <Tooltip
-                            content="Afficher l'aide complète"
-                            position="bottom"
-                        >
-                            <button
-                                onClick={() => setShowHelp(true)}
-                                className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
-                                aria-label="Aide"
-                            >
-                                ?
-                            </button>
-                        </Tooltip>
-                    </div>
+                    <HelpButton onClick={() => setShowHelp(true)} />
                 </div>
 
                 {/* Help modal */}
