@@ -3,7 +3,7 @@
  * S'affiche une seule fois lors de la première visite, puis disparaît définitivement
  *
  * Fonctionnalités :
- * - Détection première visite via localStorage
+ * - Détection première visite via localStorage (hook useLocalStorage)
  * - Bannière de bienvenue avec instructions simplifiées
  * - Bouton de fermeture avec sauvegarde de la préférence
  * - Animation d'apparition progressive
@@ -19,34 +19,34 @@
  */
 
 import React, { useState, useEffect } from "react";
-
-/**
- * Clé localStorage pour stocker l'état de première visite
- */
-const STORAGE_KEY = "lecture-flash-first-visit";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 function FirstTimeMessage() {
     const [isVisible, setIsVisible] = useState(false);
+
+    // Utilisation du hook useLocalStorage au lieu de localStorage direct
+    const [hasSeenMessage, setHasSeenMessage] = useLocalStorage(
+        "lecture-flash-first-visit",
+        false
+    );
 
     /**
      * Vérifie au montage si l'utilisateur a déjà vu le message
      */
     useEffect(() => {
-        const hasSeenMessage = localStorage.getItem(STORAGE_KEY);
-
         if (!hasSeenMessage) {
             // Petit délai pour que l'animation soit perceptible
             setTimeout(() => {
                 setIsVisible(true);
             }, 300);
         }
-    }, []);
+    }, [hasSeenMessage]);
 
     /**
      * Gère la fermeture du message et sauvegarde la préférence
      */
     const handleDismiss = () => {
-        localStorage.setItem(STORAGE_KEY, "true");
+        setHasSeenMessage(true);
         setIsVisible(false);
     };
 
@@ -71,52 +71,63 @@ function FirstTimeMessage() {
                         du texte qui s'efface progressivement.
                     </p>
 
-                    {/* Instructions simplifiées */}
-                    <ol className="text-sm text-gray-600 space-y-2">
+                    {/* Liste d'étapes */}
+                    <ol className="space-y-2 text-sm text-gray-600 mb-4">
                         <li className="flex items-start">
-                            <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full mr-2 font-semibold flex-shrink-0">
-                                1
+                            <span className="font-bold text-primary-600 mr-2">
+                                1.
                             </span>
                             <span>
-                                Ajoutez votre texte (saisie, fichier, ou cloud)
+                                <strong>Saisissez ou chargez un texte</strong>{" "}
+                                (onglets disponibles)
                             </span>
                         </li>
                         <li className="flex items-start">
-                            <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full mr-2 font-semibold flex-shrink-0">
-                                2
+                            <span className="font-bold text-primary-600 mr-2">
+                                2.
                             </span>
                             <span>
-                                Choisissez une vitesse adaptée à votre niveau
+                                <strong>Choisissez une vitesse</strong> adaptée
+                                au niveau de lecture
                             </span>
                         </li>
                         <li className="flex items-start">
-                            <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full mr-2 font-semibold flex-shrink-0">
-                                3
+                            <span className="font-bold text-primary-600 mr-2">
+                                3.
                             </span>
                             <span>
-                                Lancez la lecture et suivez le texte qui
-                                disparaît !
+                                <strong>Lancez la lecture</strong> et observez
+                                le texte s'effacer progressivement
                             </span>
                         </li>
                     </ol>
 
-                    {/* Bouton de fermeture définitive */}
-                    <button
-                        onClick={handleDismiss}
-                        className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium underline transition"
-                    >
-                        Ne plus afficher ce message
-                    </button>
+                    {/* Astuce aide */}
+                    <p className="text-xs text-gray-500">
+                        💡 Besoin d'aide ? Cliquez sur le bouton{" "}
+                        <span className="font-bold">?</span> en haut à droite
+                    </p>
                 </div>
 
-                {/* Bouton de fermeture (×) */}
+                {/* Bouton fermeture */}
                 <button
                     onClick={handleDismiss}
-                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none flex-shrink-0 transition"
+                    className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
                     aria-label="Fermer le message de bienvenue"
-                    title="Fermer"
                 >
-                    ×
+                    <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
                 </button>
             </div>
         </div>

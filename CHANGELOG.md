@@ -21,6 +21,26 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.5] - 2026-02-14
+
+### Added
+
+- **`hooks/useLocalStorage.js` (Sprint 11)** :
+    - Hook personnalisé pour abstraction persistance localStorage
+    - Synchronisation automatique state React ↔ localStorage
+    - Parsing/stringification JSON automatique
+    - Gestion erreurs (quota dépassé, JSON invalide)
+    - Support valeur initiale et fonction de mise à jour
+    - Synchronisation multi-onglets via event `storage`
+    - JSDoc complète en français
+
+### Changed
+
+- **`components/FirstTimeMessage.jsx` (Sprint 11)** :
+    - Refactorisation utilisation localStorage → hook `useLocalStorage`
+    - Simplification logique état première visite
+    - Code plus maintenable et réutilisable
+
 ## [3.9.4] - 2026-02-13
 
 ### Fixed
