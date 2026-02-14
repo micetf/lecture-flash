@@ -1,5 +1,6 @@
 /**
  * Composant d'options d'affichage (police et taille)
+ * VERSION 3.9.13 : CORRECTION formule fontSize aperçu
  *
  * Fonctionnalités :
  * - Section optionnelle collapsed par défaut (préserve simplicité)
@@ -8,6 +9,12 @@
  * - Affichage valeur courante en temps réel
  * - Persistance localStorage via hook useLocalStorage
  * - Tooltip explicatif au survol
+ *
+ * Corrections v3.9.13 (Sprint 18) :
+ * - 🔧 CORRIGÉ : Formule fontSize aperçu = formule réelle TextAnimation
+ * - Avant : fontSize: `${options.taille}%` (16px navigateur × taille%)
+ * - Après : fontSize: `${((options.taille || 100) / 100) * 3}rem` (3rem × taille%)
+ * - Cohérence : 100% = 3rem (48px) dans aperçu ET lecture
  *
  * Conformité :
  * - Accessibilité WCAG 2.1 AA (critère 1.4.4)
@@ -37,6 +44,7 @@ const OPTIONS_POLICE = [
 
 /**
  * Map des polices vers les font-family CSS
+ * ⚠️ IMPORTANT : Doit être IDENTIQUE à TextAnimation.jsx
  */
 const FONT_FAMILIES = {
     default:
@@ -45,6 +53,7 @@ const FONT_FAMILIES = {
     arial: "Arial, Helvetica, sans-serif",
     "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
 };
+
 /**
  * Valeurs par défaut des options
  */
@@ -224,7 +233,7 @@ function DisplayOptions({ onOptionsChange }) {
                             className="text-center leading-relaxed"
                             style={{
                                 fontFamily: FONT_FAMILIES[options.police],
-                                fontSize: `${options.taille}%`,
+                                fontSize: `${((options.taille || 100) / 100) * 3}rem`, // 🔧 CORRIGÉ : Formule identique à TextAnimation
                             }}
                         >
                             Le texte s'affichera avec cette police et cette

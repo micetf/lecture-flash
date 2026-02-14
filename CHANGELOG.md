@@ -21,6 +21,42 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.13] - 2026-02-14
+
+### Fixed
+
+- **Corrections critiques UX/UI (Sprint 18 - Correctifs)** :
+    - **Aperçu DisplayOptions** : Formule fontSize corrigée pour cohérence avec affichage réel
+        - Avant : `fontSize: ${taille}%` (16px × taille%)
+        - Après : `fontSize: ${(taille / 100) * 3}rem` (3rem × taille%)
+        - Impact : Aperçu 100% = 48px = affichage réel 100%
+    - **Largeur texte lecture** : Correction max-w-4xl → max-w-6xl (2 occurrences)
+        - Meilleure lisibilité sur TBI/TNI
+        - Cohérence avec documentation v3.9.12
+    - **Duplication code** : Suppression fonction locale `getEduscolZone` dans SpeedSelector
+        - Import depuis `@services/speedCalculations` (source unique de vérité)
+        - Élimination redondance
+
+### Changed
+
+- **`components/LectureFlash/Flash/DisplayOptions.jsx`** :
+
+    - Formule fontSize aperçu identique à TextAnimation
+    - Commentaire explicatif ajouté sur cohérence FONT_FAMILIES
+
+- **`components/LectureFlash/Flash/TextAnimation.jsx`** :
+
+    - Largeur conteneur augmentée (max-w-4xl → max-w-6xl)
+    - Application sur écran initial ET lecture en cours
+    - Commentaires explicatifs ajoutés
+
+- **`components/LectureFlash/Flash/SpeedSelector.jsx`** :
+    - Ajout import `getEduscolZone` depuis `@services/speedCalculations`
+    - Suppression fonction locale dupliquée
+    - Réduction code : ~7 lignes supprimées
+
+---
+
 ## [3.9.12] - 2026-02-14
 
 ### Fixed

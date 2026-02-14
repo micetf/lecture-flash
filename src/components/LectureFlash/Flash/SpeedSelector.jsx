@@ -32,19 +32,7 @@ import {
     getSpeedTooltip,
     getSpeedLabel,
 } from "../../../config/constants";
-
-/**
- * Obtient la zone Eduscol correspondant à une vitesse
- * @param {number} speed - Vitesse en MLM
- * @returns {string} Description zone Eduscol
- */
-const getEduscolZone = (speed) => {
-    if (speed <= 40) return "CP - début CE1 (déchiffrage)";
-    if (speed <= 60) return "CE1 (lecture mot à mot)";
-    if (speed <= 80) return "CE2 (lecture par groupes)";
-    if (speed <= 100) return "CM1-CM2 (lecture fluide)";
-    return "CM2+ (lecture experte)";
-};
+import { getEduscolZone } from "@services/speedCalculations";
 
 /**
  * Configuration des couleurs pour chaque vitesse prédéfinie
