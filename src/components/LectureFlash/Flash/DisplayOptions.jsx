@@ -1,6 +1,18 @@
 /**
  * Composant d'options d'affichage (police et taille)
- * VERSION 3.9.13 : CORRECTION formule fontSize aperçu
+ * VERSION 3.9.14 : Refactoring imports constants + helper styles
+ *
+ * Corrections v3.9.14 (Sprint 18 BIS) :
+ * - 🔧 REFACTORING : Import OPTIONS_POLICE depuis @config/constants
+ *   - Élimination définition locale dupliquée
+ *   - Source unique de vérité
+ * - 🔧 REFACTORING : Utilisation helper getTextStyles()
+ *   - Calcul styles centralisé dans @utils/textStyles
+ *   - Cohérence garantie avec TextAnimation
+ *
+ * Corrections v3.9.13 (Sprint 18) :
+ * - Formule fontSize aperçu = formule réelle TextAnimation
+ * - Cohérence : 100% = 3rem (48px) dans aperçu ET lecture
  *
  * Fonctionnalités :
  * - Section optionnelle collapsed par défaut (préserve simplicité)
@@ -9,12 +21,6 @@
  * - Affichage valeur courante en temps réel
  * - Persistance localStorage via hook useLocalStorage
  * - Tooltip explicatif au survol
- *
- * Corrections v3.9.13 (Sprint 18) :
- * - 🔧 CORRIGÉ : Formule fontSize aperçu = formule réelle TextAnimation
- * - Avant : fontSize: `${options.taille}%` (16px navigateur × taille%)
- * - Après : fontSize: `${((options.taille || 100) / 100) * 3}rem` (3rem × taille%)
- * - Cohérence : 100% = 3rem (48px) dans aperçu ET lecture
  *
  * Conformité :
  * - Accessibilité WCAG 2.1 AA (critère 1.4.4)
@@ -31,28 +37,8 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import useLocalStorage from "@hooks/useLocalStorage";
 import Tooltip from "../../Tooltip";
-
-/**
- * Options de police disponibles
- */
-const OPTIONS_POLICE = [
-    { value: "default", label: "Défaut (sans serif)" },
-    { value: "opendyslexic", label: "OpenDyslexic" },
-    { value: "arial", label: "Arial" },
-    { value: "comic-sans", label: "Comic Sans MS" },
-];
-
-/**
- * Map des polices vers les font-family CSS
- * ⚠️ IMPORTANT : Doit être IDENTIQUE à TextAnimation.jsx
- */
-const FONT_FAMILIES = {
-    default:
-        'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    opendyslexic: '"OpenDyslexic", sans-serif',
-    arial: "Arial, Helvetica, sans-serif",
-    "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
-};
+import { OPTIONS_POLICE } from "@config/constants";
+import { getTextStyles } from "@config/textStyles";
 
 /**
  * Valeurs par défaut des options
@@ -231,10 +217,10 @@ function DisplayOptions({ onOptionsChange }) {
                         </p>
                         <p
                             className="text-center leading-relaxed"
-                            style={{
-                                fontFamily: FONT_FAMILIES[options.police],
-                                fontSize: `${((options.taille || 100) / 100) * 3}rem`, // 🔧 CORRIGÉ : Formule identique à TextAnimation
-                            }}
+                            style={getTextStyles(
+                                options.police,
+                                options.taille
+                            )}
                         >
                             Le texte s'affichera avec cette police et cette
                             taille pendant la lecture.

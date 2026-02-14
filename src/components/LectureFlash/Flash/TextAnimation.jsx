@@ -1,11 +1,21 @@
 /**
  * Text Animation component for reading mode
- * VERSION 3.9.13 : CORRECTION largeur texte max-w-6xl
+ * VERSION 3.9.14 : CORRECTION BUG vitesse + refactoring styles
+ *
+ * Corrections v3.9.14 (Sprint 18 BIS) :
+ * - 🔧 CORRIGÉ : Bug vitesse Word (charSpeed * length → charSpeed)
+ *   - Word.jsx gère lui-même la multiplication par word.length
+ *   - Passer charSpeed * length causait une double multiplication
+ * - 🔧 REFACTORING : Import FONT_FAMILIES depuis @config/constants
+ *   - Élimination définition locale dupliquée
+ *   - Source unique de vérité
+ * - 🔧 REFACTORING : Utilisation helper getTextStyles()
+ *   - Calcul styles centralisé dans @utils/textStyles
+ *   - Cohérence garantie avec DisplayOptions
  *
  * Corrections v3.9.13 (Sprint 18) :
- * - 🔧 CORRIGÉ : Largeur conteneur max-w-4xl → max-w-6xl (2 occurrences)
+ * - Largeur conteneur max-w-4xl → max-w-6xl (2 occurrences)
  * - Meilleure lisibilité sur TBI/TNI (classe entière)
- * - Cohérence avec CHANGELOG v3.9.12
  *
  * @component
  * @param {Object} props
@@ -25,6 +35,7 @@ import {
     countWords,
     countCharacters,
 } from "@services/textProcessing";
+import { getTextStyles } from "@config/textStyles";
 
 // ========================================
 // CONSTANTS
@@ -35,18 +46,6 @@ const specialsBeforeIn = /(^-|«|') +/g;
 const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
-
-/**
- * Map des polices vers les font-family CSS
- * ⚠️ IMPORTANT : Doit être IDENTIQUE à DisplayOptions.jsx
- */
-const FONT_FAMILIES = {
-    default:
-        'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    opendyslexic: '"OpenDyslexic", sans-serif',
-    arial: "Arial, Helvetica, sans-serif",
-    "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
-};
 
 function TextAnimation({
     text,
@@ -141,11 +140,13 @@ function TextAnimation({
         );
     }
 
-    // 🆕 Calcul des styles dynamiques
-    const stylesDynamiques = {
-        fontFamily: FONT_FAMILIES[optionsAffichage?.police || "default"],
-        fontSize: `${((optionsAffichage?.taille || 100) / 100) * 3}rem`, // Base 3rem * pourcentage
-    };
+    // ========================================
+    // DYNAMIC STYLES CALCULATION
+    // ========================================
+    const stylesDynamiques = getTextStyles(
+        optionsAffichage?.police,
+        optionsAffichage?.taille
+    );
 
     // ========================================
     // RENDER: DURING READING
@@ -175,12 +176,10 @@ function TextAnimation({
                                 .replace(specialsBeforeOut, "$1 ")
                                 .replace(specialsAfterOut, " $1");
 
+                            // 🔧 CORRECTION BUG v3.9.14 : Word attend la vitesse PAR CARACTÈRE
+                            // Le composant Word.jsx gère lui-même la multiplication par word.length
                             const wordSpeed =
-                                index <= currentWordIndex
-                                    ? charSpeed * cleanWord.length
-                                    : charSpeed
-                                      ? charSpeed
-                                      : 0;
+                                index <= currentWordIndex ? charSpeed : 0;
 
                             return (
                                 <Word

@@ -21,6 +21,60 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.14] - 2026-02-14
+
+### Fixed
+
+- **BUG CRITIQUE : Vitesse animation Word** (Sprint 18 BIS) :
+    - **TextAnimation.jsx** : Correction calcul vitesse passée à Word
+    - Avant : `wordSpeed = charSpeed * cleanWord.length` (double multiplication)
+    - Après : `wordSpeed = charSpeed` (vitesse par caractère uniquement)
+    - Impact : Word.jsx gère lui-même `speed * word.length` dans animation CSS
+    - **Bug signalé et corrigé par utilisateur** ✅
+
+### Added
+
+- **`config/constants.js`** (Sprint 18 BIS) :
+    - Ajout `FONT_FAMILIES` : Map polices → font-family CSS
+    - Ajout `OPTIONS_POLICE` : Liste options sélecteur police
+    - Source unique de vérité pour DisplayOptions et TextAnimation
+- **`config/textStyles.js`** (Sprint 18 BIS) :
+    - Helper `getTextStyles(police, taille)` : Calcul styles dynamiques
+    - Helper `isValidFont(police)` : Validation police
+    - Helper `isValidSize(taille, min, max)` : Validation taille
+    - Centralise logique conversion police/taille → CSS
+    - **Placé dans config/ car travaille directement avec constants.js**
+
+### Changed
+
+- **`components/LectureFlash/Flash/DisplayOptions.jsx`** :
+    - Import `OPTIONS_POLICE` depuis `@config/constants`
+    - Utilisation `getTextStyles()` depuis `@config/textStyles` pour aperçu
+    - Suppression définition locale `OPTIONS_POLICE` (dupliquée)
+    - Suppression définition locale `FONT_FAMILIES` (dupliquée)
+- **`components/LectureFlash/Flash/TextAnimation.jsx`** :
+    - Utilisation `getTextStyles()` depuis `@config/textStyles` pour styles dynamiques
+    - Suppression définition locale `FONT_FAMILIES` (dupliquée)
+    - Correction vitesse Word : charSpeed uniquement
+
+### Removed
+
+- **Duplications éliminées** :
+    - `FONT_FAMILIES` défini 2× (DisplayOptions, TextAnimation) → 1× (constants.js)
+    - `OPTIONS_POLICE` défini 2× (DisplayOptions, constants ancienne version) → 1× (constants.js)
+    - Calcul styles défini 2× (DisplayOptions, TextAnimation) → 1× (config/textStyles.js)
+
+### Refactoring Gains
+
+| Indicateur         | Avant                 | Après             | Gain          |
+| :----------------- | :-------------------- | :---------------- | :------------ |
+| **FONT_FAMILIES**  | Défini 2×             | Défini 1×         | Source unique |
+| **OPTIONS_POLICE** | Défini 2×             | Défini 1×         | Source unique |
+| **Calcul styles**  | Code dupliqué         | Helper centralisé | Réutilisable  |
+| **Lignes code**    | ~30 lignes dupliquées | ~0 duplication    | -100%         |
+
+---
+
 ## [3.9.13] - 2026-02-14
 
 ### Fixed

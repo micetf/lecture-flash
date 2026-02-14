@@ -1,6 +1,8 @@
 /**
  * Constantes globales de l'application Lecture Flash
- * Single source of truth pour tous les modes, vitesses et labels
+ * Single source of truth pour tous les modes, vitesses, labels ET polices
+ *
+ * VERSION 3.9.14 : Ajout FONT_FAMILIES (élimination duplication)
  *
  * @module config/constants
  */
@@ -65,6 +67,36 @@ export const SPEEDS = [
         tooltip: "Pour CM2 et + (lecture experte)",
         description: "Très rapide - Lecture experte",
     },
+];
+
+/**
+ * Map des polices vers les font-family CSS
+ * Source unique de vérité pour DisplayOptions et TextAnimation
+ *
+ * @constant {Object}
+ *
+ * @example
+ * import { FONT_FAMILIES } from '@config/constants';
+ * const fontFamily = FONT_FAMILIES['opendyslexic'];
+ */
+export const FONT_FAMILIES = {
+    default:
+        'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    opendyslexic: '"OpenDyslexic", sans-serif',
+    arial: "Arial, Helvetica, sans-serif",
+    "comic-sans": '"Comic Sans MS", "Comic Sans", cursive',
+};
+
+/**
+ * Options de police disponibles pour le sélecteur
+ *
+ * @constant {Array<Object>}
+ */
+export const OPTIONS_POLICE = [
+    { value: "default", label: "Défaut (sans serif)" },
+    { value: "opendyslexic", label: "OpenDyslexic" },
+    { value: "arial", label: "Arial" },
+    { value: "comic-sans", label: "Comic Sans MS" },
 ];
 
 /**
