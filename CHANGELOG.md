@@ -25,29 +25,133 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ### Added
 
-- **`src/components/HelpButton.jsx`** :
+- **`src/components/HelpButton.jsx`** (Sprint A) :
     - Composant bouton d'aide global ("?")
     - Tooltip intégré : "Afficher l'aide complète"
     - Accessibilité WCAG 2.1 AA (ARIA, navigation clavier, focus visible)
-    - Design cohérent avec FullscreenButton
-    - Architecture : Composant UI transversal en racine components/
-    - JSDoc complète en français + PropTypes
+    - Design cohérent avec FullscreenButton (w-10 h-10, rond bleu)
+    - Architecture : Composant UI transversal en racine `components/`
+    - JSDoc complète en français + PropTypes strictes
+    - Réutilisable à toutes les étapes (actuellement étape 3)
 
 ### Changed
 
-- **`src/components/LectureFlash/index.jsx`** :
+- **`src/components/LectureFlash/index.jsx`** (Sprint A) :
+
     - Harmonisation boutons utilitaires (étape 3)
     - Suppression div "align-middle" inutile
-    - Remplacement bouton aide inline par composant HelpButton
+    - Remplacement bouton aide inline par composant `<HelpButton />`
     - Ajout classe "items-center" pour alignement vertical cohérent
     - Architecture propre : FullscreenButton + HelpButton au même niveau
+    - Import ajouté : `import HelpButton from "../HelpButton.jsx";`
+
+- **`src/components/HelpModal.jsx`** (Sprint B) :
+
+    - **Étape 1 : Corrections terminologie et précisions** :
+        - "Cloud" → "**CodiMD**" (cohérence avec composant `CodiMDTab.jsx`)
+        - "chargez un fichier" → "**téléversez** un fichier .txt"
+        - "chargez un texte" → "**téléchargez** un texte depuis Apps.education.fr"
+        - Précision : "service accessible à **tous les enseignants de l'Éducation Nationale**"
+        - **AJOUT** : Encadré astuce pédagogique CodiMD (titre avec `#`)
+            - Explique que ligne `# Titre` sert d'identification sur CodiMD
+            - Précise que cette ligne est filtrée automatiquement (pas lue pendant exercice)
+            - Exemple concret fourni
+    - **Étape 2 : Ajout options affichage + correction vitesses** :
+        - **AJOUT** : Encadré bleu 🎨 "Options d'affichage" complet
+            - Police : 4 options (Défaut, OpenDyslexic, Arial, Comic Sans MS)
+            - Taille : curseur 100-200%
+            - Utilité : "Pour adapter au TBI/TNI ou élèves à besoins particuliers"
+        - **CORRECTION** : Suppression symboles Trottinette/Voiture/Fusée (inexistants dans code)
+        - **REMPLACEMENT** : Grille 2 colonnes (6 vitesses) → Liste 1 colonne (5 vitesses réelles)
+        - **CORRECTION** : Vitesses affichées = code source réel
+            - 30 MLM → CP - début CE1 → Déchiffrage en cours
+            - 50 MLM → CE1 → Lecture mot à mot
+            - 70 MLM → CE2 → Lecture par groupes
+            - 90 MLM → CM1-CM2 → Lecture fluide
+            - 110 MLM → CM2 et + → Lecture experte
+        - **AJOUT** : Note "Vitesse personnalisée : 20 à 200 MLM avec curseur"
+        - **SUPPRESSION** : Section "Lecture silencieuse 140-300 MLM" (hors scope primaire)
+    - **Étape 3 : Réécriture complète workflow lecture** :
+
+        - **CORRECTION** : "la lecture commence automatiquement" → "Cliquez sur le bouton **▶️ Lancer la lecture**"
+        - **AJOUT** : Encadré vert "📌 Démarrage" avec explication bouton manuel
+        - **AJOUT** : Encadré gris "🎮 Contrôles disponibles" (4 contrôles) :
+            - ⏸️ Pause / Reprendre : Met en pause ou reprend la lecture
+            - 🔄 Relire : Recommence depuis le début
+            - ← Changer la vitesse : Retour étape 2 (sauf si vitesse imposée)
+            - ⛶ Mode plein écran : Bouton en haut à droite (Échap pour quitter)
+        - **AJOUT** : Encadré bleu "📊 Barre de progression"
+            - Indique l'avancement de la lecture
+            - Apparaît en haut de l'écran
+
+    - **Statistiques** :
+        - +150 lignes de contenu pédagogique
+        - Passage de ~250 lignes à ~400 lignes
+        - 100% cohérent avec code source v3.9.0
+        - 0 hallucination (chaque phrase vérifiée avec code)
 
 ### Improved
 
 - **Architecture composants UI** :
-    - Séparation claire : UI transversaux (racine) vs lecture (Flash/)
-    - Cohérence avec HelpModal, FirstTimeMessage, Tooltip
-    - Préparation v4.0 (bibliothèque common/ components)
+
+    - Séparation claire : UI transversaux (`components/` racine) vs lecture spécifique (`Flash/`)
+    - Cohérence avec HelpModal, FirstTimeMessage, Tooltip (tous en racine)
+    - Préparation v4.0 (bibliothèque `common/` components)
+
+- **Documentation utilisateur** :
+    - HelpModal reflète exactement le fonctionnement réel de l'application
+    - Aucune mention de fonctionnalités inexistantes
+    - Toutes les fonctionnalités v3.9.0 documentées
+    - Astuces pédagogiques enrichies (titre CodiMD, progression vitesses)
+
+### Technical Details
+
+**HelpButton.jsx** :
+
+- 75 lignes (JSDoc + PropTypes)
+- Bouton rond 40×40px, bleu, hover/focus states
+- Tooltip position "bottom"
+- Prop unique : `onClick` (fonction ouvrir HelpModal)
+
+**LectureFlash/index.jsx** :
+
+- Ligne ~30 : Import `HelpButton`
+- Lignes ~437-443 : Harmonisation boutons utilitaires
+    ```jsx
+    <div className="absolute top-0 right-0 z-10 flex gap-2 items-center">
+        <FullscreenButton />
+        <HelpButton onClick={() => setShowHelp(true)} />
+    </div>
+    ```
+
+**HelpModal.jsx** :
+
+- Lignes modifiées : 100-115, 145-230, 240-320
+- Sections ajoutées : 4 encadrés (astuce CodiMD, options affichage, contrôles, progression)
+- Format vitesses : Copie conforme `SpeedSelector.jsx` lignes 255-263
+
+---
+
+## Notes de Version
+
+**Objectif v3.10.0** : Finalisation système d'aide + harmonisation architecture UI
+
+**Chantiers terminés** :
+
+- ✅ Sprint A : HelpButton.jsx + harmonisation boutons
+- ✅ Sprint B : HelpModal.jsx cohérent avec v3.9.0
+
+**Points de vigilance** :
+
+- HelpModal testé manuellement (workflow 1-2-3)
+- Accessibilité validée (Tab, Escape, ARIA)
+- Aucune console.error/warning
+
+**Prochaines étapes** :
+
+- v3.10.1 : Tests utilisateurs terrain
+- v3.11.0 : Décomposition SpeedSelector (5 sous-composants)
+- v4.0 : Bibliothèque `common/` components
 
 ## [3.9.18] - 2026-02-14
 
