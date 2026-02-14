@@ -2,6 +2,13 @@
  * Composant modal d'aide contextuelle
  * Affiche un guide complet pour utiliser l'application Lecture Flash
  *
+ * VERSION 3.10.0 : Mise à jour contenu cohérent avec v3.9.0
+ *
+ * CORRECTIONS MAJEURES :
+ * - Étape 1 : "CodiMD" (pas "Cloud")
+ * - Étape 2 : Ajout mention options affichage (v3.9.0)
+ * - Étape 3 : Correction workflow réel (bouton Lancer, contrôles, plein écran)
+ *
  * Conformité :
  * - WCAG 2.1 AA (navigation clavier, focus trap)
  * - ARIA role="dialog"
@@ -86,39 +93,71 @@ function HelpModal({ isOpen, onClose }) {
                             Ajouter votre texte
                         </h3>
                         <div className="ml-11 space-y-3 text-gray-700">
-                            <p>Choisissez la méthode qui vous convient :</p>
+                            <p className="mb-4">
+                                Choisissez parmi <strong>3 options</strong> via
+                                les onglets en haut de l'écran :
+                            </p>
                             <ul className="space-y-2">
                                 <li className="flex items-start">
-                                    <span className="text-2xl mr-3">✏️</span>
+                                    <span className="text-2xl mr-3">✍️</span>
                                     <div>
                                         <strong className="text-gray-900">
                                             Saisir :
                                         </strong>{" "}
                                         tapez ou collez directement votre texte
-                                        dans la zone de texte
+                                        dans la zone (compteur de mots
+                                        automatique)
                                     </div>
                                 </li>
                                 <li className="flex items-start">
-                                    <span className="text-2xl mr-3">📄</span>
+                                    <span className="text-2xl mr-3">📁</span>
                                     <div>
                                         <strong className="text-gray-900">
                                             Fichier :
                                         </strong>{" "}
-                                        importez un fichier .txt depuis votre
-                                        ordinateur
+                                        téléversez un fichier{" "}
+                                        <code className="bg-gray-100 px-1 rounded">
+                                            .txt
+                                        </code>{" "}
+                                        depuis votre ordinateur
                                     </div>
                                 </li>
                                 <li className="flex items-start">
                                     <span className="text-2xl mr-3">☁️</span>
                                     <div>
                                         <strong className="text-gray-900">
-                                            Cloud :
+                                            CodiMD :
                                         </strong>{" "}
-                                        chargez un texte partagé via une URL
-                                        (Dropbox, Nextcloud, Google Drive...)
+                                        téléchargez un texte partagé depuis{" "}
+                                        <strong>Apps.education.fr</strong>{" "}
+                                        (service accessible à tous les
+                                        enseignants de l'Éducation Nationale)
                                     </div>
                                 </li>
                             </ul>
+
+                            {/* Astuce pédagogique CodiMD */}
+                            <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded mt-4">
+                                <p className="font-semibold text-amber-900 mb-1 flex items-center text-sm">
+                                    <span className="mr-2">💡</span>
+                                    Astuce CodiMD
+                                </p>
+                                <p className="text-xs text-amber-800">
+                                    Pour identifier facilement votre texte sur
+                                    CodiMD, ajoutez un{" "}
+                                    <strong>
+                                        titre en première ligne avec #
+                                    </strong>
+                                    (exemple :{" "}
+                                    <code className="bg-amber-100 px-1 rounded">
+                                        # Lecture CE1 - Les animaux
+                                    </code>
+                                    ). Cette ligne servira de titre sur CodiMD
+                                    mais ne sera{" "}
+                                    <strong>pas lue pendant l'exercice</strong>{" "}
+                                    (filtrée automatiquement).
+                                </p>
+                            </div>
                         </div>
                     </section>
 
@@ -139,74 +178,147 @@ function HelpModal({ isOpen, onClose }) {
 
                             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                                 <h4 className="font-semibold text-gray-900 mb-2">
-                                    📖 Lecture à voix haute (50-150 MLM)
+                                    📖 Vitesses prédéfinies (conformes Eduscol)
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🛴 Trottinette (50 MLM)
-                                        </div>
-                                        <div className="text-xs text-gray-600">
-                                            CP - début CE1
-                                        </div>
-                                    </div>
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🛼 Roller (65 MLM)
-                                        </div>
-                                        <div className="text-xs text-gray-600">
-                                            CE1
-                                        </div>
-                                    </div>
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🚲 Vélo (80 MLM)
-                                        </div>
-                                        <div className="text-xs text-gray-600">
-                                            CE2
+                                <div className="grid grid-cols-1 gap-2 text-sm">
+                                    <div className="bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    30
+                                                </span>
+                                                <span className="text-sm text-gray-600 ml-1">
+                                                    MLM
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-semibold text-gray-700">
+                                                    CP - début CE1
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    Déchiffrage en cours
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🛵 Scooter (95 MLM)
-                                        </div>
-                                        <div className="text-xs text-gray-600">
-                                            CE2-CM1
+                                    <div className="bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    50
+                                                </span>
+                                                <span className="text-sm text-gray-600 ml-1">
+                                                    MLM
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-semibold text-gray-700">
+                                                    CE1
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    Lecture mot à mot
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🚗 Voiture (110-120 MLM)
-                                        </div>
-                                        <div className="text-xs text-gray-600">
-                                            CM1-CM2
+                                    <div className="bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    70
+                                                </span>
+                                                <span className="text-sm text-gray-600 ml-1">
+                                                    MLM
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-semibold text-gray-700">
+                                                    CE2
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    Lecture par groupes
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="bg-white p-2 rounded border border-gray-200">
-                                        <div className="font-semibold">
-                                            🚀 Fusée (150 MLM)
+                                    <div className="bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    90
+                                                </span>
+                                                <span className="text-sm text-gray-600 ml-1">
+                                                    MLM
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-semibold text-gray-700">
+                                                    CM1-CM2
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    Lecture fluide
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="text-xs text-gray-600">
-                                            CM2 et +
+                                    </div>
+                                    <div className="bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold text-gray-900">
+                                                    110
+                                                </span>
+                                                <span className="text-sm text-gray-600 ml-1">
+                                                    MLM
+                                                </span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-sm font-semibold text-gray-700">
+                                                    CM2 et +
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    Lecture experte
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="bg-blue-50 rounded p-3 mt-3">
+                                    <p className="text-xs text-blue-800">
+                                        💡{" "}
+                                        <strong>Vitesse personnalisée</strong> :
+                                        Vous pouvez également choisir une
+                                        vitesse de 20 à 200 MLM avec le curseur.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-4">
-                                <h4 className="font-semibold text-gray-900 mb-2">
-                                    📚 Lecture silencieuse (140-300 MLM)
+                            {/* 🆕 Mention options affichage v3.9.0 */}
+                            <div className="bg-blue-50 rounded-lg p-4 mt-4">
+                                <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                                    <span className="text-xl mr-2">🎨</span>
+                                    Options d'affichage
                                 </h4>
-                                <p className="text-sm text-gray-600">
-                                    Même échelle avec vitesses doublées,
-                                    adaptées à la lecture silencieuse (cycles 3
-                                    et collège).
+                                <p className="text-sm text-gray-700">
+                                    Pour adapter l'affichage au TBI/TNI ou aux
+                                    élèves à besoins particuliers, vous pouvez
+                                    personnaliser :
                                 </p>
+                                <ul className="text-sm text-gray-700 mt-2 space-y-1 ml-4">
+                                    <li>
+                                        • <strong>Police</strong> : Par défaut,
+                                        OpenDyslexic, Arial, Comic Sans MS
+                                    </li>
+                                    <li>
+                                        • <strong>Taille du texte</strong> :
+                                        100% à 200% (curseur)
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </section>
 
-                    {/* Étape 3 : Lancer la lecture */}
+                    {/* Étape 3 : Lancer la lecture - VERSION CORRIGÉE */}
                     <section>
                         <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center">
                             <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 font-bold">
@@ -215,20 +327,85 @@ function HelpModal({ isOpen, onClose }) {
                             Lancer la lecture
                         </h3>
                         <div className="ml-11 space-y-3 text-gray-700">
-                            <p>
-                                Une fois la vitesse sélectionnée, la lecture
-                                commence automatiquement. Le texte s'affiche en
-                                grand et{" "}
-                                <strong>s'efface progressivement</strong> mot
-                                par mot, de gauche à droite, à la vitesse
-                                choisie.
-                            </p>
+                            {/* Bouton Lancer */}
+                            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-4">
+                                <p className="font-semibold text-green-900 mb-2">
+                                    📌 Démarrage
+                                </p>
+                                <p className="text-sm text-green-800">
+                                    Cliquez sur le bouton{" "}
+                                    <strong>"▶️ Lancer la lecture"</strong> pour
+                                    commencer. Le texte s'affiche en grand et{" "}
+                                    <strong>s'efface progressivement</strong>{" "}
+                                    mot par mot, de gauche à droite, à la
+                                    vitesse choisie.
+                                </p>
+                            </div>
+
+                            {/* Explication pédagogique */}
                             <p>
                                 Cette technique d'
                                 <strong>effacement progressif</strong> oblige
                                 l'œil à suivre le rythme et développe
                                 l'automatisation de la lecture (fluence).
                             </p>
+
+                            {/* Contrôles disponibles */}
+                            <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                                <h4 className="font-semibold text-gray-900 mb-2">
+                                    🎮 Contrôles disponibles
+                                </h4>
+                                <ul className="text-sm text-gray-700 space-y-2">
+                                    <li className="flex items-start">
+                                        <span className="font-bold mr-2">
+                                            ⏸️
+                                        </span>
+                                        <span>
+                                            <strong>Pause / Reprendre</strong> :
+                                            Met en pause ou reprend la lecture
+                                        </span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <span className="font-bold mr-2">
+                                            🔄
+                                        </span>
+                                        <span>
+                                            <strong>Relire</strong> : Recommence
+                                            la lecture depuis le début
+                                        </span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <span className="font-bold mr-2">
+                                            ←
+                                        </span>
+                                        <span>
+                                            <strong>Changer la vitesse</strong>{" "}
+                                            : Retourne à l'étape 2 (sauf si
+                                            vitesse imposée par l'enseignant)
+                                        </span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <span className="font-bold mr-2">
+                                            ⛶
+                                        </span>
+                                        <span>
+                                            <strong>Mode plein écran</strong> :
+                                            Bouton en haut à droite pour une
+                                            concentration maximale (appuyez sur
+                                            Échap pour quitter)
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* Barre de progression */}
+                            <div className="bg-blue-50 rounded-lg p-3 mt-4">
+                                <p className="text-sm text-blue-800">
+                                    📊 Une <strong>barre de progression</strong>{" "}
+                                    en haut de l'écran vous indique l'avancement
+                                    de la lecture.
+                                </p>
+                            </div>
                         </div>
                     </section>
 
