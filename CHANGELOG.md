@@ -21,6 +21,131 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.16] - 2026-02-14
+
+### Fixed
+
+**BUG CRITIQUE 1 : Police OpenDyslexic ne se chargeait pas**
+
+- **Symptôme** : Erreur console `status=2147746065` lors du chargement de la police
+- **Cause** : CDN jsdelivr cassé/inaccessible pour le package `open-dyslexic`
+- **Correction** : Migration vers CDNFonts (CDN alternatif fonctionnel)
+- **Impact** : OpenDyslexic disponible et fonctionnelle sur tous les systèmes
+
+**BUG CRITIQUE 2 : Guillemets polices cassaient attribut HTML style**
+
+- **Symptôme** : OpenDyslexic et Comic Sans MS ne s'appliquaient pas
+- **Cause** : Guillemets doubles imbriqués dans FONT_FAMILIES
+    ```javascript
+    // ❌ AVANT (BUG)
+    opendyslexic: '"OpenDyslexic", sans-serif';
+    // Générait : style="font-family: "OpenDyslexic", sans-serif" (invalide)
+    ```
+- **Correction** : Utilisation guillemets simples pour noms de polices
+    ```javascript
+    // ✅ APRÈS (CORRIGÉ)
+    opendyslexic: "'OpenDyslexic', sans-serif";
+    // Génère : style="font-family: 'OpenDyslexic', sans-serif" (valide)
+    ```
+- **Impact** : Polices avec espaces (OpenDyslexic, Comic Sans MS) appliquées correctement
+
+**BUG 3 : Comic Sans MS absente sur Linux**
+
+- **Symptôme** : Police "cursive" générique au lieu de Comic Sans MS
+- **Cause** : Comic Sans MS = police système Windows/macOS, absente sur Linux
+- **Correction** : Ajout webfont CDN pour compatibilité universelle
+- **Impact** : Comic Sans MS disponible sur tous les systèmes (Windows, macOS, Linux)
+
+### Changed
+
+**`config/constants.js`** :
+
+```javascript
+// Correction guillemets FONT_FAMILIES
+export const FONT_FAMILIES = {
+    default:
+        "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    opendyslexic: "'OpenDyslexic', sans-serif", // ✅ Guillemets simples
+    arial: "Arial, Helvetica, sans-serif",
+    "comic-sans": "'Comic Sans MS', 'Comic Sans', cursive", // ✅ Guillemets simples
+};
+```
+
+**`styles/index.css`** :
+
+```css
+/* ✅ NOUVEAU : CDNFonts (fonctionnel) */
+@import url("https://fonts.cdnfonts.com/css/opendyslexic");
+@import url("https://fonts.cdnfonts.com/css/comic-sans");
+
+/* ❌ ANCIEN : jsdelivr (cassé) - SUPPRIMÉ */
+/* @font-face { font-family: "OpenDyslexic"; src: url("https://cdn.jsdelivr.net/..."); } */
+```
+
+### Technical Details
+
+**Pourquoi les guillemets doubles ne marchaient pas ?**
+
+React générait un HTML invalide :
+
+```html
+<!-- ❌ AVANT (guillemets doubles) -->
+<p style="font-family: "OpenDyslexic", sans-serif">
+           ↑               ↑             ↑
+      Ouvre style    Ferme style   INVALIDE !
+```
+
+Les guillemets doubles internes fermaient prématurément l'attribut `style=""`.
+
+**Solution** :
+
+```html
+<!-- ✅ APRÈS (guillemets simples) -->
+<p style="font-family: 'OpenDyslexic', sans-serif; font-size: 3rem;">
+    ↑ ↑ ↑ Ouvre style Nom police OK Ferme style
+</p>
+```
+
+### Tests de Validation
+
+**Test 1 : OpenDyslexic**
+
+```bash
+1. Étape 2 → Options affichage → OpenDyslexic
+2. Vérifier : Police distinctive (empattements ronds caractéristiques)
+3. F12 → Network → Vérifier : cdnfonts.com/opendyslexic (200 OK)
+4. F12 → Elements → Vérifier : style="font-family: 'OpenDyslexic', sans-serif"
+5. Lancer lecture → Police appliquée ✅
+```
+
+**Test 2 : Comic Sans MS**
+
+```bash
+1. Étape 2 → Options affichage → Comic Sans MS
+2. Vérifier : Police manuscrite reconnaissable
+3. F12 → Network → Vérifier : cdnfonts.com/comic-sans (200 OK)
+4. F12 → Elements → Vérifier : style="font-family: 'Comic Sans MS', ..."
+5. Lancer lecture → Police appliquée ✅
+```
+
+**Test 3 : Compatibilité multiplateforme**
+
+- ✅ Windows : OpenDyslexic + Comic Sans MS fonctionnent
+- ✅ macOS : OpenDyslexic + Comic Sans MS fonctionnent
+- ✅ Linux : OpenDyslexic + Comic Sans MS fonctionnent (via webfonts)
+
+### Summary
+
+| Indicateur              | Avant v3.9.16         | Après v3.9.16      |
+| :---------------------- | :-------------------- | :----------------- |
+| **OpenDyslexic**        | ❌ Erreur chargement  | ✅ Fonctionne      |
+| **Comic Sans MS**       | ❌ Non appliquée      | ✅ Fonctionne      |
+| **Linux**               | ❌ Comic Sans absente | ✅ Compatible      |
+| **Guillemets HTML**     | ❌ Cassés             | ✅ Valides         |
+| **Polices disponibles** | 2/4 fonctionnelles    | 4/4 fonctionnelles |
+
+**Impact** : Toutes les polices fonctionnent maintenant correctement sur tous les systèmes d'exploitation.
+
 ## [3.9.15] - 2026-02-14
 
 ### Fixed
