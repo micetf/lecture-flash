@@ -21,6 +21,72 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.18] - 2026-02-14
+
+### Fixed
+
+- **Bug critique chargement CodiMD** :
+    - **Destructuring hook corrigé** : `markdown: markdownText` au lieu de `text: markdownText`
+        - Cause : Le hook `useMarkdownFromUrl` retourne `markdown`, pas `text`
+        - Impact : Le texte CodiMD n'était jamais récupéré dans `markdownText`
+        - Solution : Correction ligne 90 du destructuring
+    - **Rechargement URL CodiMD impossible après modification texte** :
+        - Cause : L'état du hook n'était pas réinitialisé après modification manuelle
+        - Impact : Impossible de recharger la même URL CodiMD après édition du texte
+        - Solution : Appel de `reset()` dans `handleTextChange` quand texte modifié (ligne 147)
+
+### Changed
+
+- **Workflow chargement CodiMD optimisé** :
+
+    - Suppression passage automatique étape 2 après chargement
+    - L'utilisateur reste sur étape 1 avec le texte chargé dans l'onglet "Saisir"
+    - Ajout `textInputKey` (ligne 61) pour forcer remount de `TextInputManager`
+        - Retour automatique sur onglet "Saisir" après chargement
+        - Nettoyage du formulaire CodiMD pour permettre rechargement
+    - Workflow simplifié : Charge → Voit le texte → Passe manuellement à l'étape 2
+    - Ajout `key={textInputKey}` sur composant `TextInputManager` (ligne 378)
+
+- **Bouton Plein écran repositionné (étape 3)** :
+    - Déplacé en haut à droite à côté du bouton d'aide (?)
+    - Accessible dès l'arrivée sur l'étape 3 (avant lancement lecture)
+    - Reste visible et accessible pendant toute la lecture
+    - Suppression du bouton plein écran des contrôles de lecture centraux
+    - Amélioration alignement visuel boutons utilitaires :
+        - Ajout `mx-2` sur conteneur `Tooltip` (espacement horizontal 8px)
+        - Ajout `align-middle` sur conteneur boutons (alignement vertical cohérent)
+        - Ajout `flex gap-2` pour espacement automatique entre boutons
+    - Design plus propre et cohérent avec étapes 1-2
+
+### Technical Details
+
+**Fichier modifié** : `src/components/LectureFlash/index.jsx`
+
+**Modifications clés** :
+
+1. Ligne 61 : Ajout `const [textInputKey, setTextInputKey] = useState(0);`
+2. Ligne 90 : Correction `markdown: markdownText` (au lieu de `text: markdownText`)
+3. Lignes 118-137 : Suppression `setCurrentStep(2)`, ajout `setTextInputKey(prev => prev + 1)`
+4. Lignes 142-148 : Ajout `reset()` après invalidation `isCodiMDTextUnmodified`
+5. Ligne 378 : Ajout `key={textInputKey}` sur `TextInputManager`
+6. Lignes 233-251 : Repositionnement `FullscreenButton` en haut à droite avec amélioration alignement (`flex gap-2`, `align-middle`, `mx-2`)
+
+**Tests de validation** :
+
+- ✅ Chargement CodiMD → texte affiché dans onglet Saisir
+- ✅ Modification texte → possibilité de recharger la même URL
+- ✅ Bouton Partager visible si texte non modifié
+- ✅ Bouton Plein écran accessible avant et pendant la lecture
+- ✅ Alignement visuel cohérent des boutons utilitaires (espacement uniforme)
+
+### UX Improvements
+
+- **Meilleure discoverabilité** : Bouton plein écran visible dès l'étape 3
+- **Flexibilité accrue** : Possibilité de passer en plein écran avant de lancer la lecture
+- **Ergonomie préservée** : Contrôles de lecture restent centrés et non encombrés
+- **Cohérence interface** : Position boutons utilitaires identique sur toutes les étapes
+- **Espacement professionnel** : Alignement `align-middle` + gap uniforme entre boutons
+
 ## [3.9.17] - 2026-02-14
 
 ### Fixed

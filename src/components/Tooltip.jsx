@@ -132,7 +132,7 @@ function Tooltip({ children, content, position = "top", delay = 200 }) {
         <>
             <div
                 ref={triggerRef}
-                className="inline-block"
+                className="inline-block mx-2"
                 onMouseEnter={showTooltip}
                 onMouseLeave={hideTooltip}
                 onFocus={showTooltip}

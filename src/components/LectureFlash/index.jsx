@@ -1,23 +1,17 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION 3.9.10 : Intégration complète options affichage + plein écran
+ * VERSION 3.9.11 : Correction bug chargement CodiMD
+ *
+ * Corrections v3.9.11 :
+ * - 🔧 LIGNE 85 : Destructuring corrigé (markdown au lieu de text)
+ * - 🔧 LIGNE 118-135 : Comportement après chargement CodiMD
+ *   - Suppression setCurrentStep(2) → on reste sur étape 1
+ *   - Ajout remount TextInputManager → retour onglet Saisir + nettoyage formulaire
  *
  * Modifications v3.9.10 (Sprint 16-17) :
  * - Ajout state optionsAffichage (police, taille)
  * - Transmission options vers TextAnimation
  * - Intégration FullscreenButton dans contrôles lecture
- *
- * Modifications v3.7.0 :
- * - Ajout state isCodiMDTextUnmodified pour tracker validité du lien
- * - 2 effets séparés pour chargement CodiMD (avec/sans speedConfig)
- * - Invalidation lien CodiMD si texte modifié ou remplacé
- * - Passage conditionnel de sourceUrl au TextInputManager
- *
- * Modifications v3.6.0 :
- * - locked=true : Étape 3 direct, PAS d'auto-start, PAS de "Changer vitesse"
- * - locked=false : Étape 3 direct, PAS d'auto-start, AVEC "Changer vitesse"
- * - StepContainer gère TOUS les titres avec icon et renderActions
- * - Gestion centralisée des modales (custom et share)
  *
  * @component
  * @returns {JSX.Element}
@@ -61,6 +55,9 @@ function LectureFlash() {
         taille: 100,
     });
 
+    // ✅ AJOUT : Key pour forcer remount de TextInputManager
+    const [textInputKey, setTextInputKey] = useState(0);
+
     // ========================================
     // URL PARAMS & CODIMD LOADING
     // ========================================
@@ -82,7 +79,7 @@ function LectureFlash() {
 
     // Hook de chargement CodiMD
     const {
-        text: markdownText,
+        markdown: markdownText, // ✅ CORRECTION : "markdown" au lieu de "text"
         loading,
         error,
         sourceUrl,
@@ -114,12 +111,19 @@ function LectureFlash() {
 
     /**
      * Effet 3 : Application du texte CodiMD chargé
+     * ✅ MODIFICATION : Force remount TextInputManager pour nettoyer formulaire
      */
     useEffect(() => {
         if (markdownText) {
             setAppState((prev) => ({ ...prev, text: markdownText }));
             setIsCodiMDTextUnmodified(true);
-            setCurrentStep(2);
+
+            // ✅ SUPPRESSION : setCurrentStep(2) → on reste sur étape 1
+
+            // ✅ AJOUT : Force remount de TextInputManager
+            // → Retour automatique sur onglet "Saisir"
+            // → Nettoyage du formulaire CodiMD
+            setTextInputKey((prev) => prev + 1);
 
             // Si speedConfig présent, appliquer la vitesse et passer étape 3
             if (speedConfig) {
@@ -144,6 +148,7 @@ function LectureFlash() {
         // Invalider le lien CodiMD si le texte est modifié
         if (isCodiMDTextUnmodified && newText !== markdownText) {
             setIsCodiMDTextUnmodified(false);
+            reset();
         }
     };
 
@@ -234,20 +239,26 @@ function LectureFlash() {
 
         return (
             <div className="container mx-auto p-4 relative">
-                {/* Help button */}
-                <div className="absolute top-0 right-0 z-10">
-                    <Tooltip
-                        content="Afficher l'aide complète"
-                        position="bottom"
-                    >
-                        <button
-                            onClick={() => setShowHelp(true)}
-                            className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
-                            aria-label="Aide"
+                {/* Boutons utilitaires en haut à droite */}
+                <div className="absolute top-0 right-0 z-10 flex gap-2">
+                    {/* ✅ Bouton Plein écran toujours accessible */}
+                    <div className="align-middle">
+                        <FullscreenButton />
+
+                        {/* Bouton Aide */}
+                        <Tooltip
+                            content="Afficher l'aide complète"
+                            position="bottom"
                         >
-                            ?
-                        </button>
-                    </Tooltip>
+                            <button
+                                onClick={() => setShowHelp(true)}
+                                className="w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition font-bold text-lg"
+                                aria-label="Aide"
+                            >
+                                ?
+                            </button>
+                        </Tooltip>
+                    </div>
                 </div>
 
                 {/* Help modal */}
@@ -272,13 +283,10 @@ function LectureFlash() {
                         <div className="text-center mb-6">
                             <button
                                 onClick={() => setHasStartedReading(true)}
-                                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl shadow-lg hover:shadow-xl"
+                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-bold text-xl shadow-lg hover:shadow-xl"
                             >
-                                ▶️ Lancer la lecture
+                                ▶️ Lancer la lecture ({appState.speedWpm} MLM)
                             </button>
-                            <p className="text-gray-600 mt-4">
-                                Vitesse configurée : {appState.speedWpm} MLM
-                            </p>
                         </div>
                     )}
 
@@ -303,8 +311,6 @@ function LectureFlash() {
                             >
                                 🔄 Relire
                             </button>
-                            {/* Bouton plein écran */}
-                            <FullscreenButton />
                         </div>
                     )}
 
@@ -376,6 +382,7 @@ function LectureFlash() {
                 icon="📝"
             >
                 <TextInputManager
+                    key={textInputKey} // ✅ AJOUT : Force remount après chargement CodiMD
                     text={appState.text}
                     onTextChange={handleTextChange}
                     onUrlSubmit={loadMarkdownFromUrl}
