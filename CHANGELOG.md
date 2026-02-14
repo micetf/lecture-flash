@@ -21,6 +21,29 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.9] - 2026-02-14
+
+### Removed
+
+- **`components/LectureFlash/Flash/SpeedSelector.jsx` (Sprint 15)** :
+    - **Suppression mode test vitesse (conformément à ADR-001)**
+    - Retrait états `isTestActive` et `testSpeed`
+    - Retrait fonction `handleTest()` et logique timer 10 secondes
+    - Retrait bloc rendu interface de test (5 premiers mots)
+    - Retrait tous boutons "🧪 Tester" (5 vitesses + personnalisée)
+    - Retrait prop `text` (utilisée uniquement pour le test)
+    - Simplification interface : 5×1 bouton au lieu de 5×2
+    - Simplification message d'aide utilisateur
+    - Réduction code : ~50 lignes supprimées
+    - Workflow accéléré : sélection directe sans prévisualisation
+
+### Changed
+
+- **Message d'aide SpeedSelector** :
+    - Nouveau texte : "💡 Vous pourrez ajuster la vitesse après le lancement"
+    - Renforce tooltips : mention possibilité d'ajustement post-lancement
+    - Charge cognitive réduite (principe Tricot)
+
 ## [3.9.8] - 2026-02-14
 
 ### Added
