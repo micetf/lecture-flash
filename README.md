@@ -155,7 +155,8 @@ lecture-flash/
 │   │       │
 │   │       └── Flash/               # Lecture animée
 │   │           ├── SpeedSelector.jsx        # Sélection vitesse
-│   │           ├── DisplayOptions.jsx       # v3.9.0 - Options police/taille
+│   │           ├── DisplayOptions.jsx       # 🆕 v3.9.0 - Options police/taille
+│   │           ├── FullscreenButton.jsx     # 🆕 v3.9.0 - Bouton plein écran
 │   │           ├── TextAnimation.jsx        # Animation mot-à-mot
 │   │           └── Word.jsx                 # Animation mot
 │   │

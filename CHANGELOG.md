@@ -21,6 +21,25 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.8] - 2026-02-14
+
+### Added
+
+- **`components/LectureFlash/Flash/FullscreenButton.jsx` (Sprint 14)** :
+    - Composant bouton toggle mode plein écran immersif
+    - Utilise hook `useFullscreen` (Sprint 12)
+    - Icône dynamique : ⛶ (entrer) / ⛿ (quitter)
+    - Toggle manuel activation/désactivation
+    - Détection support API navigateur (`estSupporte`)
+    - Fallback gracieux si API non supportée (Safari iOS)
+    - Bouton désactivé avec tooltip explicatif si indisponible
+    - État visuel différencié (fond jaune si actif)
+    - Tooltips contextuels selon état
+    - Accessibilité complète (ARIA, clavier, focus ring)
+    - Styling Tailwind cohérent
+    - Transitions CSS fluides
+    - JSDoc complète en français
+
 ## [3.9.7] - 2026-02-14
 
 ### Added
