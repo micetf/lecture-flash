@@ -21,6 +21,24 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.7] - 2026-02-14
+
+### Added
+
+- **`components/LectureFlash/Flash/DisplayOptions.jsx` (Sprint 13)** :
+    - Composant options d'affichage pour personnalisation typographique
+    - Section collapsed par défaut (préserve simplicité interface)
+    - Sélecteur police : Défaut (sans serif), OpenDyslexic, Arial, Comic Sans MS
+    - Curseur taille texte : 100-200% (pas de 10%)
+    - Affichage valeur courante en temps réel
+    - Tooltip explicatif : "Pour adapter au TBI ou élèves à besoins particuliers"
+    - Persistance localStorage via hook `useLocalStorage` (clé: `lecture-flash-font-settings`)
+    - Callback `onOptionsChange` pour transmission au parent
+    - Conformité WCAG 2.1 AA (critère 1.4.4 - redimensionnement texte)
+    - Adapté TBI/TNI et élèves à besoins particuliers
+    - PropTypes strictes et accessibilité complète
+    - JSDoc complète en français
+
 ## [3.9.6] - 2026-02-14
 
 ### Added
