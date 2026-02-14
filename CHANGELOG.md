@@ -8,6 +8,103 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.10.2] - 2026-02-14
+
+### Fixed
+
+- **Bug navigation élève avec vitesse non bloquée** :
+    - **Problème** : Élève avec lien `locked=false` ne pouvait pas revenir à l'étape 2
+    - **Cause** : Effet React réexécutait `setCurrentStep(3)` à chaque render
+    - **Solution** : Ajout flag `hasLoadedFromUrl` pour navigation automatique unique
+    - Impact : Élève peut maintenant modifier vitesse, police et taille selon ses besoins
+- **Perte des paramètres police et taille** :
+
+    - **Problème** : Retour étape 2 → options d'affichage réinitialisées aux valeurs par défaut
+    - **Cause** : `DisplayOptions` utilisait uniquement localStorage local
+    - **Solution** : Ajout prop `initialOptions` + synchronisation avec parent
+    - Impact : Options URL correctement appliquées et persistantes
+
+- **Boutons inappropriés visibles pour élèves** :
+
+    - Masquage conditionnel des boutons si `speedConfig` existe :
+        - ❌ "⚙️ Réglage personnalisé" (étape 2)
+        - ❌ "🔗 Partager" (étape 2)
+        - ❌ "← Changer le texte" (étape 2)
+    - Élèves voient uniquement : vitesses + options affichage + "Suivant"
+
+- **Alignement bouton "Suivant"** :
+    - Classe conditionnelle sur conteneur : `justify-between` (enseignant) vs `justify-end` (élève)
+    - Bouton "Suivant" reste à droite même si seul bouton visible
+
+### Changed
+
+- **`src/components/LectureFlash/index.jsx`** :
+
+    - Ligne 62 : Ajout state `hasLoadedFromUrl` pour contrôle navigation automatique
+    - Ligne 118-145 : Effet React conditionné par `hasLoadedFromUrl`
+    - Ligne 130-139 : Synchronisation forcée localStorage pour police/taille depuis URL
+    - Ligne 370 : Texte bouton : "← Modifier les réglages" (vs "Changer la vitesse")
+    - Ligne 413-418 : Masquage "Réglage personnalisé" si `speedConfig`
+    - Ligne 420-430 : Masquage "Partager" si `speedConfig`
+    - Ligne 436-460 : Classe conditionnelle conteneur navigation + masquage "Changer texte"
+
+- **`src/components/LectureFlash/Flash/DisplayOptions.jsx`** :
+    - Ligne 50 : Ajout prop `initialOptions` dans signature
+    - Ligne 59-61 : Utilisation `initialOptions` comme fallback localStorage
+    - Ligne 63-72 : Effet React pour synchronisation avec `initialOptions`
+    - Ligne 233-239 : PropTypes mis à jour avec prop optionnelle
+    - JSDoc mise à jour : VERSION 3.10.2
+
+### Technical Details
+
+**Workflow élève locked=false (avant correction)** :
+
+1. Clique lien → Étape 3 ✅
+2. Clique "← Changer vitesse" → Reste bloqué étape 3 ❌
+3. Options police/taille perdues ❌
+4. Voit boutons Partager/Réglage perso ❌
+
+**Workflow élève locked=false (après correction)** :
+
+1. Clique lien → Étape 3 avec police/taille correctes ✅
+2. Clique "← Modifier les réglages" → Passe étape 2 ✅
+3. Options police/taille préservées ✅
+4. Peut modifier vitesse + police + taille ✅
+5. Ne voit PAS boutons enseignant (Partager, Réglage perso, Changer texte) ✅
+6. Bouton "Suivant" aligné à droite ✅
+7. Retour étape 3 avec nouveaux réglages ✅
+
+**Workflow élève locked=true (inchangé)** :
+
+1. Clique lien → Étape 3 avec réglages imposés ✅
+2. Ne voit PAS "← Modifier les réglages" ✅
+3. Lecture uniquement avec configuration enseignant ✅
+
+### UX Improvements
+
+- **Différenciation pédagogique renforcée** :
+    - `locked=false` : Suggestion respectant autonomie élève
+    - `locked=true` : Imposition pour évaluation/exercice chronométré
+- **Interface élève épurée** :
+
+    - Seules les actions pertinentes visibles
+    - Réduction charge cognitive (principes Tricot)
+    - Pas de confusion avec fonctionnalités enseignant
+
+- **Cohérence configuration** :
+    - Paramètres URL → Affichage → Modification → Persistance
+    - Chaîne complète fonctionnelle sans perte de données
+
+### Tests de validation
+
+- ✅ Enseignant : Navigation complète + tous boutons visibles
+- ✅ Élève locked=false : Navigation étape 2↔3 fonctionnelle
+- ✅ Élève locked=false : Options police/taille préservées
+- ✅ Élève locked=false : Boutons enseignant masqués
+- ✅ Élève locked=false : Alignement bouton "Suivant" à droite
+- ✅ Élève locked=true : Aucun retour étape 2 possible
+- ✅ Rétrocompatibilité : Liens anciens (sans police/taille) fonctionnels
+
 ### 🔜 En développement
 
 **Version cible** : 3.10.0

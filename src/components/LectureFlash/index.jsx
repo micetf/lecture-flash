@@ -59,6 +59,8 @@ function LectureFlash() {
     // ✅ AJOUT : Key pour forcer remount de TextInputManager
     const [textInputKey, setTextInputKey] = useState(0);
 
+    const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
+
     // ========================================
     // URL PARAMS & CODIMD LOADING
     // ========================================
@@ -129,12 +131,13 @@ function LectureFlash() {
             setTextInputKey((prev) => prev + 1);
 
             // Si speedConfig présent, appliquer la vitesse et passer étape 3
-            if (speedConfig) {
+            if (speedConfig && !hasLoadedFromUrl) {
                 setAppState((prev) => ({
                     ...prev,
                     speedWpm: speedConfig.speed,
                 }));
                 setCurrentStep(3);
+                setHasLoadedFromUrl(true);
                 if (policeParam && tailleParam) {
                     setOptionsAffichage({
                         police: policeParam,
@@ -325,7 +328,7 @@ function LectureFlash() {
                                 onClick={handleBackToPreviousStep}
                                 className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
                             >
-                                ← Changer la vitesse
+                                ← Modifier les réglages
                             </button>
                         </div>
                     )}
@@ -424,15 +427,17 @@ function LectureFlash() {
                         )}
 
                         {/* Bouton Partage */}
-                        {sourceUrl && isCodiMDTextUnmodified && (
-                            <button
-                                onClick={() => setShowShareModal(true)}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                                aria-label="Générer un lien de partage"
-                            >
-                                🔗 Partager
-                            </button>
-                        )}
+                        {!speedConfig &&
+                            sourceUrl &&
+                            isCodiMDTextUnmodified && (
+                                <button
+                                    onClick={() => setShowShareModal(true)}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+                                    aria-label="Générer un lien de partage"
+                                >
+                                    🔗 Partager
+                                </button>
+                            )}
                     </>
                 )}
             >
@@ -450,7 +455,12 @@ function LectureFlash() {
                 />
 
                 {/* Navigation */}
-                <div className="flex justify-between mt-6">
+                <div
+                    className={`flex mt-6 ${
+                        !speedConfig ? "justify-between" : "justify-end" // ✅ CORRECTION
+                    }`}
+                >
+                    {/* Bouton Changer le texte - masqué si speedConfig */}
                     {!speedConfig && (
                         <button
                             onClick={handleBack}
@@ -464,8 +474,6 @@ function LectureFlash() {
                         onClick={handleNextStep}
                         disabled={!appState.speedWpm}
                         className={`px-6 py-3 rounded-lg transition font-bold ${
-                            !speedConfig ? "ml-auto" : ""
-                        } ${
                             appState.speedWpm
                                 ? "bg-blue-600 text-white hover:bg-blue-700"
                                 : "bg-gray-300 text-gray-500 cursor-not-allowed"

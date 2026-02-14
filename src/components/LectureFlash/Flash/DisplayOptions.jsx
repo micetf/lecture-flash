@@ -1,6 +1,10 @@
 /**
  * Composant d'options d'affichage (police et taille)
- * VERSION 3.9.14 : Refactoring imports constants + helper styles
+ * VERSION 3.10.1 : Synchronisation avec options URL
+ *
+ * Corrections v3.10.1 :
+ * - 🔧 AJOUT : Prop initialOptions pour synchronisation avec URL
+ * - 🔧 AJOUT : Effet pour appliquer initialOptions au montage
  *
  * Corrections v3.9.14 (Sprint 18 BIS) :
  * - 🔧 REFACTORING : Import OPTIONS_POLICE depuis @config/constants
@@ -20,6 +24,7 @@
  * - Curseur taille : 100-200% (pas de 10%)
  * - Affichage valeur courante en temps réel
  * - Persistance localStorage via hook useLocalStorage
+ * - Synchronisation avec options URL (élèves)
  * - Tooltip explicatif au survol
  *
  * Conformité :
@@ -30,7 +35,10 @@
  * @component
  *
  * @example
- * <DisplayOptions onOptionsChange={(options) => console.log(options)} />
+ * <DisplayOptions
+ *   onOptionsChange={(options) => console.log(options)}
+ *   initialOptions={{ police: 'opendyslexic', taille: 150 }}
+ * />
  */
 
 import React, { useState, useEffect } from "react";
@@ -53,16 +61,31 @@ const OPTIONS_PAR_DEFAUT = {
  *
  * @param {Object} props
  * @param {Function} props.onOptionsChange - Callback appelé lors changement options
+ * @param {Object} props.initialOptions - Options initiales (ex: depuis URL)
  */
-function DisplayOptions({ onOptionsChange }) {
+function DisplayOptions({ onOptionsChange, initialOptions }) {
     // État collapsed/expanded
     const [estExpanded, setEstExpanded] = useState(false);
 
     // Persistance options dans localStorage
     const [options, setOptions] = useLocalStorage(
         "lecture-flash-font-settings",
-        OPTIONS_PAR_DEFAUT
+        initialOptions || OPTIONS_PAR_DEFAUT
     );
+
+    /**
+     * Synchronisation avec initialOptions (ex: chargement depuis URL)
+     * Permet d'appliquer les options de l'enseignant quand l'élève charge un lien
+     */
+    useEffect(() => {
+        if (
+            initialOptions &&
+            (initialOptions.police !== options.police ||
+                initialOptions.taille !== options.taille)
+        ) {
+            setOptions(initialOptions);
+        }
+    }, [initialOptions]);
 
     /**
      * Notifie le parent des changements d'options
@@ -240,6 +263,11 @@ function DisplayOptions({ onOptionsChange }) {
 DisplayOptions.propTypes = {
     /** Callback appelé lors changement options {police, taille} */
     onOptionsChange: PropTypes.func.isRequired,
+    /** Options initiales (ex: depuis URL partagée par l'enseignant) */
+    initialOptions: PropTypes.shape({
+        police: PropTypes.string,
+        taille: PropTypes.number,
+    }),
 };
 
 export default DisplayOptions;

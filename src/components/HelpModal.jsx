@@ -379,9 +379,11 @@ function HelpModal({ isOpen, onClose }) {
                                             ←
                                         </span>
                                         <span>
-                                            <strong>Changer la vitesse</strong>{" "}
+                                            <strong>
+                                                Modifier vitesse et affichage
+                                            </strong>{" "}
                                             : Retourne à l'étape 2 (sauf si
-                                            vitesse imposée par l'enseignant)
+                                            réglages imposés par l'enseignant)
                                         </span>
                                     </li>
                                     <li className="flex items-start">
