@@ -21,6 +21,55 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.17] - 2026-02-14
+
+### Fixed
+
+- **Corrections critiques vitesse personnalisée (SpeedSelector)** :
+    - **Bug customSpeed reset** : La vitesse personnalisée revenait toujours à 70 MLM au retour à l'étape 2
+        - Cause : `useState(70)` hardcodé sans récupération valeur précédente
+        - Solution : Initialisation intelligente via fonction `useState(() => {...})`
+        - Ajout helper `isPredefinedSpeed()` pour détecter vitesses prédéfinies vs personnalisées
+        - Impact : La vitesse perso (ex: 150 MLM) est restaurée correctement au retour
+    - **Bug carte toujours visible** : La carte vitesse personnalisée restait affichée même après sélection d'une vitesse prédéfinie
+        - Cause : Aucune condition d'affichage sur le bloc JSX
+        - Solution : Wrapper conditionnel `{isCustomSpeedSelected && (<div>...</div>)}`
+        - Impact : La carte n'apparaît que si une vitesse perso est réellement sélectionnée
+
+### Changed
+
+- **`src/components/LectureFlash/Flash/SpeedSelector.jsx`** :
+    - Ajout fonction helper `isPredefinedSpeed(speed)` pour validation vitesse
+    - Initialisation `customSpeed` via fonction dans `useState(() => {...})`
+        - Récupère la vitesse depuis `speedConfig?.speed || initialSelectedSpeed`
+        - Retourne la vitesse si non-prédéfinie, sinon défaut 70 MLM
+    - Initialisation `isCustomSpeedSelected` via fonction dans `useState(() => {...})`
+        - Détecte automatiquement si la vitesse initiale est personnalisée
+    - Affichage carte vitesse perso conditionné par `{isCustomSpeedSelected && (...)}`
+    - JSDoc mise à jour : VERSION 3.9.17
+
+### Technical Details
+
+**Workflow avant correction** :
+
+1. Choix vitesse perso 150 MLM → OK
+2. Lance lecture → OK
+3. Retour étape 2 → customSpeed = 70 MLM ❌
+4. Carte violette toujours visible ❌
+
+**Workflow après correction** :
+
+1. Choix vitesse perso 150 MLM → OK
+2. Lance lecture → OK
+3. Retour étape 2 → customSpeed = 150 MLM ✅
+4. Choix vitesse prédéfinie 70 MLM → Carte disparaît ✅
+
+**Lignes modifiées** :
+
+- Lignes 48-82 : Ajout helper + initialisation intelligente states
+- Ligne 236 : Ajout wrapper conditionnel `{isCustomSpeedSelected && (...)`
+- Ligne 257 : Fermeture bloc conditionnel `)}` après bouton Modifier
+
 ## [3.9.16] - 2026-02-14
 
 ### Fixed
