@@ -25,6 +25,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
+import DisplayOptions from "./DisplayOptions";
 import { SPEEDS } from "../../../config/constants";
 import {
     getSpeedLevel,
@@ -66,6 +67,7 @@ function SpeedSelector({
     setShowCustomModal,
     showShareModal,
     setShowShareModal,
+    onDisplayOptionsChange,
 }) {
     // ========================================
     // STATE: Speed selection
@@ -508,6 +510,12 @@ function SpeedSelector({
                     </p>
                 </div>
             )}
+            {/* ======================================== */}
+            {/* OPTIONS D'AFFICHAGE */}
+            {/* ======================================== */}
+            <div className="mt-8">
+                <DisplayOptions onOptionsChange={onDisplayOptionsChange} />
+            </div>
         </div>
     );
 }
@@ -536,6 +544,8 @@ SpeedSelector.propTypes = {
     showShareModal: PropTypes.bool.isRequired,
     /** Setter pour la modale partage */
     setShowShareModal: PropTypes.func.isRequired,
+    /** Callback pour changements d'options d'affichage (police, thème) */
+    onDisplayOptionsChange: PropTypes.func.isRequired,
 };
 
 export default SpeedSelector;

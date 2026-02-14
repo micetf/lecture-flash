@@ -21,6 +21,36 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.10] - 2026-02-14
+
+### Added
+
+- **Intégration complète options d'affichage (Sprint 16)** :
+    - Import police OpenDyslexic via CDN dans `src/index.css`
+    - Map `FONT_FAMILIES` pour conversion police → CSS dans `TextAnimation.jsx`
+
+### Changed
+
+- **`components/LectureFlash/Flash/SpeedSelector.jsx` (Sprint 16)** :
+
+    - Intégration composant `DisplayOptions.jsx` après section partage
+    - Ajout prop `onDisplayOptionsChange` pour callback vers parent
+    - PropTypes mise à jour avec nouvelle prop obligatoire
+
+- **`components/LectureFlash/index.jsx` (Sprint 16)** :
+
+    - Ajout state `optionsAffichage` {police, taille}
+    - Ajout handler `handleDisplayOptionsChange`
+    - Transmission callback vers `SpeedSelector`
+    - Transmission options vers `TextAnimation` via prop
+
+- **`components/LectureFlash/Flash/TextAnimation.jsx` (Sprint 16)** :
+    - Ajout prop `optionsAffichage` dans signature et PropTypes
+    - Calcul styles dynamiques (`fontFamily`, `fontSize`)
+    - Application styles inline sur élément `<p>` du texte
+    - Map FONT_FAMILIES (default, opendyslexic, arial, comic-sans)
+    - DefaultProps ajouté pour fallback sécurisé
+
 ## [3.9.9] - 2026-02-14
 
 ### Removed

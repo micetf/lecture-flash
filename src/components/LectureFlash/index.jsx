@@ -48,6 +48,12 @@ function LectureFlash() {
     // État pour tracker si le texte actuel est toujours celui de CodiMD
     const [isCodiMDTextUnmodified, setIsCodiMDTextUnmodified] = useState(false);
 
+    // État pour les options d'affichage
+    const [optionsAffichage, setOptionsAffichage] = useState({
+        police: "default",
+        taille: 100,
+    });
+
     // Labels et nombre total d'étapes
     const stepLabels = STEP_LABELS;
     const totalSteps = TOTAL_STEPS;
@@ -223,6 +229,14 @@ function LectureFlash() {
         setIsPaused(false);
     };
 
+    // Handler pour options d'affichage
+    /**
+     * Gère les changements d'options d'affichage (police, taille)
+     */
+    const handleDisplayOptionsChange = (options) => {
+        setOptionsAffichage(options);
+    };
+
     // ========================================
     // RENDER: Loading State
     // ========================================
@@ -365,6 +379,7 @@ function LectureFlash() {
                         isStarted={hasStartedReading}
                         isPaused={isPaused}
                         onComplete={handleAnimationComplete}
+                        optionsAffichage={optionsAffichage}
                     />
 
                     {/* Bouton retour (conditionnel) */}
@@ -493,6 +508,7 @@ function LectureFlash() {
                     showShareModal={showShareModal}
                     setShowShareModal={setShowShareModal}
                     sourceUrl={sourceUrl}
+                    onDisplayOptionsChange={handleDisplayOptionsChange}
                 />
 
                 {/* Navigation */}

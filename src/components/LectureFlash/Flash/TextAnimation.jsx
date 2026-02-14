@@ -30,12 +30,22 @@ const specialsAfterIn = / +(;|:|!|\?|»|')/g;
 const specialsBeforeOut = /(^-|«)/g;
 const specialsAfterOut = /(;|:|!|\?|»)/g;
 
+/**
+ * Map des polices vers les font-family CSS
+ */
+const FONT_FAMILIES = {
+    default: "system-ui, -apple-system, sans-serif",
+    opendyslexic: "'OpenDyslexic', sans-serif",
+    arial: "Arial, sans-serif",
+    "comic-sans": "'Comic Sans MS', cursive",
+};
 function TextAnimation({
     text,
     speedWpm,
     isStarted,
     isPaused = false,
     onComplete,
+    optionsAffichage,
 }) {
     // ========================================
     // STATE
@@ -121,6 +131,11 @@ function TextAnimation({
         );
     }
 
+    // 🆕 Calcul des styles dynamiques
+    const stylesDynamiques = {
+        fontFamily: FONT_FAMILIES[optionsAffichage?.police || "default"],
+        fontSize: `${optionsAffichage?.taille || 100}%`,
+    };
     // ========================================
     // RENDER: DURING READING
     // ========================================
@@ -141,7 +156,10 @@ function TextAnimation({
 
             {/* Text display */}
             <div className="bg-white rounded-lg border-2 border-gray-300 p-6 mt-4">
-                <p className="text-2xl leading-relaxed">
+                <p
+                    className="text-2xl leading-relaxed"
+                    style={stylesDynamiques}
+                >
                     {motsAvecMetadonnees.map((motData, index) => {
                         const { mot, finDeLigne, finDeParagraphe } = motData;
 
@@ -210,12 +228,22 @@ TextAnimation.propTypes = {
     isStarted: PropTypes.bool,
     isPaused: PropTypes.bool,
     onComplete: PropTypes.func,
+    optionsAffichage: PropTypes.shape({
+        police: PropTypes.oneOf([
+            "default",
+            "opendyslexic",
+            "arial",
+            "comic-sans",
+        ]),
+        taille: PropTypes.number,
+    }),
 };
 
 TextAnimation.defaultProps = {
     isStarted: false,
     isPaused: false,
     onComplete: () => {},
+    optionsAffichage: { police: "default", taille: 100 },
 };
 
 export default TextAnimation;
