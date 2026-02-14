@@ -1,6 +1,13 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION 3.9.11 : Correction bug chargement CodiMD
+ * VERSION 3.10.3 : Correction bug boucle infinie chargement CodiMD
+ *
+ * Corrections v3.10.3 :
+ * - 🔧 LIGNES 103-116 SUPPRIMÉES : Effets redondants appelant loadMarkdownFromUrl
+ * - 🔧 LIGNES 118-145 : Séparation en 2 effets distincts
+ *   - Effet 1 : Application texte CodiMD (dépend uniquement markdownText)
+ *   - Effet 2 : Configuration automatique avec garde hasLoadedFromUrl
+ * - ✅ Élimination boucle infinie "Maximum update depth exceeded"
  *
  * Corrections v3.9.11 :
  * - 🔧 LIGNE 85 : Destructuring corrigé (markdown au lieu de text)
@@ -84,7 +91,7 @@ function LectureFlash() {
 
     // Hook de chargement CodiMD
     const {
-        markdown: markdownText, // ✅ CORRECTION : "markdown" au lieu de "text"
+        markdown: markdownText,
         loading,
         error,
         sourceUrl,
@@ -95,58 +102,53 @@ function LectureFlash() {
     const { sortirPleinEcran, estPleinEcran } = useFullscreen();
 
     /**
-     * Effet 1 : Chargement automatique si URL présente SANS speedConfig
-     * (Scénario : enseignant prépare un texte pour lui-même)
+     * ✅ CORRECTION v3.10.3 : Suppression des effets 1 et 2 (lignes 103-116)
+     * Le hook useMarkdownFromUrl charge déjà automatiquement au montage (ligne 196-206)
+     * Les effets ci-dessous étaient redondants et causaient une boucle infinie
      */
-    useEffect(() => {
-        if (urlParam && !speedConfig) {
-            loadMarkdownFromUrl(urlParam);
-        }
-    }, [urlParam, speedConfig]);
 
     /**
-     * Effet 2 : Chargement automatique + passage étape 3 si speedConfig présent
-     * (Scénario : élève clique sur lien partagé avec vitesse configurée)
-     */
-    useEffect(() => {
-        if (urlParam && speedConfig) {
-            loadMarkdownFromUrl(urlParam);
-        }
-    }, [urlParam, speedConfig]);
-
-    /**
-     * Effet 3 : Application du texte CodiMD chargé
-     * ✅ MODIFICATION : Force remount TextInputManager pour nettoyer formulaire
+     * Effet 1 : Application du texte CodiMD chargé
+     * ✅ MODIFICATION v3.10.3 : Séparé de la configuration pour éviter boucle
      */
     useEffect(() => {
         if (markdownText) {
             setAppState((prev) => ({ ...prev, text: markdownText }));
             setIsCodiMDTextUnmodified(true);
-
-            // ✅ SUPPRESSION : setCurrentStep(2) → on reste sur étape 1
-
-            // ✅ AJOUT : Force remount de TextInputManager
-            // → Retour automatique sur onglet "Saisir"
-            // → Nettoyage du formulaire CodiMD
             setTextInputKey((prev) => prev + 1);
+        }
+    }, [markdownText]);
 
-            // Si speedConfig présent, appliquer la vitesse et passer étape 3
-            if (speedConfig && !hasLoadedFromUrl) {
-                setAppState((prev) => ({
-                    ...prev,
-                    speedWpm: speedConfig.speed,
-                }));
-                setCurrentStep(3);
-                setHasLoadedFromUrl(true);
-                if (policeParam && tailleParam) {
-                    setOptionsAffichage({
-                        police: policeParam,
-                        taille: parseInt(tailleParam, 10),
-                    });
-                }
+    /**
+     * Effet 2 : Configuration automatique si speedConfig présent (UNE SEULE FOIS)
+     * ✅ MODIFICATION v3.10.3 : Garde hasLoadedFromUrl empêche réexécution infinie
+     */
+    useEffect(() => {
+        if (speedConfig && markdownText && !hasLoadedFromUrl) {
+            setAppState((prev) => ({
+                ...prev,
+                speedWpm: speedConfig.speed,
+            }));
+            setCurrentStep(3);
+            setHasLoadedFromUrl(true);
+
+            // Appliquer police et taille depuis l'URL
+            if (policeParam && tailleParam) {
+                const newOptions = {
+                    police: policeParam,
+                    taille: parseInt(tailleParam, 10),
+                };
+                setOptionsAffichage(newOptions);
+
+                // Forcer localStorage AVANT le render de DisplayOptions
+                localStorage.setItem(
+                    "lecture-flash-font-settings",
+                    JSON.stringify(newOptions)
+                );
             }
         }
-    }, [markdownText, speedConfig, policeParam, tailleParam]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [speedConfig, markdownText, policeParam, tailleParam, hasLoadedFromUrl]);
 
     // ========================================
     // HANDLERS
@@ -379,7 +381,7 @@ function LectureFlash() {
                 icon="📝"
             >
                 <TextInputManager
-                    key={textInputKey} // ✅ AJOUT : Force remount après chargement CodiMD
+                    key={textInputKey}
                     text={appState.text}
                     onTextChange={handleTextChange}
                     onUrlSubmit={loadMarkdownFromUrl}
@@ -457,7 +459,7 @@ function LectureFlash() {
                 {/* Navigation */}
                 <div
                     className={`flex mt-6 ${
-                        !speedConfig ? "justify-between" : "justify-end" // ✅ CORRECTION
+                        !speedConfig ? "justify-between" : "justify-end"
                     }`}
                 >
                     {/* Bouton Changer le texte - masqué si speedConfig */}
