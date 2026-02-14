@@ -21,6 +21,22 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ---
 
+## [3.9.6] - 2026-02-14
+
+### Added
+
+- **`hooks/useFullscreen.js` (Sprint 12)** :
+    - Hook personnalisé pour gestion mode plein écran immersif
+    - API Fullscreen native (requestFullscreen/exitFullscreen)
+    - Support multi-navigateurs (Chrome, Firefox, Safari, Edge) avec préfixes
+    - Détection support API (`estSupporte`) pour fallback gracieux
+    - État `estPleinEcran` synchronisé avec événements navigateur
+    - Fonctions `entrerPleinEcran`, `sortirPleinEcran`, `basculerPleinEcran`
+    - Gestion automatique touche Escape via événements `fullscreenchange`
+    - Gestion erreurs via événements `fullscreenerror`
+    - Cleanup automatique listeners au démontage composant
+    - JSDoc complète en français
+
 ## [3.9.5] - 2026-02-14
 
 ### Added
