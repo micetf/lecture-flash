@@ -89,6 +89,16 @@ function LectureFlash() {
               }
             : null;
 
+    // 🆕 ===== CONTEXTE POUR HELPMODAL =====
+    const isEleve = !!speedConfig; // Élève si paramètres speed/locked dans URL
+    const role = isEleve ? "eleve" : "enseignant";
+
+    const helpContent = {
+        role,
+        step: currentStep,
+        isLocked: speedConfig?.locked || false,
+    };
+
     // Hook de chargement CodiMD
     const {
         markdown: markdownText,
@@ -262,6 +272,7 @@ function LectureFlash() {
                 <HelpModal
                     isOpen={showHelp}
                     onClose={() => setShowHelp(false)}
+                    context={helpContent}
                 />
 
                 {/* First time message */}
@@ -357,7 +368,11 @@ function LectureFlash() {
             </div>
 
             {/* Help modal */}
-            <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+            <HelpModal
+                isOpen={showHelp}
+                onClose={() => setShowHelp(false)}
+                context={helpContent}
+            />
 
             {/* First time message */}
             <FirstTimeMessage />
