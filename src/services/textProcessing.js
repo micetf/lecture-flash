@@ -196,3 +196,52 @@ export function extractPreview(texte, nombreMotsMax = 10) {
 
     return mots.slice(0, nombreMotsMax).join(" ") + "...";
 }
+
+// src/services/textProcessing.js
+
+/**
+ * Exporte un texte au format .txt avec titre personnalisé
+ */
+export function exportText(titre, texte) {
+    const blob = new Blob([texte], { type: "text/plain;charset=utf-8" });
+    const nomFichier = slugify(titre) + ".txt";
+    downloadFile(blob, nomFichier);
+}
+
+/**
+ * Exporte un texte au format Markdown avec titre H1
+ */
+export function exportMarkdown(titre, texte) {
+    const contenuMarkdown = `# ${titre}\n\n${texte}`;
+    const blob = new Blob([contenuMarkdown], {
+        type: "text/markdown;charset=utf-8",
+    });
+    const nomFichier = slugify(titre) + ".md";
+    downloadFile(blob, nomFichier);
+}
+
+/**
+ * Utilitaire de slugification
+ */
+function slugify(str) {
+    return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Utilitaire de téléchargement
+ */
+function downloadFile(blob, nomFichier) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomFichier;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}

@@ -8,6 +8,38 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.11.0] - 2026-02-15
+
+### Added
+
+- **Modal unique d'export** : Refonte complète de l'export de textes dans l'onglet "Saisir". Un seul bouton "📥 Télécharger" ouvre une modal permettant de :
+    - Saisir un titre personnalisé (obligatoire, 3-100 caractères)
+    - Choisir le format : `.txt` (texte brut) ou `.md` (Markdown avec titre H1)
+    - Prévisualiser le nom de fichier généré (slugification automatique)
+    - Comprendre la différence entre les formats (info contextuelle pour .md)
+- **Nom de fichier maîtrisé** : L'utilisateur choisit le titre qui sert de base au nom de fichier (ex: "Mon histoire" → `mon-histoire.txt`)
+- **Export .txt avec titre** : Le format .txt bénéficie désormais d'un nom de fichier personnalisé (avant : `texte-2026-02-15.txt`)
+- **Export .md pour CodiMD** : Format Markdown avec titre H1 (`# Titre`) en première ligne, compatible avec le filtrage lors du rechargement dans Lecture-Flash
+- **Bandeau informatif CodiMD** : Affichage de la provenance du texte dans l'onglet Saisir après chargement depuis CodiMD (URL source, message explicatif)
+- **`ExportModal.jsx`** : Nouveau composant modal avec validation temps réel, compteur de caractères, aperçu nom de fichier, aide contextuelle et accessibilité WCAG 2.1 AA
+- **`exportText(titre, texte)`** dans `textProcessing.js` : Fonction d'export .txt avec titre personnalisé et slugification
+- **`exportMarkdown(titre, texte)`** dans `textProcessing.js` : Fonction d'export Markdown avec titre H1
+
+### Changed
+
+- **UX cohérente** : Suppression de l'incohérence terminologique entre formats d'export. Un seul parcours utilisateur unifié pour .txt et .md
+- **`TextInputManager.jsx`** : Calcul centralisé des statistiques (caractères/mots) avec `useMemo` pour optimisation performance. Passage des stats à tous les sous-composants
+- **Interface épurée** : Bandeau CodiMD informatif pur (sans bouton "Recharger"). Pour recharger, l'utilisateur retourne à l'onglet CodiMD
+- **Refactorisation services** : Ajout fonctions utilitaires `slugify()` et `downloadFile()` pour mutualiser la logique d'export
+
+### Fixed
+
+- **Props cohérentes** : Alignement du contrat entre `TextInputManager` et ses sous-composants (`ManualInputTab`, `FileUploadTab`, `CodiMDTab`)
+- **Statistiques manquantes** : `charCount` et `wordCount` maintenant calculés et passés correctement à `ManualInputTab`
+- **Prop `onRetourSaisie`** : Ajout de la prop manquante à `FileUploadTab` pour éviter l'erreur "onRetourSaisie is not a function"
+
+---
+
 ## [3.10.4] - 2026-02-14
 
 ### Changed

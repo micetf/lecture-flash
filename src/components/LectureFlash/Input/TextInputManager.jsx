@@ -1,21 +1,10 @@
-/**
- * Gestionnaire unifié de saisie de texte - Orchestrateur
- * VERSION 3.9.0 : Refactorisation avec sous-composants
- *
- * Modifications v3.9.0 :
- * - Décomposition en 3 sous-composants (ManualInputTab, FileUploadTab, CodiMDTab)
- * - TextInputManager devient un simple orchestrateur d'onglets
- * - Logique métier déléguée aux sous-composants
- *
- * @component
- */
-
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react"; // 🆕 Ajout useMemo
 import PropTypes from "prop-types";
 import Tooltip from "../../Tooltip";
 import ManualInputTab from "./ManualInputTab";
 import FileUploadTab from "./FileUploadTab";
 import CodiMDTab from "./CodiMDTab";
+import { countCharacters, countWords } from "@services/textProcessing"; // 🆕 Import
 
 const TAB_TYPES = {
     MANUAL: "manual",
@@ -59,13 +48,16 @@ function TextInputManager({
 }) {
     const [activeTab, setActiveTab] = useState(TAB_TYPES.MANUAL);
 
+    // 🆕 Calcul des stats (mémoïsé pour performance)
+    const charCount = useMemo(() => countCharacters(text), [text]);
+    const wordCount = useMemo(() => countWords(text), [text]);
+
     /**
      * Gestion du chargement de texte depuis un fichier
      * Callback pour FileUploadTab
      */
     const handleTexteCharge = (texteCharge) => {
         onTextChange(texteCharge);
-        // Retourner à l'onglet Saisir après chargement
         setActiveTab(TAB_TYPES.MANUAL);
     };
 
@@ -78,91 +70,68 @@ function TextInputManager({
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-            {/* ======================================== */}
-            {/* BARRE D'ONGLETS */}
-            {/* ======================================== */}
-            <div className="flex border-b border-gray-300 mb-6">
+        <div className="space-y-6">
+            {/* Navigation par onglets */}
+            <div className="flex gap-2 border-b border-gray-200">
                 {TABS_CONFIG.map((tab) => (
-                    <Tooltip key={tab.id} content={tab.tooltip} position="top">
+                    <Tooltip key={tab.id} content={tab.tooltip}>
                         <button
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 px-4 py-3 font-medium transition-all ${
+                            className={`flex items-center gap-2 px-4 py-2 font-medium transition-colors ${
                                 activeTab === tab.id
-                                    ? "bg-blue-600 text-white border-b-2 border-blue-600"
-                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    ? "border-b-2 border-blue-600 text-blue-600"
+                                    : "text-gray-600 hover:text-gray-800"
                             }`}
-                            aria-label={tab.title}
                         >
-                            <span className="mr-2">{tab.icon}</span>
-                            {tab.label}
+                            <span>{tab.icon}</span>
+                            <span>{tab.label}</span>
                         </button>
                     </Tooltip>
                 ))}
             </div>
 
-            {/* ======================================== */}
-            {/* CONTENU DES ONGLETS */}
-            {/* ======================================== */}
+            {/* Contenu des onglets */}
+            <div>
+                {activeTab === TAB_TYPES.MANUAL && (
+                    <ManualInputTab
+                        text={text}
+                        setText={onTextChange}
+                        charCount={charCount}
+                        wordCount={wordCount}
+                        sourceUrl={sourceUrl}
+                    />
+                )}
 
-            {/* Onglet Saisir */}
-            {activeTab === TAB_TYPES.MANUAL && (
-                <ManualInputTab
-                    texte={text}
-                    onTexteChange={onTextChange}
-                    urlSource={sourceUrl}
-                />
-            )}
+                {activeTab === TAB_TYPES.FILE && (
+                    <FileUploadTab
+                        onTexteCharge={handleTexteCharge}
+                        onRetourSaisie={handleRetourSaisie}
+                    />
+                )}
 
-            {/* Onglet Fichier */}
-            {activeTab === TAB_TYPES.FILE && (
-                <FileUploadTab
-                    onTexteCharge={handleTexteCharge}
-                    onRetourSaisie={handleRetourSaisie}
-                />
-            )}
-
-            {/* Onglet CodiMD */}
-            {activeTab === TAB_TYPES.CODIMD && (
-                <CodiMDTab
-                    onUrlSubmit={onUrlSubmit}
-                    chargement={loading}
-                    erreur={error}
-                    onReset={onReset}
-                />
-            )}
+                {activeTab === TAB_TYPES.CODIMD && (
+                    <CodiMDTab
+                        onUrlSubmit={onUrlSubmit}
+                        loading={loading}
+                        error={error}
+                        sourceUrl={sourceUrl}
+                        onReset={onReset}
+                        onRetourSaisie={handleRetourSaisie}
+                    />
+                )}
+            </div>
         </div>
     );
 }
 
 TextInputManager.propTypes = {
-    /** Texte actuel */
     text: PropTypes.string.isRequired,
-
-    /** Callback modification texte */
     onTextChange: PropTypes.func.isRequired,
-
-    /** Callback soumission URL CodiMD */
     onUrlSubmit: PropTypes.func.isRequired,
-
-    /** État de chargement CodiMD */
     loading: PropTypes.bool,
-
-    /** Message d'erreur CodiMD */
     error: PropTypes.string,
-
-    /** URL source CodiMD (si chargé depuis cloud) */
     sourceUrl: PropTypes.string,
-
-    /** Callback réinitialisation erreur CodiMD */
     onReset: PropTypes.func,
-};
-
-TextInputManager.defaultProps = {
-    loading: false,
-    error: null,
-    sourceUrl: null,
-    onReset: null,
 };
 
 export default TextInputManager;

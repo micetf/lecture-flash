@@ -1,117 +1,151 @@
+import { useState } from "react";
+import PropTypes from "prop-types";
+import {
+    countCharacters,
+    countWords,
+    exportText,
+    exportMarkdown,
+} from "@services/textProcessing";
+import Tooltip from "@components/Tooltip";
+import ExportModal from "./ExportModal"; // 🆕 Ajout
+
 /**
  * Onglet de saisie manuelle de texte
- *
- * Permet à l'utilisateur de taper ou coller du texte directement
- * avec compteur en temps réel et export .txt
- *
- * VERSION 3.9.0 : Extraction depuis TextInputManager
- *
- * @component
- * @param {Object} props
- * @param {string} props.texte - Texte actuel
- * @param {Function} props.onTexteChange - Callback modification texte
- * @param {string} [props.urlSource] - URL CodiMD source (si chargé depuis cloud)
  */
+function ManualInputTab({
+    text,
+    setText,
+    charCount,
+    wordCount,
+    sourceUrl = null,
+}) {
+    // 🆕 État pour la modal d'export
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-import React from "react";
-import PropTypes from "prop-types";
-import { countWords } from "@services/textProcessing";
+    const handleTextChange = (e) => {
+        const newText = e.target.value;
+        setText(newText);
+    };
 
-function ManualInputTab({ texte, onTexteChange, urlSource }) {
-    /**
-     * Export du texte en fichier .txt
-     * Nom de fichier : lecture-flash-{timestamp}.txt
-     */
-    const handleExport = () => {
-        if (!texte.trim()) {
-            alert("Aucun texte à enregistrer.");
+    const handleClear = () => {
+        if (
+            window.confirm("Êtes-vous sûr de vouloir effacer tout le texte ?")
+        ) {
+            setText("");
+        }
+    };
+
+    // 🆕 Handler pour ouvrir la modal d'export
+    const handleOpenExportModal = () => {
+        if (!text.trim()) {
+            alert("Le texte est vide. Rien à télécharger.");
             return;
         }
+        setIsExportModalOpen(true);
+    };
 
-        const blob = new Blob([texte], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const lien = document.createElement("a");
-
-        lien.href = url;
-        lien.download = `lecture-flash-${Date.now()}.txt`;
-
-        document.body.appendChild(lien);
-        lien.click();
-        document.body.removeChild(lien);
-
-        URL.revokeObjectURL(url);
+    // 🆕 Handler pour confirmer l'export
+    const handleConfirmExport = (titre, format) => {
+        if (format === "md") {
+            exportMarkdown(titre, text);
+        } else {
+            exportText(titre, text);
+        }
     };
 
     return (
-        <div>
-            <h3 className="text-lg font-semibold mb-2">
-                Saisir ou coller du texte
-            </h3>
-
-            {/* Badge cloud - Affiché si texte chargé depuis CodiMD */}
-            {urlSource && (
-                <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                    <div className="flex items-start">
+        <div className="space-y-4">
+            {/* 🆕 Bandeau info CodiMD */}
+            {sourceUrl && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                            <p className="text-sm font-semibold text-blue-800 mb-1">
-                                ☁️ Document chargé depuis CodiMD
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-blue-600 text-lg">
+                                    ℹ️
+                                </span>
+                                <h3 className="font-medium text-blue-900">
+                                    Texte chargé depuis CodiMD
+                                </h3>
+                            </div>
+                            <p className="text-sm text-blue-800 mb-2">
+                                Ce texte provient de CodiMD et peut être partagé
+                                via un lien tant qu'il n'est pas modifié
+                                localement.
                             </p>
-                            <a
-                                href={urlSource}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
-                            >
-                                {urlSource}
-                            </a>
+                            <p className="text-xs text-blue-700 font-mono break-all">
+                                {sourceUrl}
+                            </p>
                         </div>
                     </div>
                 </div>
             )}
+            {/* Zone de texte */}
+            <div>
+                <label htmlFor="manual-text-input" className="sr-only">
+                    Saisissez votre texte
+                </label>
+                <textarea
+                    id="manual-text-input"
+                    value={text}
+                    onChange={handleTextChange}
+                    placeholder="Saisissez ou collez votre texte ici..."
+                    className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    aria-describedby="text-stats"
+                />
+            </div>
 
-            {/* Zone de texte principale */}
-            <textarea
-                value={texte}
-                onChange={(e) => onTexteChange(e.target.value)}
-                placeholder="Écrivez ou collez le texte ici..."
-                rows={17}
-                className="w-full p-4 border-2 border-blue-500 rounded-lg focus:outline-none focus:border-blue-700 resize-none text-base"
-                aria-label="Zone de saisie de texte"
+            {/* Statistiques */}
+            <div id="text-stats" className="flex gap-4 text-sm text-gray-600">
+                <span>
+                    <strong>{charCount}</strong> caractères
+                </span>
+                <span>
+                    <strong>{wordCount}</strong> mots
+                </span>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex flex-wrap gap-3">
+                {/* 🆕 Bouton unique de téléchargement */}
+                <Tooltip content="Enregistrer le texte sur votre ordinateur (.txt ou .md)">
+                    <button
+                        onClick={handleOpenExportModal}
+                        disabled={!text.trim()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                        📥 Télécharger
+                    </button>
+                </Tooltip>
+
+                {/* Effacer */}
+                <Tooltip content="Supprimer tout le texte saisi">
+                    <button
+                        onClick={handleClear}
+                        disabled={!text.trim()}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                        Effacer
+                    </button>
+                </Tooltip>
+            </div>
+
+            {/* 🆕 Modal d'export */}
+            <ExportModal
+                isOpen={isExportModalOpen}
+                onClose={() => setIsExportModalOpen(false)}
+                onConfirm={handleConfirmExport}
             />
-
-            {/* Compteur caractères + mots */}
-            <div className="text-sm text-gray-600 mt-2">
-                {texte.length} caractères • {countWords(texte)} mots
-            </div>
-
-            {/* Bouton Export */}
-            <div className="flex gap-2 mt-4">
-                <button
-                    onClick={handleExport}
-                    disabled={!texte.trim()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium"
-                    aria-label="Enregistrer le texte au format .txt"
-                >
-                    💾 Enregistrer (.txt)
-                </button>
-            </div>
         </div>
     );
 }
 
 ManualInputTab.propTypes = {
-    /** Texte actuel dans la zone de saisie */
-    texte: PropTypes.string.isRequired,
-
-    /** Callback appelé lors de la modification du texte */
-    onTexteChange: PropTypes.func.isRequired,
-
-    /** URL source CodiMD (si texte chargé depuis le cloud) */
-    urlSource: PropTypes.string,
-};
-
-ManualInputTab.defaultProps = {
-    urlSource: null,
+    text: PropTypes.string.isRequired,
+    setText: PropTypes.func.isRequired,
+    charCount: PropTypes.number.isRequired,
+    wordCount: PropTypes.number.isRequired,
+    sourceUrl: PropTypes.string,
 };
 
 export default ManualInputTab;
