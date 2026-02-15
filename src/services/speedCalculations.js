@@ -5,29 +5,33 @@
  * déterminer les zones Eduscol et estimer les temps de lecture.
  *
  * @module services/speedCalculations
- * @version 3.9.0
+ * @version 3.12.1
  */
 
 /**
  * Calcule la vitesse d'animation en millisecondes par caractère
  * basée sur la vitesse de lecture en Mots Lus par Minute (MLM)
  *
+ * ⚠️ IMPORTANT : nombreCaracteres doit INCLURE les espaces car l'animation
+ * du mot ET de l'espace se font séquentiellement (pas en parallèle).
+ *
  * Formule : ((nombreMots / vitesseMLM) * 60000) / nombreCaracteres
  *
  * @param {number} nombreMots - Nombre total de mots dans le texte
  * @param {number} vitesseMLM - Vitesse de lecture en Mots Lus par Minute
- * @param {number} nombreCaracteres - Nombre total de caractères (sans espaces)
+ * @param {number} nombreCaracteres - Nombre total de caractères (AVEC espaces) 🔧
  * @returns {number} Durée en millisecondes pour afficher un caractère
  *
  * @example
- * // Texte de 100 mots, vitesse 50 MLM, 500 caractères
- * const vitesse = calculateAnimationSpeed(100, 50, 500);
- * // Retourne : 240 (ms par caractère)
+ * // Texte de 50 mots à 50 MLM, 299 caractères (espaces inclus)
+ * const vitesse = calculateAnimationSpeed(50, 50, 299);
+ * // Retourne : 200 (ms par caractère)
+ * // Temps total : 299 × 200 = 59800 ms ≈ 60s ✅
  *
  * @example
- * // Texte de 50 mots, vitesse 70 MLM, 250 caractères
- * const vitesse = calculateAnimationSpeed(50, 70, 250);
- * // Retourne : ~171 (ms par caractère)
+ * // Texte de 100 mots à 70 MLM, 550 caractères (espaces inclus)
+ * const vitesse = calculateAnimationSpeed(100, 70, 550);
+ * // Retourne : ~156 (ms par caractère)
  */
 export function calculateAnimationSpeed(
     nombreMots,
@@ -45,7 +49,7 @@ export function calculateAnimationSpeed(
     // Temps total pour lire tous les mots (en ms)
     const tempsTotalMs = (nombreMots / vitesseMLM) * 60000;
 
-    // Temps par caractère
+    // Temps par caractère (arrondi à l'entier inférieur)
     const msParCaractere = Math.floor(tempsTotalMs / nombreCaracteres);
 
     return msParCaractere;
@@ -59,25 +63,29 @@ export function calculateAnimationSpeed(
  * @returns {string} Description de la zone Eduscol avec niveau scolaire
  *
  * @example
- * getEduscolZone(30);  // "CP - début CE1 (déchiffrage)"
- * getEduscolZone(50);  // "CE1 (lecture mot à mot)"
- * getEduscolZone(70);  // "CE2 (lecture par groupes)"
- * getEduscolZone(90);  // "CM1-CM2 (lecture fluide)"
+ * getEduscolZone(30); // "CP - début CE1 (déchiffrage)"
+ * getEduscolZone(50); // "CE1 (lecture mot à mot)"
+ * getEduscolZone(70); // "CE2 (lecture par groupes)"
+ * getEduscolZone(90); // "CM1-CM2 (lecture fluide)"
  * getEduscolZone(120); // "CM2+ (lecture experte)"
  */
 export function getEduscolZone(vitesseMLM) {
     if (vitesseMLM <= 40) {
         return "CP - début CE1 (déchiffrage)";
     }
+
     if (vitesseMLM <= 60) {
         return "CE1 (lecture mot à mot)";
     }
+
     if (vitesseMLM <= 80) {
         return "CE2 (lecture par groupes)";
     }
+
     if (vitesseMLM <= 100) {
         return "CM1-CM2 (lecture fluide)";
     }
+
     return "CM2+ (lecture experte)";
 }
 
@@ -140,9 +148,11 @@ export function formatReadingTime(secondes) {
     if (heures > 0) {
         parts.push(`${heures} h`);
     }
+
     if (minutes > 0) {
         parts.push(`${minutes} min`);
     }
+
     if (sec > 0 && heures === 0) {
         // N'afficher les secondes que si < 1 heure
         parts.push(`${sec} s`);
@@ -159,25 +169,29 @@ export function formatReadingTime(secondes) {
  * @returns {string} Niveau scolaire court
  *
  * @example
- * getNiveauScolaire(30);  // "CP - début CE1"
- * getNiveauScolaire(50);  // "CE1"
- * getNiveauScolaire(70);  // "CE2"
- * getNiveauScolaire(90);  // "CM1-CM2"
+ * getNiveauScolaire(30); // "CP - début CE1"
+ * getNiveauScolaire(50); // "CE1"
+ * getNiveauScolaire(70); // "CE2"
+ * getNiveauScolaire(90); // "CM1-CM2"
  * getNiveauScolaire(120); // "CM2+"
  */
 export function getNiveauScolaire(vitesseMLM) {
     if (vitesseMLM <= 40) {
         return "CP - début CE1";
     }
+
     if (vitesseMLM <= 60) {
         return "CE1";
     }
+
     if (vitesseMLM <= 80) {
         return "CE2";
     }
+
     if (vitesseMLM <= 100) {
         return "CM1-CM2";
     }
+
     return "CM2+";
 }
 
@@ -188,8 +202,8 @@ export function getNiveauScolaire(vitesseMLM) {
  * @returns {boolean} true si la vitesse est valide (20-200 MLM)
  *
  * @example
- * isValidSpeed(50);  // true
- * isValidSpeed(15);  // false (trop lent)
+ * isValidSpeed(50); // true
+ * isValidSpeed(15); // false (trop lent)
  * isValidSpeed(250); // false (trop rapide)
  */
 export function isValidSpeed(vitesseMLM) {
@@ -204,9 +218,9 @@ export function isValidSpeed(vitesseMLM) {
  * @returns {number} Vitesse arrondie au multiple de 5
  *
  * @example
- * roundToNearestFive(67);  // 65
- * roundToNearestFive(73);  // 75
- * roundToNearestFive(70);  // 70
+ * roundToNearestFive(67); // 65
+ * roundToNearestFive(73); // 75
+ * roundToNearestFive(70); // 70
  */
 export function roundToNearestFive(vitesseMLM) {
     return Math.round(vitesseMLM / 5) * 5;

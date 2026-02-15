@@ -37,6 +37,7 @@ import {
     countCharacters,
 } from "@services/textProcessing";
 import { getTextStyles } from "@config/textStyles";
+import { calculateAnimationSpeed } from "@services/speedCalculations";
 
 // ========================================
 // CONSTANTS
@@ -51,10 +52,10 @@ const specialsAfterOut = /(;|:|!|\?|»)/g;
 function TextAnimation({
     text,
     speedWpm,
-    isStarted,
+    isStarted = false,
     isPaused = false,
-    onComplete,
-    optionsAffichage,
+    onComplete = () => {},
+    optionsAffichage = { police: "default", taille: 100 },
 }) {
     // ========================================
     // STATE
@@ -76,15 +77,16 @@ function TextAnimation({
 
     const motsAvecMetadonnees = parseTextWithLineBreaks(purifiedText);
     const wordsCount = motsAvecMetadonnees.length;
-    const charactersCount = countCharacters(purifiedText);
+    const charactersCount = purifiedText.length;
 
     // ========================================
     // SPEED CALCULATION
     // ========================================
-    const charSpeed = Math.floor(
-        ((wordsCount / speedWpm) * 60000) / charactersCount
+    const charSpeed = calculateAnimationSpeed(
+        wordsCount,
+        speedWpm,
+        charactersCount
     );
-
     // ========================================
     // ANIMATION CONTROL
     // ========================================
@@ -197,6 +199,7 @@ function TextAnimation({
                                     }
                                     finDeLigne={finDeLigne}
                                     finDeParagraphe={finDeParagraphe}
+                                    isPaused={isPaused}
                                 />
                             );
                         }
@@ -222,13 +225,6 @@ TextAnimation.propTypes = {
         ]),
         taille: PropTypes.number,
     }),
-};
-
-TextAnimation.defaultProps = {
-    isStarted: false,
-    isPaused: false,
-    onComplete: () => {},
-    optionsAffichage: { police: "default", taille: 100 },
 };
 
 export default TextAnimation;

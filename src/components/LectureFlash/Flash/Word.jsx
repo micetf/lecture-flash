@@ -19,6 +19,8 @@ class Word extends React.Component {
         super(props);
         this.wordSpanRef = React.createRef();
         this.spaceSpanRef = React.createRef();
+        this.wordMask = null;
+        this.spaceMask = null;
     }
 
     componentDidMount() {
@@ -29,6 +31,18 @@ class Word extends React.Component {
         // Restart only if speed changes from 0 → value
         if (prevProps.speed === 0 && this.props.speed > 0) {
             this.startAnimation();
+        }
+        // 🆕 Gérer pause/reprise
+        if (prevProps.isPaused !== this.props.isPaused) {
+            const playState = this.props.isPaused ? "paused" : "running";
+
+            if (this.wordMask) {
+                this.wordMask.style.animationPlayState = playState;
+            }
+
+            if (this.spaceMask) {
+                this.spaceMask.style.animationPlayState = playState;
+            }
         }
     }
 
@@ -53,16 +67,26 @@ class Word extends React.Component {
 
         const wordMask = document.createElement("span");
         const spaceMask = document.createElement("span");
+        // 🆕 Sauvegarder les références
+        this.wordMask = wordMask;
+        this.spaceMask = spaceMask;
 
         this.wordSpanRef.current.append(wordMask);
         this.spaceSpanRef.current.append(spaceMask);
 
         wordMask.classList.add("masque");
         wordMask.style.animationDuration = `${speed * word.length}ms`;
+        // 🆕 Appliquer l'état de pause si déjà en pause au démarrage
+        wordMask.style.animationPlayState = this.props.isPaused
+            ? "paused"
+            : "running";
 
         wordMask.onanimationend = () => {
             spaceMask.classList.add("masque");
             spaceMask.style.animationDuration = `${speed}ms`;
+            spaceMask.style.animationPlayState = this.props.isPaused
+                ? "paused"
+                : "running";
 
             spaceMask.onanimationend = () => {
                 onNext();
@@ -99,11 +123,13 @@ Word.propTypes = {
     onNext: PropTypes.func.isRequired,
     finDeLigne: PropTypes.bool,
     finDeParagraphe: PropTypes.bool,
+    isPaused: PropTypes.bool, // 🆕 Ajout
 };
 
 Word.defaultProps = {
     finDeLigne: false,
     finDeParagraphe: false,
+    isPaused: false, // 🆕 Ajout
 };
 
 export default Word;

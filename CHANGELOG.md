@@ -8,6 +8,28 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.12.1] - 2026-02-15
+
+### Fixed
+
+- **Calcul vitesse d'effacement** : Correction majeure du calcul de vitesse pour atteindre une précision < 5%
+    - Prise en compte des espaces dans le calcul (animations séquentielles mot + espace)
+    - Utilisation du service `calculateAnimationSpeed()` au lieu de calcul inline
+    - Formule corrigée : `(nombreMots / vitesseMLM × 60000) / nombreCaracteres` avec espaces inclus
+    - Tests validés : 50 MLM et 110 MLM conformes aux repères Eduscol
+- **Pause/reprise lecture** : Correction du bug empêchant la reprise après pause
+    - Gestion `animation-play-state` CSS dans `Word.jsx` (paused/running)
+    - Suppression effet bugué causant saut de 2 mots à la reprise
+    - Prop `isPaused` transmise correctement de TextAnimation vers Word
+- **Documentation `speedCalculations.js`** : Correction commentaire JSDoc (nombreCaracteres AVEC espaces, pas SANS)
+
+### Changed
+
+- **`TextAnimation.jsx`** : Refactorisation pour utiliser le service `calculateAnimationSpeed()`
+- **`Word.jsx`** : Ajout gestion pause/reprise via `animationPlayState` CSS
+
+---
+
 ## [3.12.0] - 2026-02-15
 
 ### Added
