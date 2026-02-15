@@ -48,7 +48,6 @@ class Word extends React.Component {
 
     startAnimation() {
         const { speed, word, onNext } = this.props;
-
         if (speed === 0) {
             return;
         }
@@ -59,6 +58,7 @@ class Word extends React.Component {
                 .querySelectorAll(".masque")
                 .forEach((node) => node.remove());
         }
+
         if (this.spaceSpanRef.current) {
             this.spaceSpanRef.current
                 .querySelectorAll(".masque")
@@ -67,22 +67,41 @@ class Word extends React.Component {
 
         const wordMask = document.createElement("span");
         const spaceMask = document.createElement("span");
-        // 🆕 Sauvegarder les références
+
+        // Sauvegarder les références
         this.wordMask = wordMask;
         this.spaceMask = spaceMask;
 
         this.wordSpanRef.current.append(wordMask);
         this.spaceSpanRef.current.append(spaceMask);
 
+        // 🆕 CALCUL DYNAMIQUE : Obtenir les dimensions réelles incluant accents
+        const wordRect = this.wordSpanRef.current.getBoundingClientRect();
+        const wordHeight = wordRect.height;
+
         wordMask.classList.add("masque");
+
+        // 🆕 Appliquer hauteur et marges dynamiques
+        wordMask.style.height = `${wordHeight + 30}px`; // +6px sécurité
+        wordMask.style.top = `-25px`;
+        wordMask.style.bottom = `-3px`;
+
         wordMask.style.animationDuration = `${speed * word.length}ms`;
-        // 🆕 Appliquer l'état de pause si déjà en pause au démarrage
         wordMask.style.animationPlayState = this.props.isPaused
             ? "paused"
             : "running";
 
         wordMask.onanimationend = () => {
             spaceMask.classList.add("masque");
+
+            // 🆕 Même calcul pour l'espace
+            const spaceRect = this.spaceSpanRef.current.getBoundingClientRect();
+            const spaceHeight = spaceRect.height;
+
+            spaceMask.style.height = `${spaceHeight + 6}px`;
+            spaceMask.style.top = `-3px`;
+            spaceMask.style.bottom = `-3px`;
+
             spaceMask.style.animationDuration = `${speed}ms`;
             spaceMask.style.animationPlayState = this.props.isPaused
                 ? "paused"

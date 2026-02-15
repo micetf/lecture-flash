@@ -1,12 +1,14 @@
 /**
  * Animations pour le composant Flash
+ * VERSION 3.12.2 : Masque adaptatif calculé dynamiquement
  */
+
 @keyframes masquer {
     from {
         width: 0;
     }
     to {
-        width: calc(100% + 3px);
+        width: calc(100% + 0.3em);
         border: none;
     }
 }
@@ -17,18 +19,22 @@
     text-align: justify;
 }
 
+.mot {
+    position: relative;
+    display: inline;
+    line-height: 1.5;
+}
+
 .mot > span {
     position: relative;
 }
 
 .masque {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    bottom: 0px;
-    right: 0px;
+    left: 0;
+    right: 0;
+    /* 🔧 height, top, bottom définis dynamiquement en JS */
     border-right: 0.05em solid black;
-    height: 100%;
     animation: masquer linear;
     animation-fill-mode: forwards;
     animation-iteration-count: 1;

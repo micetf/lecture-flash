@@ -8,6 +8,23 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.12.2] - 2026-02-15
+
+### Fixed
+
+- **Masque d'effacement adaptatif** : Correction affichage avec polices à caractères hauts (OpenDyslexic)
+    - Calcul dynamique de la hauteur réelle des mots via `getBoundingClientRect()`
+    - Adaptation automatique aux accents, hampes et jambages de toutes les polices
+    - Marges de sécurité adaptatives pour couverture totale
+    - Fonctionne avec toutes les tailles de police (100% à 200%)
+
+### Changed
+
+- **`Word.jsx`** : Calcul dynamique des dimensions du masque CSS dans `startAnimation()`
+- **`flash.css`** : Propriétés `height`, `top`, `bottom` du masque définies en JavaScript au lieu de CSS fixe
+
+---
+
 ## [3.12.1] - 2026-02-15
 
 ### Fixed
