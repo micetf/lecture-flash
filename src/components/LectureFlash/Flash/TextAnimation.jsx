@@ -33,8 +33,6 @@ import PropTypes from "prop-types";
 import Word from "./Word";
 import {
     parseTextWithLineBreaks,
-    countWords,
-    countCharacters,
     purifyTextForReading,
     cleanWordForDisplay,
 } from "@services/textProcessing";

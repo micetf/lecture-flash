@@ -8,6 +8,12 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.14.1] - 2026-02-16
+
+### Changed
+
+- **TextAnimation.jsx** : nettoyage des imports inutilisés (`countWords`, `countCharacters`) pour clarifier la responsabilité du composant, la logique de calcul restant inchangée.
+
 ## [3.14.0] - 2026-02-16
 
 ### Changed
