@@ -4,6 +4,7 @@
  * Permet à l'utilisateur de charger un document depuis codimd.apps.education.fr
  * avec validation d'URL et exemples d'utilisation
  *
+ * VERSION 3.10.0 : URLs d'exemples cliquables (UX amélioration Sprint 6)
  * VERSION 3.9.1 : Ajout bouton Réessayer dans message d'erreur
  *
  * @component
@@ -16,6 +17,12 @@
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+
+// URLs d'exemple pour CodiMD
+const EXAMPLE_URLS = [
+    "https://codimd.apps.education.fr/s/w1D5hjCIC",
+    "https://codimd.apps.education.fr/s/EVZXBuz6e",
+];
 
 function CodiMDTab({
     onUrlSubmit,
@@ -36,6 +43,15 @@ function CodiMDTab({
             onUrlSubmit(urlCodimd.trim());
             setUrlCodimd(""); // Réinitialiser le champ après soumission
         }
+    };
+
+    /**
+     * Gestion du clic sur un exemple d'URL
+     * Remplit le champ et lance automatiquement le chargement
+     */
+    const handleExampleClick = (url) => {
+        setUrlCodimd(url);
+        onUrlSubmit(url);
     };
 
     /**
@@ -72,25 +88,32 @@ function CodiMDTab({
                 </button>
             </p>
 
-            {/* Aide avec exemples d'URLs */}
+            {/* Aide avec exemples d'URLs cliquables */}
             {afficherAide && (
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                    <p className="font-semibold mb-2">
-                        Exemples d'URL valides :
+                    <p className="font-semibold mb-3 text-blue-900">
+                        💡 Exemples d'URL valides (cliquez pour tester) :
                     </p>
-                    <ul className="list-disc list-inside space-y-1 text-gray-700">
-                        <li>
-                            <code className="bg-white px-1 py-0.5 rounded">
-                                https://codimd.apps.education.fr/s/w1D5hjCIC
-                            </code>
-                        </li>
-                        <li>
-                            <code className="bg-white px-1 py-0.5 rounded">
-                                https://codimd.apps.education.fr/s/EVZXBuz6e
-                            </code>
-                        </li>
+                    <ul className="space-y-2">
+                        {EXAMPLE_URLS.map((url, index) => (
+                            <li key={index}>
+                                <button
+                                    onClick={() => handleExampleClick(url)}
+                                    disabled={chargement}
+                                    className="text-blue-600 hover:text-blue-800 underline hover:no-underline flex items-center gap-2 group transition disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                                    type="button"
+                                >
+                                    <code className="font-mono text-sm bg-white px-2 py-1 rounded border border-blue-200 group-hover:border-blue-400 transition">
+                                        {url}
+                                    </code>
+                                    <span className="opacity-0 group-hover:opacity-100 text-xs bg-blue-600 text-white px-2 py-1 rounded transition-opacity whitespace-nowrap">
+                                        Essayer ↗
+                                    </span>
+                                </button>
+                            </li>
+                        ))}
                     </ul>
-                    <p className="mt-3 text-gray-600">
+                    <p className="mt-4 text-gray-600">
                         CodiMD est le service de rédaction collaborative
                         Markdown officiel de l'Éducation nationale (RGPD,
                         hébergement France).
@@ -160,12 +183,6 @@ CodiMDTab.propTypes = {
 
     /** Callback pour réinitialiser l'erreur */
     onReset: PropTypes.func,
-};
-
-CodiMDTab.defaultProps = {
-    chargement: false,
-    erreur: null,
-    onReset: null,
 };
 
 export default CodiMDTab;

@@ -8,6 +8,18 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.15.0] - 2026-02-16
+
+### Added
+
+- **CodiMDTab** : URLs d'exemples cliquables pour tester sans copier/coller (amélioration UX Sprint 6).
+- Tooltip "Essayer ↗" au survol des exemples pour indiquer l'affordance.
+
+### Changed
+
+- Externalisation des URLs d'exemples en constante pour faciliter la maintenance.
+- Suppression de `defaultProps` sur CodiMDTab (valeurs par défaut via paramètres).
+
 ## [3.14.1] - 2026-02-16
 
 ### Changed
