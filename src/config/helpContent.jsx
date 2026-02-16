@@ -28,6 +28,10 @@ export const ENSEIGNANT_ETAPE_1 = {
                             <code className="bg-gray-100 px-1 py-0.5 rounded">
                                 .txt
                             </code>{" "}
+                            ou{" "}
+                            <code className="bg-gray-100 px-1 py-0.5 rounded">
+                                .md
+                            </code>{" "}
                             depuis votre ordinateur
                         </li>
                         <li>
@@ -73,16 +77,18 @@ export const ENSEIGNANT_ETAPE_1 = {
         },
         {
             icon: "💡",
-            title: "Astuce CodiMD",
+            title: "Astuce CodiMD / fichiers .md",
             content: (
                 <p>
-                    Pour identifier facilement votre texte sur CodiMD, ajoutez
-                    un <strong>titre en première ligne avec #</strong> (exemple
-                    :{" "}
+                    Pour identifier facilement votre texte sur CodiMD ou dans
+                    vos dossiers, ajoutez un{" "}
+                    <strong>titre en première ligne avec #</strong> (exemple :{" "}
                     <code className="bg-gray-100 px-1 py-0.5 rounded">
                         # Lecture CE1 - Les animaux
                     </code>
-                    ). Cette ligne servira de titre sur CodiMD mais ne sera{" "}
+                    ). Que le texte vienne de CodiMD ou d'un fichier{" "}
+                    <code className="bg-gray-100 px-1 py-0.5 rounded">.md</code>{" "}
+                    importé, cette ligne servira de titre mais ne sera{" "}
                     <strong>pas lue pendant l'exercice</strong> (filtrée
                     automatiquement).
                 </p>

@@ -8,6 +8,13 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.13.1] - 2026-02-16
+
+### Changed
+
+- Aide enseignants (Étape 1) mise à jour : onglet _Fichier_ documenté pour les formats `.txt` et `.md`.
+- Précision que le titre H1 en première ligne des fichiers `.md` (CodiMD ou fichier importé) est utilisé comme métadonnée et n'est pas lu pendant l'exercice.
+
 ## [3.13.0] - 2026-02-16
 
 ### Added
