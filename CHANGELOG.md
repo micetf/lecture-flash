@@ -8,6 +8,18 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.14.0] - 2026-02-16
+
+### Changed
+
+- **textProcessing.js** : centralisation de la logique de purification du texte et du nettoyage des mots (`purifyTextForReading`, `cleanWordForDisplay`), tout en préservant le comportement existant en lecture-flash.
+- **TextAnimation.jsx** : utilisation des fonctions de service pour le traitement du texte, et de `calculateAnimationSpeed` pour le calcul de la vitesse par caractère (suppression du calcul en dur).
+
+### Fixed
+
+- Suppression de l’usage de `defaultProps` sur un composant fonctionnel (TextAnimation) pour éviter le warning React sur la dépréciation de `defaultProps`.
+- Correction du warning PropTypes sur `Word` en garantissant que la prop `onNext` est toujours une fonction.
+
 ## [3.13.1] - 2026-02-16
 
 ### Changed

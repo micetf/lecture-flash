@@ -4,10 +4,10 @@
  *
  * Corrections v3.9.15 (Sprint 19 - VRAI) :
  * - 🔧 CORRIGÉ : Options affichage (police/taille) appliquées dès étape 3
- *   - Avant : Options appliquées seulement APRÈS clic "Lancer lecture"
- *   - Après : Options appliquées IMMÉDIATEMENT à l'écran d'attente
- *   - stylesDynamiques calculé AVANT les renders (pas après)
- *   - style={stylesDynamiques} appliqué au render "BEFORE START"
+ * - Avant : Options appliquées seulement APRÈS clic "Lancer lecture"
+ * - Après : Options appliquées IMMÉDIATEMENT à l'écran d'attente
+ * - stylesDynamiques calculé AVANT les renders (pas après)
+ * - style={stylesDynamiques} appliqué au render "BEFORE START"
  * - Impact UX : Cohérence visuelle immédiate entre étape 2 et étape 3
  *
  * Corrections v3.9.14 (Sprint 18 BIS) :
@@ -35,19 +35,11 @@ import {
     parseTextWithLineBreaks,
     countWords,
     countCharacters,
+    purifyTextForReading,
+    cleanWordForDisplay,
 } from "@services/textProcessing";
 import { getTextStyles } from "@config/textStyles";
 import { calculateAnimationSpeed } from "@services/speedCalculations";
-
-// ========================================
-// CONSTANTS
-// ========================================
-const NON_BREAKING_SPACE = "\u00a0";
-const NON_BREAKING_HYPHEN = "\u2011";
-const specialsBeforeIn = /(^-|«|') +/g;
-const specialsAfterIn = / +(;|:|!|\?|»|')/g;
-const specialsBeforeOut = /(^-|«)/g;
-const specialsAfterOut = /(;|:|!|\?|»)/g;
 
 function TextAnimation({
     text,
@@ -65,18 +57,11 @@ function TextAnimation({
     // ========================================
     // TEXT PROCESSING - PRÉSERVATION DES RETOURS LIGNE
     // ========================================
-    const purifiedText = text
-        .trim()
-        .replace(/'/g, "'")
-        .split("\n")
-        .map((ligne) => ligne.trim().replace(/ +/g, " "))
-        .join("\n")
-        .replace(/\n{3,}/g, "\n\n")
-        .replace(specialsAfterIn, "$1")
-        .replace(specialsBeforeIn, "$1");
-
+    // Même logique que précédemment, mais mutualisée dans textProcessing
+    const purifiedText = purifyTextForReading(text);
     const motsAvecMetadonnees = parseTextWithLineBreaks(purifiedText);
     const wordsCount = motsAvecMetadonnees.length;
+    // On reste sur la logique existante pour les caractères : longueur du texte purifié
     const charactersCount = purifiedText.length;
 
     // ========================================
@@ -87,6 +72,7 @@ function TextAnimation({
         speedWpm,
         charactersCount
     );
+
     // ========================================
     // ANIMATION CONTROL
     // ========================================
@@ -150,6 +136,15 @@ function TextAnimation({
                         {purifiedText}
                     </p>
                 </div>
+
+                {/* Affichage des stats en console pour le debug vitesse */}
+                {process.env.NODE_ENV !== "production" &&
+                    console.debug?.("TextAnimation stats", {
+                        wordsCount,
+                        charactersCount,
+                        speedWpm,
+                        charSpeed,
+                    })}
             </div>
         );
     }
@@ -159,7 +154,6 @@ function TextAnimation({
     // ========================================
     return (
         <div className="max-w-6xl mx-auto">
-            {/* 🔧 CORRIGÉ : max-w-4xl → max-w-6xl */}
             {/* Progress bar */}
             <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
@@ -176,11 +170,7 @@ function TextAnimation({
                 >
                     {motsAvecMetadonnees.map(
                         ({ mot, finDeLigne, finDeParagraphe }, index) => {
-                            const cleanWord = mot
-                                .replace(/\u00a0/g, " ")
-                                .replace(/\u2011/g, "-")
-                                .replace(specialsBeforeOut, "$1 ")
-                                .replace(specialsAfterOut, " $1");
+                            const cleanWord = cleanWordForDisplay(mot);
 
                             // 🔧 CORRECTION BUG v3.9.14 : Word attend la vitesse PAR CARACTÈRE
                             // Le composant Word.jsx gère lui-même la multiplication par word.length
@@ -193,7 +183,7 @@ function TextAnimation({
                                     word={cleanWord}
                                     speed={wordSpeed}
                                     onNext={
-                                        index === currentWordIndex
+                                        index <= currentWordIndex
                                             ? handleNext
                                             : () => {}
                                     }

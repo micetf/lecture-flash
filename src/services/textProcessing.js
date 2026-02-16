@@ -5,7 +5,7 @@
  * et l'analyse du texte avec préservation des retours ligne.
  *
  * @module services/textProcessing
- * @version 3.9.0
+ * @version 3.10.0
  */
 
 /**
@@ -37,7 +37,6 @@ export function countWords(texte) {
 
     // Compter les mots (séparés par des espaces)
     const mots = textePropre.split(/\s+/).filter((mot) => mot.length > 0);
-
     return mots.length;
 }
 
@@ -49,7 +48,7 @@ export function countWords(texte) {
  * @returns {string} Texte purifié
  *
  * @example
- * purifyText("Texte   avec\n\n\nespaces   multiples");
+ * purifyText("Texte avec\n\n\nespaces multiples");
  * // Retourne : "Texte avec\n\nespaces multiples"
  */
 export function purifyText(texte) {
@@ -74,18 +73,78 @@ export function purifyText(texte) {
 }
 
 /**
+ * Constantes typographiques utilisées pour la purification avancée
+ * dans le mode lecture (effacement progressif).
+ */
+const NON_BREAKING_SPACE = "\u00a0";
+const NON_BREAKING_HYPHEN = "\u2011";
+const specialsBeforeIn = /(^-|«|') +/g;
+const specialsAfterIn = / +(;|:|!|\?|»|')/g;
+const specialsBeforeOut = /(^-|«)/g;
+const specialsAfterOut = /(;|:|!|\?|»)/g;
+
+/**
+ * Purifie le texte pour le mode lecture-flash, en reprenant
+ * exactement la logique actuellement utilisée dans TextAnimation.jsx :
+ * - trim global
+ * - normalisation des espaces
+ * - réduction des multiples retours ligne
+ * - corrections autour de certains signes de ponctuation.
+ *
+ * @param {string} texte
+ * @returns {string}
+ */
+export function purifyTextForReading(texte) {
+    if (!texte || typeof texte !== "string") {
+        return "";
+    }
+
+    return texte
+        .trim()
+        .replace(/'/g, "'")
+        .split("\n")
+        .map((ligne) => ligne.trim().replace(/ +/g, " "))
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .replace(specialsAfterIn, "$1")
+        .replace(specialsBeforeIn, "$1");
+}
+
+/**
+ * Nettoie un mot pour l'affichage dans le mode lecture :
+ * - remplace les espaces / tirets insécables,
+ * - ajuste les espaces autour de certains signes.
+ *
+ * Cette fonction reprend la logique de cleanWord dans TextAnimation.jsx.
+ *
+ * @param {string} mot
+ * @returns {string}
+ */
+export function cleanWordForDisplay(mot) {
+    if (!mot || typeof mot !== "string") {
+        return "";
+    }
+
+    return mot
+        .replace(new RegExp(NON_BREAKING_SPACE, "g"), " ")
+        .replace(new RegExp(NON_BREAKING_HYPHEN, "g"), "-")
+        .replace(specialsBeforeOut, "$1 ")
+        .replace(specialsAfterOut, " $1");
+}
+
+/**
  * Parse un texte en préservant la structure des paragraphes
  * Retourne un tableau d'objets représentant chaque mot avec métadonnées
  *
  * @param {string} texte - Texte à analyser
- * @returns {Array<Object>} Tableau d'objets mot avec métadonnées
+ * @returns {Array} Tableau d'objets mot avec métadonnées
  *
  * Structure de retour :
  * [
- *   { mot: "Bonjour", index: 0, finDeLigne: false, finDeParagraphe: false },
- *   { mot: "monde", index: 1, finDeLigne: true, finDeParagraphe: false },
- *   { mot: "Nouveau", index: 2, finDeLigne: false, finDeParagraphe: false },
- *   { mot: "paragraphe", index: 3, finDeLigne: true, finDeParagraphe: true }
+ *  { mot: "Bonjour", index: 0, finDeLigne: false, finDeParagraphe: false },
+ *  { mot: "monde", index: 1, finDeLigne: true, finDeParagraphe: false },
+ *  { mot: "Nouveau", index: 2, finDeLigne: false, finDeParagraphe: false },
+ *  { mot: "paragraphe", index: 3, finDeLigne: true, finDeParagraphe: true }
  * ]
  *
  * @example
@@ -146,7 +205,6 @@ export function parseTextWithLineBreaks(texte) {
                 finDeLigne: estDernierMotDeLaLigne,
                 finDeParagraphe: finDeParagraphe,
             });
-
             indexGlobal++;
         }
     }
@@ -189,15 +247,12 @@ export function extractPreview(texte, nombreMotsMax = 10) {
     }
 
     const mots = texte.split(/\s+/).filter((mot) => mot.length > 0);
-
     if (mots.length <= nombreMotsMax) {
         return texte;
     }
 
     return mots.slice(0, nombreMotsMax).join(" ") + "...";
 }
-
-// src/services/textProcessing.js
 
 /**
  * Exporte un texte au format .txt avec titre personnalisé
@@ -255,35 +310,30 @@ function downloadFile(blob, nomFichier) {
  * @returns {{ titre: string|null, texte: string }}
  */
 export function parseMarkdownFile(content) {
-  if (!content) {
-    return { titre: null, texte: "" };
-  }
+    if (!content) {
+        return { titre: null, texte: "" };
+    }
 
-  const lignes = content.split("\n");
+    const lignes = content.split("\n");
+    if (lignes.length === 0) {
+        return { titre: null, texte: "" };
+    }
 
-  if (lignes.length === 0) {
-    return { titre: null, texte: "" };
-  }
+    const premiereLigneBrute = lignes[0].trim();
+    const h1Match = premiereLigneBrute.match(/^#\s+(.+)$/);
 
-  const premiereLigneBrute = lignes[0].trim();
+    if (h1Match) {
+        const titre = h1Match[1].trim();
+        const reste = lignes.slice(1).join("\n").trimStart();
+        return {
+            titre: titre || null,
+            texte: reste,
+        };
+    }
 
-  // Détection H1 de la forme "# Titre"
-  const h1Match = premiereLigneBrute.match(/^#\s+(.+)$/);
-
-  if (h1Match) {
-    const titre = h1Match[1].trim();
-    const reste = lignes.slice(1).join("\n").trimStart();
-
+    // Pas de H1 en première ligne : on ne filtre rien
     return {
-      titre: titre || null,
-      texte: reste,
+        titre: null,
+        texte: content,
     };
-  }
-
-  // Pas de H1 en première ligne : on ne filtre rien
-  return {
-    titre: null,
-    texte: content,
-  };
 }
-

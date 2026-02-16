@@ -142,13 +142,13 @@ Word.propTypes = {
     onNext: PropTypes.func.isRequired,
     finDeLigne: PropTypes.bool,
     finDeParagraphe: PropTypes.bool,
-    isPaused: PropTypes.bool, // 🆕 Ajout
+    isPaused: PropTypes.bool,
 };
 
 Word.defaultProps = {
     finDeLigne: false,
     finDeParagraphe: false,
-    isPaused: false, // 🆕 Ajout
+    isPaused: false,
 };
 
 export default Word;
