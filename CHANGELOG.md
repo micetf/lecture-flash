@@ -8,6 +8,12 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.15.1] - 2026-02-16
+
+### Fixed
+
+- **Word.jsx** : bug d'effacement sur mots composés avec tiret (après-midi, dix-sept) causé par la césure automatique du navigateur. Ajout de `whitespace-nowrap` pour garantir que chaque mot reste visuellement sur une seule ligne.
+
 ## [3.15.0] - 2026-02-16
 
 ### Added

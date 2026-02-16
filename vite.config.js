@@ -19,7 +19,7 @@ export default defineConfig({
             },
         }),
     ],
-
+    base: "/lecture-flash/",
     // Configuration du serveur de développement
     server: {
         port: 9000,

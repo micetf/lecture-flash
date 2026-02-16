@@ -119,7 +119,12 @@ class Word extends React.Component {
         return (
             <>
                 <span className="mot">
-                    <span ref={this.wordSpanRef}>{word}</span>
+                    <span
+                        ref={this.wordSpanRef}
+                        className="relative inline-block whitespace-nowrap"
+                    >
+                        {word}
+                    </span>
                     <span ref={this.spaceSpanRef}> </span>
                 </span>
                 {/* Retour ligne simple si fin de ligne */}

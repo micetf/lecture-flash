@@ -141,7 +141,7 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
                     Pour les fichiers <strong>.md</strong>, une première ligne
                     de la forme
                     <code> # Mon titre</code> sera traitée comme un titre et ne
-                    sera pas lue pendant l&apos;exercice. [file:1]
+                    sera pas lue pendant l&apos;exercice.
                 </p>
             </div>
         </div>
