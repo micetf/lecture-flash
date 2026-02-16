@@ -245,3 +245,45 @@ function downloadFile(blob, nomFichier) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
+
+/**
+ * Analyse le contenu d'un fichier Markdown exporté par Lecture-Flash ou CodiMD.
+ * - Si la première ligne est un H1 (# Titre), on la traite comme titre.
+ * - Le titre n'est pas inclus dans le texte retourné.
+ *
+ * @param {string} content - Contenu brut du fichier .md
+ * @returns {{ titre: string|null, texte: string }}
+ */
+export function parseMarkdownFile(content) {
+  if (!content) {
+    return { titre: null, texte: "" };
+  }
+
+  const lignes = content.split("\n");
+
+  if (lignes.length === 0) {
+    return { titre: null, texte: "" };
+  }
+
+  const premiereLigneBrute = lignes[0].trim();
+
+  // Détection H1 de la forme "# Titre"
+  const h1Match = premiereLigneBrute.match(/^#\s+(.+)$/);
+
+  if (h1Match) {
+    const titre = h1Match[1].trim();
+    const reste = lignes.slice(1).join("\n").trimStart();
+
+    return {
+      titre: titre || null,
+      texte: reste,
+    };
+  }
+
+  // Pas de H1 en première ligne : on ne filtre rien
+  return {
+    titre: null,
+    texte: content,
+  };
+}
+

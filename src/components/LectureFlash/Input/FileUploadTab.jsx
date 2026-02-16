@@ -1,10 +1,10 @@
 /**
  * Onglet d'import de fichier texte local
  *
- * Permet à l'utilisateur de charger un fichier .txt depuis son ordinateur
- * avec validation de format et encodage UTF-8
+ * Permet à l'utilisateur de charger un fichier .txt ou .md depuis son ordinateur
+ * avec validation de format et encodage UTF-8.
  *
- * VERSION 3.9.0 : Extraction depuis TextInputManager
+ * VERSION 3.13.0 : Support .md avec filtrage du titre H1
  *
  * @component
  * @param {Object} props
@@ -15,47 +15,57 @@
 import React, { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { validateTextFile } from "@utils/validation";
+import { parseMarkdownFile } from "@services/textProcessing";
 
 function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
     const inputFichierRef = useRef(null);
     const [erreur, setErreur] = useState(null);
 
-    /**
-     * Gestion de l'import de fichier .txt
-     * Valide le fichier puis lit son contenu en UTF-8
-     */
     const handleImportFichier = (e) => {
         const fichiers = e.target.files;
 
-        // Réinitialiser l'erreur
         setErreur(null);
 
         if (fichiers && fichiers.length > 0) {
             const fichier = fichiers[0];
 
-            // Validation du fichier
+            // Validation générique (taille, type texte, etc.)
             const validation = validateTextFile(fichier);
-
             if (!validation.valide) {
                 setErreur(validation.erreur);
-                e.target.value = ""; // Réinitialiser l'input
+                e.target.value = "";
                 return;
             }
 
-            // Lecture du fichier
             const lecteur = new FileReader();
 
             lecteur.onload = (event) => {
-                const contenu = event.target.result;
+                const contenu = event.target.result || "";
 
                 // Vérifier que le contenu n'est pas vide
-                if (!contenu || contenu.trim() === "") {
+                if (!contenu.trim()) {
                     setErreur("Le fichier est vide");
                     return;
                 }
 
-                // Passer le texte au parent et revenir à l'onglet Saisir
-                onTexteCharge(contenu);
+                const nomFichier = fichier.name.toLowerCase();
+                const isMarkdown = nomFichier.endsWith(".md");
+
+                let texteFinal = contenu;
+
+                if (isMarkdown) {
+                    // Analyse du .md : on filtre un éventuel titre H1 (# Titre)
+                    const { texte } = parseMarkdownFile(contenu);
+                    if (!texte.trim()) {
+                        setErreur(
+                            "Le fichier .md ne contient que le titre ou est vide. Aucun texte à charger."
+                        );
+                        return;
+                    }
+                    texteFinal = texte;
+                }
+
+                onTexteCharge(texteFinal);
                 onRetourSaisie();
             };
 
@@ -63,7 +73,6 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
                 setErreur("Erreur lors de la lecture du fichier");
             };
 
-            // Lire le fichier en UTF-8
             lecteur.readAsText(fichier, "UTF-8");
         }
 
@@ -71,9 +80,6 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
         e.target.value = "";
     };
 
-    /**
-     * Déclenche le clic sur l'input file caché
-     */
     const handleClickBouton = () => {
         inputFichierRef.current?.click();
     };
@@ -81,13 +87,14 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
     return (
         <div>
             <h3 className="text-lg font-semibold mb-2">
-                Importer un fichier .txt
+                Importer un fichier texte (.txt / .md)
             </h3>
 
             <p className="text-gray-600 mb-4">
-                Sélectionnez un fichier .txt depuis votre ordinateur.
+                Sélectionnez un fichier .txt ou .md depuis votre ordinateur.
                 <br />
-                Le texte sera automatiquement chargé dans l'onglet "Saisir".
+                Le texte (sans le titre éventuel en première ligne) sera
+                automatiquement chargé dans l&apos;onglet &quot;Saisir&quot;.
             </p>
 
             {/* Input file caché */}
@@ -95,7 +102,7 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
                 type="file"
                 ref={inputFichierRef}
                 onChange={handleImportFichier}
-                accept=".txt"
+                accept=".txt,.md"
                 className="hidden"
                 aria-label="Sélectionner un fichier texte"
             />
@@ -122,7 +129,7 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
             {/* Informations sur les formats acceptés */}
             <div className="mt-4 p-3 bg-gray-50 border border-gray-300 rounded-lg">
                 <p className="text-sm text-gray-700">
-                    <strong>Format accepté :</strong> .txt uniquement
+                    <strong>Formats acceptés :</strong> .txt et .md
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
                     <strong>Encodage :</strong> UTF-8 (recommandé)
@@ -130,16 +137,19 @@ function FileUploadTab({ onTexteCharge, onRetourSaisie }) {
                 <p className="text-xs text-gray-600 mt-1">
                     <strong>Taille maximale :</strong> 1 MB
                 </p>
+                <p className="text-xs text-gray-600 mt-1">
+                    Pour les fichiers <strong>.md</strong>, une première ligne
+                    de la forme
+                    <code> # Mon titre</code> sera traitée comme un titre et ne
+                    sera pas lue pendant l&apos;exercice. [file:1]
+                </p>
             </div>
         </div>
     );
 }
 
 FileUploadTab.propTypes = {
-    /** Callback appelé avec le texte chargé depuis le fichier */
     onTexteCharge: PropTypes.func.isRequired,
-
-    /** Callback pour revenir à l'onglet Saisir après chargement */
     onRetourSaisie: PropTypes.func.isRequired,
 };
 

@@ -8,6 +8,23 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.13.0] - 2026-02-16
+
+### Added
+
+- Import de fichiers **Markdown (.md)** dans l'onglet _Fichier_ [file:1].
+- Prise en charge du **titre H1** (`# Titre`) en première ligne des fichiers `.md` : utilisé comme métadonnée mais **ignoré pour la lecture** [file:1].
+
+### Changed
+
+- **FileUploadTab.jsx** : support des formats `.txt` et `.md`, filtrage automatique du titre H1, messages d’erreur plus explicites.
+- **utils/validation.js** : `validateTextFile` accepte désormais `.txt` et `.md`, toujours avec contrôle de taille (1 MB) et type texte.
+- **textProcessing.js** : ajout de `parseMarkdownFile` pour analyser les fichiers `.md` (détection et exclusion du titre H1).
+
+### Fixed
+
+- Cohérence avec les spécifications fonctionnelles : formats acceptés à l’import (`.txt`, `.md`) et gestion du titre comme métadonnée [file:1].
+
 ## [3.12.2] - 2026-02-15
 
 ### Fixed
