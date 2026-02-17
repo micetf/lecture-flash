@@ -28,7 +28,7 @@ import {
     getSpeedLabel,
 } from "../../../config/constants";
 import { getEduscolZone } from "@services/speedCalculations";
-
+import { copyToClipboard, generateShareUrl } from "@services/urlGeneration";
 /**
  * Configuration des couleurs pour chaque vitesse prédéfinie
  * (Map depuis SPEEDS pour ajouter les colorClass)
@@ -48,8 +48,6 @@ function SpeedSelector({
     sourceUrl,
     showCustomModal,
     setShowCustomModal,
-    showShareModal,
-    setShowShareModal,
     onDisplayOptionsChange,
     optionsAffichage,
 }) {
@@ -86,12 +84,6 @@ function SpeedSelector({
     });
 
     // ========================================
-    // STATE: Sharing
-    // ========================================
-    const [shareLocked, setShareLocked] = useState(false);
-    const [showShareSuccess, setShowShareSuccess] = useState(false);
-
-    // ========================================
     // EFFECTS
     // ========================================
 
@@ -102,12 +94,11 @@ function SpeedSelector({
         const handleEscape = (e) => {
             if (e.key === "Escape") {
                 setShowCustomModal(false);
-                setShowShareModal(false);
             }
         };
         window.addEventListener("keydown", handleEscape);
         return () => window.removeEventListener("keydown", handleEscape);
-    }, [setShowCustomModal, setShowShareModal]);
+    }, [setShowCustomModal]);
 
     /**
      * Pré-sélection visuelle si speedConfig présent
@@ -144,64 +135,6 @@ function SpeedSelector({
         setIsCustomSpeedSelected(true);
         onSpeedChange(customSpeed);
         setShowCustomModal(false);
-    };
-
-    // ========================================
-    // HANDLERS: Sharing
-    // ========================================
-
-    /**
-     * Génération du lien de partage et copie dans le presse-papier
-     */
-    const handleGenerateShareLink = async () => {
-        if (!sourceUrl || !selectedSpeed) return;
-
-        const params = new URLSearchParams({
-            url: sourceUrl,
-            speed: selectedSpeed,
-            locked: shareLocked ? "true" : "false",
-            police: optionsAffichage.police,
-            taille: optionsAffichage.taille,
-        });
-
-        const baseUrl = `${window.location.origin}/index.html`;
-        const shareUrl = `${baseUrl}?${params.toString()}`;
-
-        try {
-            // Tentative avec l'API moderne
-            await navigator.clipboard.writeText(shareUrl);
-            setShowShareSuccess(true);
-            setTimeout(() => {
-                setShowShareSuccess(false);
-            }, 3000);
-        } catch (err) {
-            // Fallback pour navigateurs anciens
-            const textArea = document.createElement("textarea");
-            textArea.value = shareUrl;
-            textArea.style.position = "fixed";
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            try {
-                document.execCommand("copy");
-                setShowShareSuccess(true);
-                setTimeout(() => {
-                    setShowShareSuccess(false);
-                }, 3000);
-            } catch (fallbackErr) {
-                console.error("Erreur copie clipboard:", fallbackErr);
-                alert(
-                    "Impossible de copier automatiquement. " +
-                        "Copiez-le manuellement : " +
-                        shareUrl
-                );
-            }
-
-            document.body.removeChild(textArea);
-        }
     };
 
     // ========================================
@@ -436,144 +369,6 @@ function SpeedSelector({
             )}
 
             {/* ======================================== */}
-            {/* MODALE Partage */}
-            {/* ======================================== */}
-            {showShareModal && sourceUrl && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-                    onClick={() => setShowShareModal(false)}
-                >
-                    <div
-                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* En-tête */}
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-bold text-gray-900">
-                                🔗 Partager avec les élèves
-                            </h3>
-                            <button
-                                onClick={() => setShowShareModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition"
-                                aria-label="Fermer"
-                            >
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                        {/* Récapitulatif de la configuration */}
-                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm font-semibold text-blue-900 mb-2">
-                                📋 Configuration à partager :
-                            </p>
-                            <ul className="text-xs text-blue-800 space-y-1">
-                                <li>
-                                    • Vitesse :{" "}
-                                    <strong>{selectedSpeed} MLM</strong>
-                                </li>
-                                <li>
-                                    • Police :{" "}
-                                    <strong>{optionsAffichage.police}</strong>
-                                </li>
-                                <li>
-                                    • Taille :{" "}
-                                    <strong>{optionsAffichage.taille}%</strong>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Options de partage */}
-                        <div className="space-y-4 mb-6">
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="shareMode"
-                                    checked={!shareLocked}
-                                    onChange={() => setShareLocked(false)}
-                                    className="mt-1"
-                                />
-                                <div>
-                                    <p className="font-semibold text-gray-900">
-                                        💡 Vitesse suggérée
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                        L'élève peut modifier la vitesse si
-                                        besoin
-                                    </p>
-                                </div>
-                            </label>
-
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="shareMode"
-                                    checked={shareLocked}
-                                    onChange={() => setShareLocked(true)}
-                                    className="mt-1"
-                                />
-                                <div>
-                                    <p className="font-semibold text-gray-900">
-                                        🔒 Vitesse imposée
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                        La lecture démarre automatiquement à la
-                                        vitesse configurée
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-
-                        {/* Bouton génération lien */}
-                        <button
-                            onClick={handleGenerateShareLink}
-                            disabled={!selectedSpeed}
-                            className={`w-full py-3 rounded-lg font-bold transition ${
-                                selectedSpeed
-                                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            }`}
-                        >
-                            {selectedSpeed
-                                ? "📋 Générer et copier le lien"
-                                : "⚠️ Sélectionnez une vitesse d'abord"}
-                        </button>
-
-                        {/* Message succès */}
-                        {showShareSuccess && (
-                            <div className="mt-4 p-4 bg-green-100 border border-green-400 rounded-lg">
-                                <p className="text-green-800 font-semibold text-center">
-                                    ✅ Lien copié dans le presse-papier !
-                                    <br />
-                                    <span className="text-xs">
-                                        Vous pouvez maintenant le coller dans
-                                        votre ENT, Digipad, ou l'envoyer par
-                                        email.
-                                    </span>
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Help text */}
-                        <p className="text-xs text-gray-500 text-center mt-4">
-                            Le lien contiendra le texte, la vitesse configurée,
-                            ainsi que les options d'affichage (police et taille)
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* ======================================== */}
             {/* OPTIONS D'AFFICHAGE */}
             {/* ======================================== */}
             <div className="mt-8">
@@ -603,10 +398,7 @@ SpeedSelector.propTypes = {
     showCustomModal: PropTypes.bool.isRequired,
     /** Setter pour la modale curseur */
     setShowCustomModal: PropTypes.func.isRequired,
-    /** État de la modale partage (géré par parent) */
-    showShareModal: PropTypes.bool.isRequired,
-    /** Setter pour la modale partage */
-    setShowShareModal: PropTypes.func.isRequired,
+
     /** Callback pour changements d'options d'affichage (police, thème) */
     onDisplayOptionsChange: PropTypes.func.isRequired,
     optionsAffichage: PropTypes.shape({

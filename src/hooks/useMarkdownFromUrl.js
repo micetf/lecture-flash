@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from "react";
 
-export function useMarkdownFromUrl() {
+export default function useMarkdownFromUrl() {
     const [markdown, setMarkdown] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -228,5 +228,3 @@ export function useMarkdownFromUrl() {
         reset,
     };
 }
-
-export default useMarkdownFromUrl;

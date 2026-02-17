@@ -1,24 +1,23 @@
 /**
  * Composant principal de l'application Lecture Flash
- * VERSION 3.10.3 : Correction bug boucle infinie chargement CodiMD
+ * VERSION 3.10.0 : Ajout partage par URL encodée (Sprint 1 complet)
+ *
+ * Corrections v3.10.0 (Sprint 1) :
+ * - ✨ NOUVEAU : Import ShareModal (composant réutilisable)
+ * - ✨ NOUVEAU : Import useInlineShareLink (hook partage encodé)
+ * - ✨ NOUVEAU : Import copyToClipboard (service)
+ * - ✨ NOUVEAU : States pour les deux types de partage (CodiMD + Encodé)
+ * - ✨ NOUVEAU : Handlers handleCodiMDShare et handleInlineShare
+ * - ✨ NOUVEAU : Deux boutons de partage dans renderActions
+ * - ✨ NOUVEAU : Deux modales ShareModal (type="codimd" + type="inline")
  *
  * Corrections v3.10.3 :
- * - 🔧 LIGNES 103-116 SUPPRIMÉES : Effets redondants appelant loadMarkdownFromUrl
- * - 🔧 LIGNES 118-145 : Séparation en 2 effets distincts
- *   - Effet 1 : Application texte CodiMD (dépend uniquement markdownText)
- *   - Effet 2 : Configuration automatique avec garde hasLoadedFromUrl
- * - ✅ Élimination boucle infinie "Maximum update depth exceeded"
+ * - 🔧 Effets redondants supprimés (boucle infinie)
+ * - 🔧 Séparation en 2 effets distincts avec garde hasLoadedFromUrl
  *
  * Corrections v3.9.11 :
- * - 🔧 LIGNE 85 : Destructuring corrigé (markdown au lieu de text)
- * - 🔧 LIGNE 118-135 : Comportement après chargement CodiMD
- *   - Suppression setCurrentStep(2) → on reste sur étape 1
- *   - Ajout remount TextInputManager → retour onglet Saisir + nettoyage formulaire
- *
- * Modifications v3.9.10 (Sprint 16-17) :
- * - Ajout state optionsAffichage (police, taille)
- * - Transmission options vers TextAnimation
- * - Intégration FullscreenButton dans contrôles lecture
+ * - 🔧 Destructuring corrigé (markdown au lieu de text)
+ * - 🔧 Remount TextInputManager pour nettoyage formulaire
  *
  * @component
  * @returns {JSX.Element}
@@ -35,10 +34,13 @@ import FirstTimeMessage from "../FirstTimeMessage";
 import Tooltip from "../Tooltip";
 import HelpButton from "../HelpButton";
 import FullscreenButton from "./Flash/FullscreenButton";
+import ShareModal from "./ShareModal";
 import initialState from "../../config/initialState";
 import { STEP_LABELS, TOTAL_STEPS } from "../../config/constants";
-import { useMarkdownFromUrl } from "../../hooks/useMarkdownFromUrl";
+import useMarkdownFromUrl from "../../hooks/useMarkdownFromUrl";
 import useFullscreen from "../../hooks/useFullscreen";
+import useInlineShareLink from "../../hooks/useInlineShareLink";
+import { copyToClipboard } from "../../services/urlGeneration";
 
 function LectureFlash() {
     // ========================================
@@ -52,7 +54,16 @@ function LectureFlash() {
 
     // États pour les modales (gérés ici pour cohérence architecturale)
     const [showCustomModal, setShowCustomModal] = useState(false);
-    const [showShareModal, setShowShareModal] = useState(false);
+
+    // ✨ NOUVEAU : États partage CodiMD
+    const [showShareCodiMDModal, setShowShareCodiMDModal] = useState(false);
+    const [shareCodiMDLocked, setShareCodiMDLocked] = useState(false);
+    const [showShareCodiMDSuccess, setShowShareCodiMDSuccess] = useState(false);
+
+    // ✨ NOUVEAU : États partage Encodé
+    const [showShareInlineModal, setShowShareInlineModal] = useState(false);
+    const [shareInlineLocked, setShareInlineLocked] = useState(false);
+    const [showShareInlineSuccess, setShowShareInlineSuccess] = useState(false);
 
     // État pour tracker si le texte actuel vient de CodiMD sans modification
     const [isCodiMDTextUnmodified, setIsCodiMDTextUnmodified] = useState(false);
@@ -63,7 +74,7 @@ function LectureFlash() {
         taille: 100,
     });
 
-    // ✅ AJOUT : Key pour forcer remount de TextInputManager
+    // Key pour forcer remount de TextInputManager
     const [textInputKey, setTextInputKey] = useState(0);
 
     const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
@@ -89,8 +100,8 @@ function LectureFlash() {
               }
             : null;
 
-    // 🆕 ===== CONTEXTE POUR HELPMODAL =====
-    const isEleve = !!speedConfig; // Élève si paramètres speed/locked dans URL
+    // Contexte pour HelpModal
+    const isEleve = !!speedConfig;
     const role = isEleve ? "eleve" : "enseignant";
 
     const helpContent = {
@@ -111,15 +122,16 @@ function LectureFlash() {
 
     const { sortirPleinEcran, estPleinEcran } = useFullscreen();
 
-    /**
-     * ✅ CORRECTION v3.10.3 : Suppression des effets 1 et 2 (lignes 103-116)
-     * Le hook useMarkdownFromUrl charge déjà automatiquement au montage (ligne 196-206)
-     * Les effets ci-dessous étaient redondants et causaient une boucle infinie
-     */
+    // ✨ NOUVEAU : Hook partage encodé
+    const { canShareInline, reasonIfNot } = useInlineShareLink(
+        appState,
+        optionsAffichage,
+        "light",
+        true
+    );
 
     /**
      * Effet 1 : Application du texte CodiMD chargé
-     * ✅ MODIFICATION v3.10.3 : Séparé de la configuration pour éviter boucle
      */
     useEffect(() => {
         if (markdownText) {
@@ -131,7 +143,6 @@ function LectureFlash() {
 
     /**
      * Effet 2 : Configuration automatique si speedConfig présent (UNE SEULE FOIS)
-     * ✅ MODIFICATION v3.10.3 : Garde hasLoadedFromUrl empêche réexécution infinie
      */
     useEffect(() => {
         if (speedConfig && markdownText && !hasLoadedFromUrl) {
@@ -247,7 +258,84 @@ function LectureFlash() {
     const handleStop = () => {
         setHasStartedReading(false);
         setIsPaused(false);
-        // Pas de redémarrage automatique → utilisateur doit recliquer "Lancer la lecture"
+    };
+
+    // ========================================
+    // ✨ NOUVEAUX HANDLERS PARTAGE
+    // ========================================
+
+    /**
+     * Gère le partage CodiMD
+     */
+    const handleCodiMDShare = async () => {
+        if (!sourceUrl || !appState.speedWpm) return;
+
+        try {
+            // Construction de l'URL avec tous les paramètres
+            const params = new URLSearchParams({
+                url: sourceUrl,
+                speed: appState.speedWpm.toString(),
+                locked: shareCodiMDLocked ? "true" : "false",
+                police: optionsAffichage.police,
+                taille: optionsAffichage.taille.toString(),
+            });
+
+            const baseUrl = `${window.location.origin}/index.html`;
+            const shareUrl = `${baseUrl}?${params.toString()}`;
+
+            // Copie dans le presse-papier (service)
+            const success = await copyToClipboard(shareUrl);
+
+            if (success) {
+                setShowShareCodiMDSuccess(true);
+                setTimeout(() => setShowShareCodiMDSuccess(false), 3000);
+            } else {
+                alert("Impossible de copier : " + shareUrl);
+            }
+        } catch (error) {
+            console.error("Erreur partage CodiMD:", error);
+            alert("Erreur lors de la génération du lien.");
+        }
+    };
+
+    /**
+     * Gère le partage par URL encodée
+     */
+    const handleInlineShare = async () => {
+        try {
+            // Import dynamique du service
+            const { buildInlineShareUrl } = await import(
+                "../../utils/urlSharing"
+            );
+
+            const baseReadingUrl = `${window.location.origin}/index.html`;
+
+            const shareUrl = buildInlineShareUrl(
+                baseReadingUrl,
+                appState,
+                optionsAffichage,
+                "light",
+                !shareInlineLocked // allowStudentChanges = inverse de locked
+            );
+
+            if (!shareUrl) {
+                alert("Impossible de générer le lien encodé.");
+                return;
+            }
+
+            // Copie dans le presse-papier (service)
+            const success = await copyToClipboard(shareUrl);
+
+            if (success) {
+                setShowShareInlineSuccess(true);
+                setTimeout(() => setShowShareInlineSuccess(false), 3000);
+            } else {
+                alert("Impossible de copier : " + shareUrl);
+            }
+        } catch (error) {
+            console.error("Erreur partage encodé:", error);
+            alert("Erreur lors de la génération du lien.");
+        }
     };
 
     // ========================================
@@ -255,16 +343,11 @@ function LectureFlash() {
     // ========================================
 
     if (currentStep === 3) {
-        // Auto-démarrage uniquement si speedConfig.locked
-        // MAIS PAS d'auto-start même si locked (décision UX v3.6.0)
-        // L'utilisateur doit cliquer sur "Lancer la lecture"
-
         return (
             <div className="container mx-auto p-4 relative">
                 {/* Boutons utilitaires en haut à droite */}
                 <div className="absolute top-0 right-0 z-10 flex gap-2 items-center">
                     <FullscreenButton />
-
                     <HelpButton onClick={() => setShowHelp(true)} />
                 </div>
 
@@ -441,14 +524,27 @@ function LectureFlash() {
                             </button>
                         )}
 
-                        {/* Bouton Partage */}
+                        {/* ✨ NOUVEAU : Bouton Partage Encodé */}
+                        {!speedConfig && canShareInline && (
+                            <button
+                                onClick={() => setShowShareInlineModal(true)}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium text-sm"
+                                aria-label="Générer un lien rapide sans stockage"
+                            >
+                                🔗 Lien rapide
+                            </button>
+                        )}
+
+                        {/* Bouton Partage CodiMD */}
                         {!speedConfig &&
                             sourceUrl &&
                             isCodiMDTextUnmodified && (
                                 <button
-                                    onClick={() => setShowShareModal(true)}
+                                    onClick={() =>
+                                        setShowShareCodiMDModal(true)
+                                    }
                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                                    aria-label="Générer un lien de partage"
+                                    aria-label="Générer un lien de partage CodiMD"
                                 >
                                     🔗 Partager
                                 </button>
@@ -462,9 +558,6 @@ function LectureFlash() {
                     speedConfig={speedConfig}
                     showCustomModal={showCustomModal}
                     setShowCustomModal={setShowCustomModal}
-                    showShareModal={showShareModal}
-                    setShowShareModal={setShowShareModal}
-                    sourceUrl={sourceUrl}
                     onDisplayOptionsChange={handleDisplayOptionsChange}
                     optionsAffichage={optionsAffichage}
                 />
@@ -498,6 +591,39 @@ function LectureFlash() {
                     </button>
                 </div>
             </StepContainer>
+
+            {/* ======================================== */}
+            {/* ✨ MODALE PARTAGE CODIMD */}
+            {/* ======================================== */}
+            <ShareModal
+                isOpen={showShareCodiMDModal}
+                onClose={() => setShowShareCodiMDModal(false)}
+                type="codimd"
+                vitesse={appState.speedWpm}
+                police={optionsAffichage.police}
+                taille={optionsAffichage.taille}
+                shareLocked={shareCodiMDLocked}
+                setShareLocked={setShareCodiMDLocked}
+                onGenerateLink={handleCodiMDShare}
+                showSuccess={showShareCodiMDSuccess}
+            />
+
+            {/* ======================================== */}
+            {/* ✨ MODALE PARTAGE ENCODÉ */}
+            {/* ======================================== */}
+            <ShareModal
+                isOpen={showShareInlineModal}
+                onClose={() => setShowShareInlineModal(false)}
+                type="inline"
+                vitesse={appState.speedWpm}
+                police={optionsAffichage.police}
+                taille={optionsAffichage.taille}
+                texteLength={appState.text.length}
+                shareLocked={shareInlineLocked}
+                setShareLocked={setShareInlineLocked}
+                onGenerateLink={handleInlineShare}
+                showSuccess={showShareInlineSuccess}
+            />
         </div>
     );
 }

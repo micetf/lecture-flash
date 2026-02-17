@@ -8,6 +8,95 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.16.0] - 2026-02-17
+
+### Added
+
+#### Partage par URL Encodée (Sprint 1 - Génération)
+
+- **ShareModal.jsx** : composant modale réutilisable pour les deux modes de partage (CodiMD et URL encodée).
+- **urlSharing.js** : service d'encodage/décodage avec compression lz-string pour partager des textes courts sans serveur externe.
+- **useInlineShareLink.js** : hook avec garde-fous automatiques (limite 2000 caractères, validation URL).
+- **Bouton "Lien rapide"** : visible uniquement si le texte fait moins de 2000 caractères, génère une URL compressée sans stockage CodiMD.
+- **Choix vitesse suggérée/imposée** : workflow cohérent entre partage CodiMD et partage encodé.
+- **Dépendance lz-string** (^1.5.0) : compression/décompression efficace pour URLs courtes.
+
+### Changed
+
+#### Refactoring Architecture
+
+- **SpeedSelector.jsx** : nettoyage complet (-169 lignes), suppression de la logique de partage déplacée vers `index.jsx`.
+    - Suppression de la modale de partage CodiMD (externalisée dans ShareModal).
+    - Suppression des props `showShareModal` et `setShowShareModal`.
+    - Composant focalisé uniquement sur la sélection de vitesse (responsabilité unique).
+- **index.jsx** : centralisation de la logique de partage (+175 lignes).
+    - Import de ShareModal, useInlineShareLink, copyToClipboard.
+    - Ajout des états pour les deux types de partage (CodiMD + Encodé).
+    - Handlers `handleCodiMDShare` et `handleInlineShare`.
+    - Deux instances de ShareModal (type="codimd" et type="inline").
+    - Bouton "Lien rapide" (violet) dans les actions de l'étape 2.
+
+### Improved
+
+#### UX et Cohérence Visuelle
+
+- **Modale violette** (partage encodé) vs **modale bleue** (partage CodiMD) pour différencier visuellement les deux modes.
+- **Messages pédagogiques** : explications claires sur les différences entre les deux modes de partage.
+    - CodiMD : "Mode avec stockage CodiMD - Idéal pour textes longs et bibliothèques".
+    - Encodé : "Mode sans stockage - Texte compressé dans l'URL (max 2000 caractères)".
+- **Toast de confirmation** : feedback visuel immédiat dans la modale après génération du lien.
+- **Récapitulatif de configuration** : affichage de la vitesse, police, taille et longueur du texte avant génération.
+
+### Technical
+
+#### Métriques Code Quality
+
+- **Code dupliqué éliminé** : -200 lignes (logique de copie presse-papier et génération URL).
+- **Nouveaux composants réutilisables** : +1 (ShareModal).
+- **Séparation des responsabilités** : services (urlSharing), hooks (useInlineShareLink), composants (ShareModal).
+- **PropTypes complets** : tous les nouveaux composants avec documentation JSDoc en français.
+
+#### Architecture Fichiers
+
+```
+src/
+├── components/
+│   └── LectureFlash/
+│       ├── ShareModal.jsx              (+270 lignes)
+│       ├── index.jsx                   (+175 lignes)
+│       └── Flash/
+│           └── SpeedSelector.jsx       (-169 lignes)
+├── utils/
+│   └── urlSharing.js                   (+250 lignes)
+└── hooks/
+    └── useInlineShareLink.js           (+120 lignes)
+```
+
+### Limitations
+
+**Sprint 1 uniquement** : Génération du lien côté enseignant
+
+- Le bouton "Lien rapide" génère et copie une URL encodée.
+- Le décodage côté élève (chargement du texte depuis l'URL) sera implémenté dans le Sprint 2.
+- Limite de 2000 caractères due aux contraintes de longueur d'URL des navigateurs.
+
+### Notes de Développement
+
+#### Breaking Changes
+
+**AUCUN** : compatibilité totale maintenue avec les versions 3.15.x
+
+- Le partage CodiMD fonctionne exactement comme avant.
+- Les liens CodiMD existants restent valides.
+- Aucune modification des comportements existants.
+
+#### Prochaines Étapes
+
+- **Sprint 2** (v3.16.1 ou v3.17.0) : Décodage du lien encodé côté élève (modification `index.jsx` uniquement).
+- **Sprint 3** : Tests complets et documentation finale.
+
+---
+
 ## [3.15.1] - 2026-02-16
 
 ### Fixed
