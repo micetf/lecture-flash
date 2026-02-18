@@ -160,10 +160,11 @@ function ShareModal({
                         />
                         <div>
                             <p className="font-semibold text-gray-900">
-                                💡 Vitesse suggérée
+                                💡 Réglages modifiables
                             </p>
                             <p className="text-sm text-gray-600">
-                                L'élève peut modifier la vitesse si besoin
+                                L'élève peut modifier la vitesse, la police et
+                                la taille de caractères
                             </p>
                         </div>
                     </label>
@@ -178,11 +179,11 @@ function ShareModal({
                         />
                         <div>
                             <p className="font-semibold text-gray-900">
-                                🔒 Vitesse imposée
+                                🔒 Réglages imposés
                             </p>
                             <p className="text-sm text-gray-600">
-                                La lecture démarre automatiquement à la vitesse
-                                configurée
+                                La lecture démarre avec les réglages configurés
+                                (vitesse, police, taille)
                             </p>
                         </div>
                     </label>

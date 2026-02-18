@@ -2,7 +2,7 @@
 
 Application web éducative pour l'entraînement à la fluence de lecture destinée aux élèves de l'école primaire (CP à CM2).
 
-**Version** : 3.9.0  
+**Version** : 3.17.0  
 **Auteur** : Frédéric MISERY - Conseiller Pédagogique de Circonscription Numérique  
 **Site web** : [https://micetf.fr](https://micetf.fr)  
 **Email** : webmaster@micetf.fr  
@@ -47,20 +47,37 @@ Développer la **fluence de lecture** grâce à la technique du texte qui s'effa
 
 **Vitesse personnalisée** : Curseur 20-200 MLM avec aperçu en temps réel
 
-**🆕 Options d'affichage** (v3.9.0) :
+**Options d'affichage** (v3.9.0) :
 
 - Choix de police (défaut, OpenDyslexic, Arial, Comic Sans MS)
 - Ajustement taille (100-200%)
 - _Utile pour TBI/TNI et élèves à besoins particuliers_
 
-### 🔗 Partage (Conditionnel si CodiMD)
+### 🔗 Partage par URL Encodée (v3.16.0+)
 
-**Génération de liens** avec 2 modes :
+**🆕 Deux méthodes de partage complémentaires** :
 
-- 💡 **Vitesse suggérée** : L'élève peut modifier
-- 🔒 **Vitesse imposée** : Lecture automatique sans modification
+#### ☁️ CodiMD (textes longs et réutilisables)
 
-**Format d'URL** : `?url=...&speed=70&locked=true`
+- Texte hébergé sur [codimd.apps.education.fr](https://codimd.apps.education.fr)
+- Lien partagé contient uniquement l'URL du document + réglages
+- Idéal pour bibliothèques de fluence et évaluations normées
+
+#### ⚡ Direct (textes courts, partage instantané)
+
+- Texte encodé et compressé **directement dans l'URL** (lz-string)
+- **Aucun stockage externe** — conforme RGPD
+- Garde-fou automatique : bouton absent si texte > 2000 caractères
+- Idéal pour exercices quotidiens et devoirs maison
+
+**Deux modes de réglages** :
+
+- 💡 **Réglages modifiables** : L'élève peut ajuster vitesse, police et taille
+- 🔒 **Réglages imposés** : Paramètres verrouillés par l'enseignant
+
+**Paramètres partagés** : texte, vitesse (MLM), police, taille
+
+**Format d'URL Direct** : `?s=N4Ig...` (Base64 URL-safe + LZ-String)
 
 ### 📖 Mode Lecture (Étape 3)
 
@@ -70,8 +87,8 @@ Développer la **fluence de lecture** grâce à la technique du texte qui s'effa
 
 - ⏸️ Pause / Reprendre
 - 🔄 Relire depuis le début
-- ← Retour (si vitesse non imposée)
-- 🆕 ⛶ Plein écran (v3.9.0)
+- ← Retour (si réglages non imposés)
+- ⛶ Plein écran (v3.9.0)
 
 **Indicateur** : Barre de progression visuelle
 
@@ -98,6 +115,7 @@ Développer la **fluence de lecture** grâce à la technique du texte qui s'effa
 - **Styling** : Tailwind CSS 3.4.17 (mode JIT)
 - **Package Manager** : pnpm
 - **Validation** : PropTypes
+- **Compression URL** : LZ-String 1.5.0 (🆕 v3.16.0)
 
 ### Structure des Fichiers
 
@@ -110,32 +128,35 @@ lecture-flash/
 ├── postcss.config.js
 │
 ├── src/
-│   ├── index.jsx                    # Point d'entrée
+│   ├── index.jsx                    # Point d'entrée + décodage URL (🆕 v3.16.1)
 │   │
 │   ├── config/                      # Configuration centralisée
 │   │   ├── constants.js             # Modes, vitesses, helpers
-│   │   └── initialState.js          # État initial
+│   │   ├── initialState.js          # État initial
+│   │   └── helpContent.jsx          # Contenu aide (🆕 v3.16.3)
 │   │
-│   ├── services/                    # 🆕 v3.9.0 - Logique métier pure
-│   │   ├── textProcessing.js       # Comptage, purification texte
-│   │   ├── speedCalculations.js    # Calculs MLM, temps lecture
-│   │   └── urlGeneration.js        # Génération liens partage
+│   ├── services/                    # Logique métier pure
+│   │   ├── textProcessing.js        # Comptage, purification texte
+│   │   ├── speedCalculations.js     # Calculs MLM, temps lecture
+│   │   ├── urlGeneration.js         # Génération liens CodiMD
+│   │   └── urlSharing.js            # 🆕 v3.16.0 - Encodage/décodage URL directe
 │   │
-│   ├── utils/                       # 🆕 v3.9.0 - Utilitaires
-│   │   ├── validation.js           # Validation URL, fichiers
-│   │   └── formatters.js           # Formatage dates, durées
+│   ├── utils/                       # Utilitaires
+│   │   ├── validation.js            # Validation URL, fichiers
+│   │   └── formatters.js            # Formatage dates, durées
 │   │
 │   ├── hooks/                       # Hooks personnalisés
-│   │   ├── useMarkdownFromUrl.js  # Chargement CodiMD
-│   │   ├── useLocalStorage.js     # 🆕 v3.9.0
-│   │   └── useFullscreen.js       # 🆕 v3.9.0
+│   │   ├── useMarkdownFromUrl.js    # Chargement CodiMD
+│   │   ├── useLocalStorage.js
+│   │   ├── useFullscreen.js
+│   │   └── useInlineShareLink.js    # 🆕 v3.16.0 - Garde-fous URL directe
 │   │
 │   ├── components/
 │   │   ├── App.jsx                  # Composant racine
 │   │   ├── Tooltip.jsx              # Tooltip avec React Portal
 │   │   ├── HelpModal.jsx            # Guide complet
-│   │   ├── HelpButton.jsx           # 🆕 v3.10.0 - Bouton aide global
-│   │   ├── FirstTimeMessage.jsx    # Message première visite
+│   │   ├── HelpButton.jsx           # Bouton aide global
+│   │   ├── FirstTimeMessage.jsx     # Message première visite
 │   │   │
 │   │   ├── Navbar/                  # Barre de navigation
 │   │   │   ├── index.jsx
@@ -143,21 +164,22 @@ lecture-flash/
 │   │   │   └── Paypal.jsx
 │   │   │
 │   │   └── LectureFlash/            # Composant principal
-│   │       ├── index.jsx            # Workflow 3 étapes
-│   │       ├── StepIndicator.jsx   # Indicateur progression
-│   │       ├── StepContainer.jsx   # Wrapper étapes
-│   │       ├── ShareConfiguration.jsx  # Configuration partage
+│   │       ├── index.jsx            # Workflow 3 étapes + décodage URL
+│   │       ├── StepIndicator.jsx    # Indicateur progression
+│   │       ├── StepContainer.jsx    # Wrapper étapes
+│   │       ├── ShareConfiguration.jsx   # Configuration partage CodiMD
+│   │       ├── ShareModal.jsx       # 🆕 v3.16.0 - Modale partage réutilisable
 │   │       │
 │   │       ├── TextInput/           # Gestion texte (3 onglets)
-│   │       │   ├── TextInputManager.jsx     # Orchestrateur
-│   │       │   ├── ManualInputTab.jsx       # 🆕 v3.9.0
-│   │       │   ├── FileUploadTab.jsx        # 🆕 v3.9.0
-│   │       │   └── CodiMDTab.jsx            # 🆕 v3.9.0
+│   │       │   ├── TextInputManager.jsx
+│   │       │   ├── ManualInputTab.jsx
+│   │       │   ├── FileUploadTab.jsx
+│   │       │   └── CodiMDTab.jsx
 │   │       │
 │   │       └── Flash/               # Lecture animée
-│   │           ├── SpeedSelector.jsx        # Sélection vitesse
-│   │           ├── DisplayOptions.jsx       # 🆕 v3.9.0 - Options police/taille
-│   │           ├── FullscreenButton.jsx     # 🆕 v3.9.0 - Bouton plein écran
+│   │           ├── SpeedSelector.jsx        # Sélection vitesse (allégé v3.16.0)
+│   │           ├── DisplayOptions.jsx       # Options police/taille
+│   │           ├── FullscreenButton.jsx     # Bouton plein écran
 │   │           ├── TextAnimation.jsx        # Animation mot-à-mot
 │   │           └── Word.jsx                 # Animation mot
 │   │
@@ -165,21 +187,24 @@ lecture-flash/
 │       ├── index.css                # Tailwind + fadeIn
 │       └── flash.css                # Animation masquage
 │
-└── docs/                            # Documentation
-    ├── ARCHITECTURE.md              # 🆕 v3.9.0 - Guide architecture
-    ├── DECISIONS.md                 # 🆕 v3.9.0 - ADR
-    ├── INTEGRATION_GUIDE.md
-    ├── JUSTIFICATION_PEDAGOGIQUE_AIDE.md
-    └── MIGRATION_V2.2.0_SUMMARY.md
+├── docs/                            # Documentation technique
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   ├── INTEGRATION_GUIDE.md
+│   ├── JUSTIFICATION_PEDAGOGIQUE_AIDE.md
+│   └── MIGRATION_V2.2.0_SUMMARY.md
+│
+└── CHANGELOG.md                     # Historique versions (🆕 v3.17.0)
 ```
 
-### Dépendances (9 packages au total)
+### Dépendances (10 packages au total)
 
 **Production** :
 
 - `react` ^18.2.0
 - `react-dom` ^18.2.0
 - `prop-types` ^15.8.1
+- `lz-string` ^1.5.0 _(🆕 v3.16.0 — compression URL)_
 
 **Development** :
 
@@ -227,7 +252,7 @@ pnpm preview
 
 ## 📖 Utilisation
 
-### Scénario 1 : Enseignant prépare un exercice
+### Scénario 1 : Enseignant prépare un exercice sur TBI/TNI
 
 1. **Étape 1** : Saisir ou importer un texte
 2. **Étape 2** : Tester différentes vitesses (30-110 MLM)
@@ -239,20 +264,52 @@ pnpm preview
 2. **Étape 2** : Choisir une vitesse adaptée à son niveau
 3. **Étape 3** : S'entraîner à lire en suivant le rythme
 
-### Scénario 3 : Partage via CodiMD
+### Scénario 3 : Partage via CodiMD ☁️
+
+Idéal pour les textes longs et réutilisables (bibliothèques de fluence).
 
 **Enseignant** :
 
 1. Créer un texte sur [codimd.apps.education.fr](https://codimd.apps.education.fr)
-2. Charger via l'onglet "CodiMD"
-3. Configurer la vitesse (suggérée ou imposée)
-4. Générer et partager le lien
+2. Charger via l'onglet « CodiMD »
+3. Configurer vitesse, police et taille
+4. Choisir « 💡 Réglages modifiables » ou « 🔒 Réglages imposés »
+5. Générer et partager le lien
 
 **Élève** :
 
 1. Cliquer sur le lien partagé
-2. → Texte et vitesse automatiquement chargés
-3. → Mode imposé : Lecture démarre automatiquement
+2. → Texte et réglages automatiquement chargés
+3. → Mode imposé : bouton « Modifier les réglages » absent
+
+### Scénario 4 : Partage Direct ⚡ (🆕 v3.16.0)
+
+Idéal pour les textes courts, le partage instantané, les devoirs maison.
+
+**Enseignant** :
+
+1. Saisir un texte court (≤ 2000 caractères)
+2. Configurer vitesse (ex. 70 MLM) + police + taille
+3. Cliquer « ⚡ Direct »
+4. Choisir le mode de réglages
+5. Cliquer « Générer et copier le lien »
+6. Partager le lien (ENT, messagerie, QR code…)
+
+**Élève** :
+
+1. Cliquer sur le lien
+2. → Texte + réglages chargés automatiquement (< 100 ms)
+3. → Passe directement à l'étape 3 (lecture)
+4. → Lancer la lecture
+
+### Cas d'Usage Pédagogiques Validés
+
+| Situation                   | Méthode   | Mode           | Raison                                       |
+| --------------------------- | --------- | -------------- | -------------------------------------------- |
+| Bibliothèque de fluence CE2 | ☁️ CodiMD | 💡 Modifiables | Textes longs, réutilisables, différenciation |
+| Évaluation normée CM1       | ☁️ CodiMD | 🔒 Imposés     | Conditions identiques pour tous              |
+| Exercice quotidien rapide   | ⚡ Direct | 💡 Modifiables | Texte court, partage instantané              |
+| Devoir maison cadré         | ⚡ Direct | 🔒 Imposés     | Exercice unique, vitesse imposée             |
 
 ---
 
@@ -272,14 +329,17 @@ pnpm preview
 - Développer la lecture silencieuse rapide
 - Améliorer la compréhension par l'automatisation
 
+**Repères de fluence respectés** : 30-110 MLM, adaptés aux niveaux CP-CM2.
+
 ### Fondements Scientifiques (André Tricot)
 
 **Principes appliqués** :
 
 1. **Charge cognitive minimale** : Interface épurée, guidage progressif
 2. **Guidage juste-à-temps** : Tooltips au moment de l'action
-3. **Feedback immédiat** : Barre de progression, messages de succès
-4. **Différenciation** : 5 niveaux de vitesse + personnalisation
+3. **Feedback immédiat** : Barre de progression, toasts, messages clairs
+4. **Différenciation** : 5 niveaux de vitesse + personnalisation (police, taille)
+5. **Guidance appropriée** : L'enseignant configure, l'élève exécute
 
 **Référence** : Tricot, A. & Chesné, J.-F. (2020). _Numérique et apprentissages scolaires_. Cnesco.
 
@@ -289,59 +349,61 @@ pnpm preview
 
 **Source** : Meunier, J. (2017). [Fluence : le texte qui s'efface](http://www.ecoledejulie.fr/fluence-le-texte-qui-s-efface-a207401800). L'École de Julie.
 
+### Accessibilité
+
+- Police **OpenDyslexic** disponible
+- Taille ajustable (100-200%)
+- Contraste élevé possible
+- Compatible assistive technologies
+
+### Conformité RGPD
+
+- **Partage CodiMD** : données hébergées sur infrastructure Éducation Nationale
+- **Partage Direct** : aucune donnée transmise à un serveur externe — tout dans l'URL
+
 ---
 
 ## 🗺️ Roadmap
 
-### Version 3.9.0 (✅ TERMINÉE - 14 février 2026)
+### v3.9.0 (✅ Terminée — 14 février 2026)
 
-**Améliorations UX** :
-
-- ✅ Mode plein écran (étape lecture)
-- ✅ Personnalisation police et taille (accessibilité)
-- ✅ Gestion titres Markdown (CodiMD)
+- ✅ Mode plein écran
+- ✅ Personnalisation police et taille
+- ✅ Gestion titres Markdown
 - ✅ Conservation retours à la ligne
-- ✅ Simplification interface (suppression test vitesse)
+- ✅ Refactorisation services/utils/hooks
 
-**Refactorisation (Phase 1-4)** :
+### v3.16.x — v3.17.0 (✅ Terminée — 18 février 2026)
 
-- ✅ Extraction logique métier → `services/` (textProcessing, speedCalculations, urlGeneration)
-- ✅ Création utilitaires → `utils/` (validation, formatters)
-- ✅ Décomposition `TextInputManager` → 3 sous-composants onglets
-- ✅ Création hooks → `useLocalStorage`, `useFullscreen`
-- ✅ Nouveaux composants → `DisplayOptions`, `FullscreenButton`
+**Partage par URL encodée** :
 
-### Version 3.10.0 (Q2 2026)
+- ✅ `v3.16.0` : Génération lien encodé (ShareModal + urlSharing + useInlineShareLink)
+- ✅ `v3.16.1` : Décodage automatique côté élève (useEffect + passage étape 3)
+- ✅ `v3.16.2` : Corrections bugs critiques (chemin URL, `allowStudentChanges`)
+- ✅ `v3.16.3` : Clarification terminologie UX (réglages modifiables/imposés)
+- ✅ `v3.17.0` : Documentation finale (CHANGELOG, README, guides Git)
 
-**Refactorisation (Phase 3-4)** :
+### v3.10.0 / v4.0 (Q2-Q3 2026)
 
-- 🔧 Décomposition `SpeedSelector` → 5 sous-composants (SpeedCard, CustomSpeedModal, ShareModal, DisplayOptions)
-- 🔧 Extraction hook `useTextAnimation` (logique animation pure)
-- 🔧 Décomposition `TextAnimation` → 4 sous-composants (AnimatedText, ReadingControls, FullscreenButton)
-- 📊 Tests composants isolés
+**Refactorisation avancée** :
 
-**Objectif** : Composants < 200 lignes, responsabilités claires (SRP)
-
-### Version 4.0 (Q3 2026)
-
-**Refactorisation (Phase 5-6)** :
-
-- 🔧 Bibliothèque composants communs → `common/` (Button, Modal, Tabs, Slider, ProgressBar, Toast)
-- 🔧 Context API si nécessaire (gestion état global)
-- 🎨 Design system cohérent (variants, tailles standardisées)
+- 🔧 Extraction hook `useTextAnimation`
+- 🔧 Décomposition `TextAnimation` → sous-composants
+- 🔧 Bibliothèque composants communs → `common/`
+- 🔧 Context API si nécessaire
 
 **Fonctionnalités envisagées** :
 
 - 🔍 Statistiques lecture (vitesse réelle, taux relecture)
 - 📊 Historique progression élève (localStorage)
 - 🎨 Thèmes visuels (mode sombre, contraste élevé)
-- 🌐 Internationalisation (i18n - anglais, espagnol)
+- 🌐 Internationalisation (i18n)
 
 **Fonctionnalités écartées** :
 
-- ❌ Coloration syllabes (Lire-Couleur) : Complexité technique élevée, cohérence pédagogique douteuse
+- ❌ Coloration syllabes : Complexité technique élevée, cohérence pédagogique douteuse
 
-_Les propositions de fonctionnalités sont les bienvenues via [GitHub Issues](https://github.com/micetf/lecture-flash/issues) avec tag `enhancement`._
+_Les propositions sont bienvenues via [GitHub Issues](https://github.com/micetf/lecture-flash/issues) avec le tag `enhancement`._
 
 ---
 
@@ -349,19 +411,25 @@ _Les propositions de fonctionnalités sont les bienvenues via [GitHub Issues](ht
 
 ### Principes de Développement
 
-**Respect des standards** :
-
 - ✅ **Single Responsibility Principle** : 1 composant = 1 responsabilité
-- ✅ **Separation of Concerns** : Logique métier (services) séparée de la présentation (composants)
-- ✅ **DRY** : Code mutualisé dans services et utils
+- ✅ **Separation of Concerns** : Logique métier (services) séparée de la présentation
+- ✅ **DRY** : Code mutualisé dans services, utils et hooks
 - ✅ **Composants < 200 lignes** : Facilite lecture et maintenance
+- ✅ **Defensive Programming** : Garde-fous, try/catch, validation systématique
 
 **Contraintes techniques** :
 
 - ❌ Pas de TypeScript (JavaScript pur + PropTypes)
-- ❌ Pas de state management externe (Context React uniquement si nécessaire)
+- ❌ Pas de state management externe
 - ✅ JSDoc française complète obligatoire
-- ✅ Tests unitaires services (Jest)
+- ✅ PropTypes complets sur tous les composants
+
+### Patterns Appliqués (v3.16.x)
+
+- **Custom Hook** : `useInlineShareLink` (logique de génération + garde-fous)
+- **Service Layer** : `urlSharing.js` (encodage/décodage pur, testable)
+- **Component Composition** : `ShareModal` réutilisable (CodiMD + Direct)
+- **Error Handling** : try/catch sur tous les décodages d'URL
 
 ### Structure Cible (v4.0)
 
@@ -376,13 +444,6 @@ src/
 │   └── LectureFlash/  # Composants métier décomposés
 ```
 
-**Bénéfices** :
-
-- 🧪 **Testabilité** : Services purs isolables, tests unitaires facilités
-- 🔄 **Réutilisabilité** : Composants communs utilisables dans autres projets
-- 📈 **Évolutivité** : Ajout fonctionnalités simplifié, migration TS possible
-- 🛠️ **Maintenabilité** : Code clair, responsabilités évidentes, onboarding rapide
-
 ---
 
 ## 🧪 Tests et Qualité
@@ -393,25 +454,36 @@ src/
 ✅ Chargement CodiMD  
 ✅ Sélection vitesse (prédéfinie + personnalisée)  
 ✅ Animation lecture (pause, relire, retour)  
-✅ Partage (vitesse suggérée/imposée)  
+✅ Partage CodiMD (réglages modifiables/imposés)  
+✅ Partage Direct (génération + décodage bout en bout)  
+✅ URL tronquée ou corrompue → erreur gérée silencieusement  
+✅ Texte > 2000 caractères → bouton Direct absent  
 ✅ Tooltips (Portal, overflow escape)  
 ✅ Modales (Escape, clic extérieur, boutons)
 
 ### Tests de Performance
 
-✅ **Build time** : ~5s (vs 30s avant Vite)  
-✅ **HMR** : ~200ms (vs 3s avant Vite)  
-✅ **Bundle CSS** : ~30 KB (vs 200 KB Bootstrap)  
+✅ **Compression** : 60-70% de réduction avec lz-string  
+✅ **Décodage URL** : < 100 ms  
+✅ **Build time** : ~5 s  
+✅ **HMR** : ~200 ms  
+✅ **Bundle CSS** : ~30 KB  
 ✅ **Animation** : 60 FPS  
-✅ **Lighthouse** : >90/100
+✅ **Lighthouse** : > 90/100
 
 ### Tests d'Accessibilité
 
-✅ **Navigation clavier** : Tab, Escape, Enter  
-✅ **ARIA** : Labels, roles, states  
-✅ **Contraste** : WCAG 2.1 AA (4.5:1)  
-✅ **Focus visible** : Outline bleu  
-✅ **Lecteur d'écran** : Annonces appropriées
+✅ Navigation clavier : Tab, Escape, Enter  
+✅ ARIA : Labels, roles, states  
+✅ Contraste : WCAG 2.1 AA (4.5:1)  
+✅ Focus visible  
+✅ Lecteur d'écran : annonces appropriées
+
+### Compatibilité
+
+✅ Chrome, Firefox, Safari, Edge  
+✅ Tablettes et smartphones  
+✅ TBI/TNI
 
 ---
 
@@ -429,8 +501,8 @@ src/
       "@components": "/src/components",
       "@hooks": "/src/hooks",
       "@config": "/src/config",
-      "@services": "/src/services",  // 🆕 v3.9.0
-      "@utils": "/src/utils"          // 🆕 v3.9.0
+      "@services": "/src/services",
+      "@utils": "/src/utils"
     }
   }
 }
@@ -455,15 +527,15 @@ src/
 
 Les contributions sont les bienvenues ! Merci de :
 
-1. Fork le projet
+1. Forker le projet
 2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit (`git commit -m "feat: description"`)
-4. Push (`git push origin feature/amelioration`)
+3. Committer (`git commit -m "feat: description"`)
+4. Pusher (`git push origin feature/amelioration`)
 5. Ouvrir une Pull Request
 
 ### Standards
 
-- **JSDoc** : Documenter toutes les fonctions (services, utils)
+- **JSDoc** : Documenter toutes les fonctions (services, utils, hooks)
 - **PropTypes** : Valider toutes les props (composants)
 - **Noms en français** : Variables et commentaires
 - **Composants < 200 lignes** : Principe de responsabilité unique
@@ -478,9 +550,10 @@ Les contributions sont les bienvenues ! Merci de :
 **Exemples** :
 
 ```bash
-git commit -m "feat(speed-selector): ajout options police et taille"
-git commit -m "fix(text-input): correction comptage mots avec lignes vides"
-git commit -m "refactor(services): extraction calculs vitesse"
+git commit -m "feat(share): ajout partage URL encodée directe"
+git commit -m "fix(index): correction chemin URL partage direct"
+git commit -m "refactor(speed-selector): extraction ShareModal"
+git commit -m "docs(readme): section partage v3.17.0"
 ```
 
 ---
@@ -488,9 +561,9 @@ git commit -m "refactor(services): extraction calculs vitesse"
 ## 📚 Documentation Complémentaire
 
 - **SRS.md** : Spécification complète des exigences
-- **ARCHITECTURE.md** : Guide architecture et bonnes pratiques (🆕 v3.9.0)
-- **DECISIONS.md** : Historique décisions architecturales - ADR (🆕 v3.9.0)
-- **CHANGELOG.md** : Historique des versions
+- **ARCHITECTURE.md** : Guide architecture et bonnes pratiques
+- **DECISIONS.md** : Historique décisions architecturales (ADR)
+- **CHANGELOG.md** : Historique des versions (v3.16.0 → v3.17.0)
 - **docs/INTEGRATION_GUIDE.md** : Guide d'intégration TextInputManager
 - **docs/JUSTIFICATION_PEDAGOGIQUE_AIDE.md** : Fondements pédagogiques du système d'aide
 
@@ -517,10 +590,10 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 - **Julie Meunier** (@petitejulie89) : Inspiration pédagogique initiale
 - **André Tricot** : Fondements scientifiques
 - **Ministère de l'Éducation Nationale** : Repères Eduscol
-- **Communauté open source** : React, Vite, Tailwind CSS
+- **Communauté open source** : React, Vite, Tailwind CSS, LZ-String
 
 ---
 
-**Dernière mise à jour** : 13 février 2026  
-**Version** : 3.9.0  
-**Status** : 🚀 En développement actif
+**Dernière mise à jour** : 18 février 2026  
+**Version** : 3.17.0  
+**Status** : ✅ Production-ready

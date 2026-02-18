@@ -8,6 +8,98 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) 
 
 ## [Non publié] - En cours
 
+## [3.16.3] - 2026-02-17
+
+### Improved
+
+#### Clarification UX : Terminologie des Réglages
+
+**Fichiers modifiés** :
+
+- `ShareModal.jsx` : Labels et descriptions des options de partage
+- `SpeedSelector.jsx` : Message affiché à l'élève
+- `helpContent.jsx` : Section d'aide pour les enseignants
+
+**Changements de terminologie** :
+
+- "Vitesse suggérée/imposée" → **"Réglages modifiables/imposés"**
+- Précision que TOUS les réglages sont concernés (vitesse + police + taille)
+- Messages plus clairs et pédagogiques
+
+**Libellés des boutons de partage** :
+
+- Bouton CodiMD : `☁️ CodiMD` (avec tooltip explicatif)
+- Bouton Direct : `⚡ Direct` (avec tooltip explicatif)
+- Tooltips riches au survol pour guider le choix
+
+**Impact** :
+
+- Meilleure compréhension par les enseignants de la portée du blocage
+- Clarté accrue pour les élèves sur leurs possibilités
+- Cohérence terminologique dans toute l'application
+
+---
+
+## [3.16.2] - 2026-02-17
+
+### Fixed
+
+#### Corrections Critiques : URLs et Blocage des Réglages
+
+**Bug 1 - URLs générées incorrectes** :
+
+- **Problème** : Les URLs de partage contenaient `/index.html` au lieu du pathname complet
+- **Impact** : Erreur 403 Restricted lors du clic sur les liens partagés
+- **Correction** : Utilisation de `window.location.pathname` dans `handleCodiMDShare` et `handleInlineShare`
+- **Résultat** : URLs correctes générées (`/lecture-flash/?url=...` et `/lecture-flash/?s=...`)
+
+**Bug 2 - allowStudentChanges non appliqué** :
+
+- **Problème** : Le choix "Réglages imposés" n'était pas respecté pour les liens encodés
+- **Impact** : L'élève pouvait toujours modifier les réglages même quand imposés
+- **Correction** :
+    - Ajout state `dynamicSpeedConfig` dans `index.jsx`
+    - Création de `speedConfig` depuis `decodedState.allowStudentChanges`
+    - Logique `locked = !allowStudentChanges` appliquée correctement
+- **Résultat** : Bouton "Modifier les réglages" correctement masqué quand `locked=true`
+
+**Fichier modifié** : `index.jsx` uniquement (~10 lignes)
+
+---
+
+## [3.16.1] - 2026-02-17
+
+### Added
+
+#### Décodage des Liens Encodés (Sprint 2)
+
+**Fonctionnalité** : Les élèves peuvent maintenant charger automatiquement une lecture depuis un lien encodé.
+
+**Implémentation** :
+
+- Import de `decodeReadingStateFromParam` depuis `urlSharing.js`
+- Extraction du paramètre `s` depuis l'URL
+- Nouveau useEffect pour décoder automatiquement l'état au chargement
+- Application du texte, vitesse, police et taille depuis l'état décodé
+- Conversion `fontSizePx` → `taille%` (formule inverse : `taille% = fontSizePx / 0.48`)
+- Passage automatique à l'étape 3 (lecture)
+- Gestion d'erreurs pour liens invalides ou corrompus
+
+**Workflow complet enseignant → élève** :
+
+1. Enseignant génère lien avec "Réglages imposés" (Sprint 1)
+2. Élève clique sur le lien
+3. Application décode automatiquement le texte et les réglages
+4. Charge directement l'étape 3 avec lecture prête
+5. Si réglages imposés : aucune modification possible
+6. Si réglages modifiables : élève peut ajuster les paramètres
+
+**Fichier modifié** : `index.jsx` (+60 lignes)
+
+**Limitation** : Sprint 1 + Sprint 2 ensemble forment une **fonctionnalité complète end-to-end**.
+
+---
+
 ## [3.16.0] - 2026-02-17
 
 ### Added

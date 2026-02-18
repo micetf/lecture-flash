@@ -11,6 +11,7 @@ import LectureFlash from "./LectureFlash";
 import Navbar from "./Navbar";
 import Contact from "./Navbar/Contact";
 import Paypal from "./Navbar/Paypal";
+import HelpButton from "./HelpButton.jsx";
 
 /**
  * Composant App
@@ -26,6 +27,18 @@ function App() {
                 path={path}
                 tool={tool}
                 right={[
+                    <button
+                        key="help"
+                        onClick={() =>
+                            window.open(
+                                "https://micetf.fr/lecture-flash",
+                                "_blank"
+                            )
+                        }
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+                    >
+                        Lecture Flash - V0
+                    </button>,
                     <Paypal key="paypal" />,
                     <Contact key="contact" tool={tool} />,
                 ]}

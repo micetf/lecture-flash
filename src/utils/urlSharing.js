@@ -110,17 +110,16 @@ function convertPixelsToTaille(fontSizePx) {
 export function buildSharedReadingState(
     appState,
     optionsAffichage,
-    theme = "light",
-    allowStudentChanges = true
+    theme,
+    allowStudentChanges
 ) {
     return {
-        v: CURRENT_VERSION,
         text: appState.text,
         speedWpm: appState.speedWpm,
         font: optionsAffichage.police,
-        fontSizePx: convertTailleToPixels(optionsAffichage.taille),
-        theme: theme,
-        allowStudentChanges: allowStudentChanges,
+        fontSizePx: Math.round(optionsAffichage.taille * 0.48),
+        theme: theme || "light",
+        allowStudentChanges: allowStudentChanges !== false,
     };
 }
 

@@ -147,13 +147,14 @@ function SpeedSelector({
             {speedConfig && !speedConfig.locked && (
                 <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
                     <p className="text-yellow-800 font-semibold">
-                        ⭐ Vitesse recommandée pour cette activité :{" "}
-                        {speedConfig.speed} MLM (
-                        {getSpeedLevel(speedConfig.speed)})
+                        ⭐ Réglages recommandés pour cette activité
                     </p>
                     <p className="text-sm text-yellow-700 mt-2">
-                        💡 Votre enseignant a pré-sélectionné cette vitesse,
-                        mais vous pouvez en choisir une autre si besoin.
+                        💡 Votre enseignant a pré-configuré la vitesse (
+                        {speedConfig.speed} MLM -{" "}
+                        {getSpeedLevel(speedConfig.speed)}), la police et la
+                        taille de caractères. Vous pouvez les modifier si
+                        besoin.
                     </p>
                 </div>
             )}
