@@ -167,25 +167,58 @@ export const ENSEIGNANT_ETAPE_2 = {
         },
         {
             icon: "🔗",
-            title: "Partager un exercice (CodiMD uniquement)",
+            title: "Partager un exercice",
             content: (
                 <>
                     <p className="mb-3">
-                        Si votre texte provient de CodiMD, vous pouvez générer
-                        un <strong>lien de partage</strong> pour vos élèves avec
-                        2 modes :
+                        Vous pouvez générer un <strong>lien de partage</strong>{" "}
+                        pour vos élèves avec <strong>deux méthodes</strong> :
                     </p>
-                    <ul className="list-disc list-inside space-y-2 ml-4">
-                        <li>
-                            <strong>Vitesse suggérée</strong> : L'élève peut
-                            modifier la vitesse et les options d'affichage
-                        </li>
-                        <li>
-                            <strong>Vitesse imposée</strong> : La lecture
-                            démarre automatiquement sans possibilité de
-                            modification
-                        </li>
-                    </ul>
+
+                    <div className="mb-4">
+                        <p className="font-medium text-gray-900 mb-2">
+                            ☁️ <strong>CodiMD</strong> (textes longs)
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                            <li>Texte stocké en ligne sur CodiMD</li>
+                            <li>Idéal pour bibliothèque de lectures</li>
+                            <li>
+                                Disponible uniquement si texte chargé depuis
+                                CodiMD
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="mb-4">
+                        <p className="font-medium text-gray-900 mb-2">
+                            ⚡ <strong>Direct</strong> (textes courts)
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
+                            <li>Texte compressé directement dans le lien</li>
+                            <li>Partage rapide sans stockage externe</li>
+                            <li>
+                                Limité aux textes de moins de 2000 caractères
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                        <p className="font-medium text-blue-900 mb-2">
+                            🔧 Deux modes de partage :
+                        </p>
+                        <ul className="text-sm space-y-2 text-blue-800">
+                            <li>
+                                <strong>💡 Réglages modifiables</strong> :
+                                L'élève peut ajuster la vitesse, la police et la
+                                taille de caractères
+                            </li>
+                            <li>
+                                <strong>🔒 Réglages imposés</strong> : La
+                                lecture démarre automatiquement avec vos
+                                réglages, sans possibilité de modification
+                            </li>
+                        </ul>
+                    </div>
                 </>
             ),
         },

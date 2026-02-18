@@ -41,6 +41,7 @@ import useMarkdownFromUrl from "../../hooks/useMarkdownFromUrl";
 import useFullscreen from "../../hooks/useFullscreen";
 import useInlineShareLink from "../../hooks/useInlineShareLink";
 import { copyToClipboard } from "../../services/urlGeneration";
+import { decodeReadingStateFromParam } from "../../utils/urlSharing";
 
 function LectureFlash() {
     // ========================================
@@ -73,7 +74,7 @@ function LectureFlash() {
         police: "default",
         taille: 100,
     });
-
+    const [dynamicSpeedConfig, setDynamicSpeedConfig] = useState(null);
     // Key pour forcer remount de TextInputManager
     const [textInputKey, setTextInputKey] = useState(0);
 
@@ -90,15 +91,17 @@ function LectureFlash() {
     const lockedParam = params.get("locked");
     const policeParam = params.get("police");
     const tailleParam = params.get("taille");
+    const encodedStateParam = params.get("s");
 
     // Configuration vitesse si présente dans URL
     const speedConfig =
-        speedParam && lockedParam
+        dynamicSpeedConfig ||
+        (speedParam && lockedParam
             ? {
                   speed: parseInt(speedParam),
                   locked: lockedParam === "true",
               }
-            : null;
+            : null);
 
     // Contexte pour HelpModal
     const isEleve = !!speedConfig;
@@ -170,6 +173,59 @@ function LectureFlash() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [speedConfig, markdownText, policeParam, tailleParam, hasLoadedFromUrl]);
+
+    /**
+     * ✨ NOUVEAU Sprint 2 : Décodage du lien encodé
+     * Applique l'état si paramètre 's' présent dans l'URL
+     */
+    useEffect(() => {
+        if (encodedStateParam && !hasLoadedFromUrl) {
+            try {
+                const decodedState =
+                    decodeReadingStateFromParam(encodedStateParam);
+
+                if (decodedState) {
+                    // Appliquer le texte et la vitesse
+                    setAppState({
+                        text: decodedState.text,
+                        speedWpm: decodedState.speedWpm,
+                    });
+
+                    // Conversion fontSizePx → taille% (formule inverse)
+                    const taillePourcent = Math.round(
+                        decodedState.fontSizePx / 0.48
+                    );
+
+                    setOptionsAffichage({
+                        police: decodedState.font,
+                        taille: taillePourcent,
+                    });
+
+                    // Forcer localStorage pour DisplayOptions
+                    localStorage.setItem(
+                        "lecture-flash-font-settings",
+                        JSON.stringify({
+                            police: decodedState.font,
+                            taille: taillePourcent,
+                        })
+                    );
+                    setDynamicSpeedConfig({
+                        speed: decodedState.speedWpm,
+                        locked: !decodedState.allowStudentChanges, // locked = inverse de allowStudentChanges
+                    });
+                    // Passer directement à la lecture (étape 3)
+                    setCurrentStep(3);
+                    setHasLoadedFromUrl(true);
+                }
+            } catch (error) {
+                console.error("Erreur décodage lien encodé:", error);
+                alert(
+                    "Le lien est invalide ou corrompu. " +
+                        "Veuillez demander un nouveau lien à votre enseignant."
+                );
+            }
+        }
+    }, [encodedStateParam, hasLoadedFromUrl]);
 
     // ========================================
     // HANDLERS
@@ -280,7 +336,7 @@ function LectureFlash() {
                 taille: optionsAffichage.taille.toString(),
             });
 
-            const baseUrl = `${window.location.origin}/index.html`;
+            const baseUrl = `${window.location.origin}${window.location.pathname}/index.html`;
             const shareUrl = `${baseUrl}?${params.toString()}`;
 
             // Copie dans le presse-papier (service)
@@ -308,7 +364,7 @@ function LectureFlash() {
                 "../../utils/urlSharing"
             );
 
-            const baseReadingUrl = `${window.location.origin}/index.html`;
+            const baseReadingUrl = `${window.location.origin}${window.location.pathname}/index.html`;
 
             const shareUrl = buildInlineShareUrl(
                 baseReadingUrl,
@@ -524,30 +580,34 @@ function LectureFlash() {
                             </button>
                         )}
 
-                        {/* ✨ NOUVEAU : Bouton Partage Encodé */}
+                        {/* Bouton Partage Encodé */}
                         {!speedConfig && canShareInline && (
-                            <button
-                                onClick={() => setShowShareInlineModal(true)}
-                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium text-sm"
-                                aria-label="Générer un lien rapide sans stockage"
-                            >
-                                🔗 Lien rapide
-                            </button>
+                            <Tooltip content="Lien compressé • Textes courts (<2000 car.) • Partage rapide sans stockage externe">
+                                <button
+                                    onClick={() =>
+                                        setShowShareInlineModal(true)
+                                    }
+                                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium text-sm"
+                                >
+                                    ⚡ Direct
+                                </button>
+                            </Tooltip>
                         )}
 
                         {/* Bouton Partage CodiMD */}
                         {!speedConfig &&
                             sourceUrl &&
                             isCodiMDTextUnmodified && (
-                                <button
-                                    onClick={() =>
-                                        setShowShareCodiMDModal(true)
-                                    }
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
-                                    aria-label="Générer un lien de partage CodiMD"
-                                >
-                                    🔗 Partager
-                                </button>
+                                <Tooltip content="Stockage CodiMD • Textes longs • Bibliothèque de lectures permanente">
+                                    <button
+                                        onClick={() =>
+                                            setShowShareCodiMDModal(true)
+                                        }
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm"
+                                    >
+                                        ☁️ CodiMD
+                                    </button>
+                                </Tooltip>
                             )}
                     </>
                 )}
